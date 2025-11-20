@@ -30,27 +30,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
             throw new Exception("Le montant doit être supérieur à 0");
         }
 
-        // Récupérer le solde actuel caisse (utilisé uniquement si source = transactions)
+        // Récupérer le solde actuel
         $stmt = $conn->prepare("SELECT COALESCE(MAX(solde), 0) as solde FROM transactions");
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $solde_actuel = floatval($result['solde']);
         
-        writeLog("Solde caisse actuel avant paiement: " . $solde_actuel);
+        writeLog("Solde actuel avant paiement: " . $solde_actuel);
 
-        if ($source_paiement === 'transactions') {
-            // Vérifier si le solde caisse est suffisant
-            if ($solde_actuel < $montant) {
-                throw new Exception("Solde insuffisant pour effectuer ce paiement. Solde actuel : " . number_format($solde_actuel, 0, ',', ' ') . " FCFA");
-            }
-
-            // Calculer le nouveau solde caisse
-            $nouveau_solde = $solde_actuel - $montant;
-        } else {
-            // Paiement par financement : le solde caisse ne bouge pas
-            $nouveau_solde = $solde_actuel;
+        // Vérifier si le solde est suffisant
+        if ($solde_actuel < $montant) {
+            throw new Exception("Solde insuffisant pour effectuer ce paiement. Solde actuel : " . number_format($solde_actuel, 0, ',', ' ') . " FCFA");
         }
-        writeLog("Nouveau solde caisse calculé: " . $nouveau_solde);
+
+        // Calculer le nouveau solde
+        $nouveau_solde = $solde_actuel - $montant;
+        writeLog("Nouveau solde calculé: " . $nouveau_solde);
 
         // Variables pour le reçu
         $id_document = null;
@@ -217,45 +212,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
             writeLog("Demande #$id_demande mise à jour avec montant_payer=$nouveau_montant_paye, montant_reste=$nouveau_montant_reste, statut=$nouveau_statut");
         }
 
-        // À ce stade, $id_agent doit être renseigné (agent du ticket/bordereau/demande)
-        if ($id_agent !== null) {
-            // Récupérer le solde et le nombre de lignes de financement pour cet agent
-            $stmt = $conn->prepare("SELECT COALESCE(SUM(montant), 0) AS montant_total, COUNT(*) AS nb_lignes FROM financement WHERE id_agent = ?");
-            $stmt->execute([$id_agent]);
-            $financement_agent = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $solde_financement = floatval($financement_agent['montant_total']);
-            $nb_lignes_financement = intval($financement_agent['nb_lignes']);
-            writeLog("Financement agent #$id_agent => solde=" . $solde_financement . ", nb_lignes=" . $nb_lignes_financement . ", source initiale=" . $source_paiement);
-
-            // Règle métier : si l'agent a au moins un financement, on force l'utilisation du financement
-            if ($nb_lignes_financement > 0 || $solde_financement > 0) {
-                $source_paiement = 'financement';
-                writeLog("Source de paiement forcée à 'financement' pour l'agent #$id_agent");
-            }
-
-            // Si la source est financement, enregistrer un mouvement négatif (le solde peut devenir nul ou négatif)
-            if ($source_paiement === 'financement') {
-                // Générer un nouveau Numero_financement
-                $stmt = $conn->query("SELECT MAX(Numero_financement) AS max_num FROM financement");
-                $result_num = $stmt->fetch(PDO::FETCH_ASSOC);
-                $nouveau_numero_financement = ($result_num['max_num'] ?? 0) + 1;
-
-                // Enregistrer le mouvement négatif sur le financement
-                $sqlFin = "INSERT INTO financement (Numero_financement, id_agent, montant, motif, date_financement)
-                           VALUES (:numero, :id_agent, :montant, :motif, NOW())";
-                $stmtFin = $conn->prepare($sqlFin);
-                $montant_negatif = -$montant;
-                $motif_fin = "Paiement " . ($type_document === 'demande' ? 'de la ' : 'du ') . $type_document . " " . $numero_document;
-                $stmtFin->bindParam(':numero', $nouveau_numero_financement);
-                $stmtFin->bindParam(':id_agent', $id_agent, PDO::PARAM_INT);
-                $stmtFin->bindParam(':montant', $montant_negatif);
-                $stmtFin->bindParam(':motif', $motif_fin);
-                $stmtFin->execute();
-                writeLog("Financement de l'agent #$id_agent diminué de $montant (Numéro financement $nouveau_numero_financement)");
-            }
-        }
-
         // Créer la transaction
         $motifs = "Paiement " . ($type_document === 'demande' ? "de la" : "du") . " " . $type_document . " " . $numero_document;
         $stmt = $conn->prepare("
@@ -275,9 +231,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
                 :solde
             )
         ");
-        $montant_transaction = ($source_paiement === 'transactions') ? $montant : 0;
-
-        $stmt->bindValue(':montant', $montant_transaction, PDO::PARAM_STR);
+        
+        $stmt->bindValue(':montant', $montant, PDO::PARAM_STR);
         $stmt->bindValue(':motifs', $motifs, PDO::PARAM_STR);
         $stmt->bindValue(':id_utilisateur', $_SESSION['user_id'], PDO::PARAM_INT);
         $stmt->bindValue(':solde', $nouveau_solde, PDO::PARAM_STR);

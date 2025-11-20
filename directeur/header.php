@@ -1007,6 +1007,14 @@ if (!isset($_SESSION['user_id'])) {
                     <p>Montant Usines</p>
                   </a>
                 </li>
+
+                <li class="nav-item">
+                  <a href="comptes_agents.php" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <p>Comptes agents</p>
+                  </a>
+                </li>
+                
                 
                 <li class="nav-item">
                   <a href="recus.php" class="nav-link">

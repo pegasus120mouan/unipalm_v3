@@ -45,7 +45,7 @@ class PDF extends FPDF {
     function Header() {}
     function Footer() {}
 
-    function genererRecu($y_start, $logo_path, $paiement, $numero_recu, $numero_document, $type_document, $montant_total_format, $montant_actuel_format, $montant_deja_paye_format, $reste_a_payer_format) {
+    function genererRecu($y_start, $logo_path, $paiement, $numero_recu, $numero_document, $type_document, $montant_total_format, $montant_actuel_format, $montant_deja_paye_format, $reste_a_payer_format, $source_paiement = '', $numero_cheque = '') {
         // Logo
         if (file_exists($logo_path)) {
             $this->Image($logo_path, 10, $y_start, 30); // Logo à gauche
@@ -133,6 +133,27 @@ class PDF extends FPDF {
         $this->SetFont('Arial', 'B', 10);
         $this->Cell(150, 6, $montant_actuel_format . ' FCFA', 0, 1, 'L');
     
+        // Source de paiement avec numéro de chèque sur la même ligne
+        if (!empty($source_paiement)) {
+            $y += 6;
+            $this->SetFont('Arial', '', 10);
+            $this->SetXY(10, $y);
+            $this->Cell(40, 6, 'Source de paiement:', 0, 0, 'L');
+            $this->SetFont('Arial', 'B', 10);
+            
+            if ($source_paiement === 'cheque' && !empty($numero_cheque)) {
+                // Afficher "Chèque" en gras puis "N° xxxxxxxxxxxx" en italique
+                $this->SetFont('Arial', 'B', 10);
+                $this->Cell(20, 6, utf8_decode('Chèque '), 0, 0, 'L');
+                $this->SetFont('Arial', 'I', 10);
+                $this->Cell(130, 6, utf8_decode('N° ') . $numero_cheque, 0, 1, 'L');
+            } else {
+                $source_text = ($source_paiement === 'transactions') ? 'Caisse' : 
+                              (($source_paiement === 'cheque') ? utf8_decode('Chèque') : 'Financement');
+                $this->Cell(150, 6, $source_text, 0, 1, 'L');
+            }
+        }
+    
         $y += 6;
         $this->SetFont('Arial', '', 10);
         $this->SetXY(10, $y);
@@ -164,8 +185,14 @@ class PDF extends FPDF {
         $this->SetXY(120, $y);
         $this->Cell(70, 6, utf8_decode($paiement['nom_agent']), 0, 1, 'C');
         
+        // Date et lieu (AVANT la ligne de découpage)
+        $y += 10;
+        $this->SetFont('Arial', 'I', 8);
+        $this->SetXY(10, $y);
+        $this->Cell(190, 6, utf8_decode('Fait à Abidjan, le ') . date('d/m/Y'), 0, 1, 'C');
+        
         // Séparateur avec pointillés "DÉCOUPER ICI"
-        $y += 15;
+        $y += 10;
         $this->SetFont('Arial', '', 8);
         $this->SetTextColor(128, 128, 128); // Couleur grise
         
@@ -184,12 +211,6 @@ class PDF extends FPDF {
         }
         
         $this->SetTextColor(0, 0, 0); // Remettre la couleur noire
-        
-        // Date et lieu
-        $y += 10;
-        $this->SetFont('Arial', 'I', 8);
-        $this->SetXY(10, $y);
-        $this->Cell(190, 6, utf8_decode('Fait à Abidjan, le ') . date('d/m/Y'), 0, 1, 'C');
     }
     
     function RotatedText($x, $y, $txt, $angle) {
@@ -256,6 +277,8 @@ if ($reimprimer) {
     $montant_deja_paye = $recu['montant_precedent'];
     $reste_a_payer = $recu['reste_a_payer'];
     $numero_recu = $recu['numero_recu'];
+    $source_paiement = $recu['source_paiement'] ?? '';
+    $numero_cheque = $recu['numero_cheque'] ?? '';
     
     $paiement = [
         'nom_agent' => $recu['nom_agent'],
@@ -276,8 +299,12 @@ if ($reimprimer) {
 
     $montant_actuel = floatval($_SESSION['montant_paiement']);
     $numero_recu = $_SESSION['numero_recu'];
+    $source_paiement = $_SESSION['source_paiement'] ?? '';
+    $numero_cheque = $_SESSION['numero_cheque'] ?? '';
     unset($_SESSION['montant_paiement']);
     unset($_SESSION['numero_recu']);
+    unset($_SESSION['source_paiement']);
+    unset($_SESSION['numero_cheque']);
 
     // Récupérer les informations du paiement
     if (isset($_GET['id_ticket'])) {
@@ -329,6 +356,14 @@ if ($reimprimer) {
         $montant_deja_paye = floatval($paiement['montant_payer']) - $montant_actuel;
         $reste_a_payer = $montant_total - floatval($paiement['montant_payer']);
     }
+    
+    // Initialiser source_paiement et numero_cheque si pas définis
+    if (!isset($source_paiement)) {
+        $source_paiement = '';
+    }
+    if (!isset($numero_cheque)) {
+        $numero_cheque = '';
+    }
 }
 
 // Si le paiement n'existe pas
@@ -361,8 +396,8 @@ $pdf->SetAutoPageBreak(false);
 $logo_path = $root_path . '/dist/img/logo.png';
 
 // Générer deux exemplaires
-$pdf->genererRecu(10, $logo_path, $paiement, $numero_recu, $numero_document, $type_document, $montant_total_format, $montant_actuel_format, $montant_deja_paye_format, $reste_a_payer_format);
-$pdf->genererRecu(150, $logo_path, $paiement, $numero_recu, $numero_document, $type_document, $montant_total_format, $montant_actuel_format, $montant_deja_paye_format, $reste_a_payer_format);
+$pdf->genererRecu(10, $logo_path, $paiement, $numero_recu, $numero_document, $type_document, $montant_total_format, $montant_actuel_format, $montant_deja_paye_format, $reste_a_payer_format, $source_paiement, $numero_cheque);
+$pdf->genererRecu(150, $logo_path, $paiement, $numero_recu, $numero_document, $type_document, $montant_total_format, $montant_actuel_format, $montant_deja_paye_format, $reste_a_payer_format, $source_paiement, $numero_cheque);
 
 // Sortie du PDF
 ob_end_clean();

@@ -6,9 +6,25 @@ require_once '../inc/functions/requete/requete_chef_equipes.php';
 require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
 
-include('header_caisse.php');
+include('header.php');
 
-$limit = $_GET['limit'] ?? 15;
+// Afficher le loader immédiatement avec styles inline de secours
+echo '<style>
+#pageLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+.spinner-circle { width: 80px; height: 80px; border: 4px solid rgba(26,188,156,0.2); border-top: 4px solid #1abc9c; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+.loading-text { color: #1abc9c; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+<div id="pageLoader" style="display: flex;">
+    <div class="spinner-circle"></div>
+    <div class="loading-text">Chargement des tickets en attente...</div>
+</div>';
+
+// Forcer le flush du contenu pour afficher le loader immédiatement
+if (ob_get_level()) ob_flush();
+flush();
+
+$limit = $_GET['limit'] ?? 50; // Limite plus élevée pour les tickets en attente
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
 // Récupérer les paramètres de filtrage
@@ -20,12 +36,18 @@ $search_agent = $_GET['search_agent'] ?? '';
 $search_usine = $_GET['search_usine'] ?? '';
 $numero_ticket = $_GET['numero_ticket'] ?? '';
 
-// Récupérer les tickets en attente avec les filtres
-$tickets = getTicketsAttente($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket);
+// Calculer le nombre total de tickets (pour la pagination) directement en SQL
+$total_tickets = countTicketsAttente($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket);
+$total_pages = $total_tickets > 0 ? ceil($total_tickets / $limit) : 1;
+$page = max(1, min($page, $total_pages));
+$offset = ($page - 1) * $limit;
 
-// Filtrer les tickets si un terme de recherche est présent
+// Récupérer uniquement les tickets de la page courante avec LIMIT/OFFSET (limite: 50 par page)
+$tickets_list = getTicketsAttente($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket, null, $limit, $offset);
+
+// Filtrer les tickets si un terme de recherche texte est présent (en PHP pour flexibilité)
 if (!empty($search_agent) || !empty($search_usine)) {
-    $tickets = array_filter($tickets, function($ticket) use ($search_agent, $search_usine) {
+    $tickets_list = array_filter($tickets_list, function($ticket) use ($search_agent, $search_usine) {
         $match = true;
         if (!empty($search_agent)) {
             $match = $match && stripos($ticket['agent_nom_complet'], $search_agent) !== false;
@@ -37,14 +59,8 @@ if (!empty($search_agent) || !empty($search_usine)) {
     });
 }
 
-// Calculer la pagination
-$total_tickets = count($tickets);
-$total_pages = ceil($total_tickets / $limit);
-$page = max(1, min($page, $total_pages));
-$offset = ($page - 1) * $limit;
-
-// Extraire les tickets pour la page courante
-$tickets_list = array_slice($tickets, $offset, $limit);
+// Pour compatibilité avec le reste du fichier
+$tickets = $tickets_list;
 
 // Récupérer les listes pour l'autocomplétion
 $agents = getAgents($conn);
@@ -334,7 +350,7 @@ function toggleFilters() {
 // Fonction pour appliquer les filtres avec animation
 function appliquerFiltres() {
     // Afficher le loader moderne
-    showModernLoader();
+    showModernLoader('Application des filtres...');
     
     const agent_id = document.getElementById('agent_select').value;
     const usine_id = document.getElementById('usine_select').value;
@@ -401,24 +417,35 @@ function clearAllFilters() {
 }
 
 // Fonction pour afficher le loader moderne
-function showModernLoader() {
-    const loader = document.getElementById('modernLoader');
-    const table = document.querySelector('.modern-table-wrapper');
-    
-    if (loader && table) {
-        loader.style.display = 'flex';
-        table.style.opacity = '0.5';
-    }
+function showModernLoader(message = 'Traitement en cours...') {
+    showPageLoader(message);
 }
 
 // Fonction pour masquer le loader moderne
 function hideModernLoader() {
-    const loader = document.getElementById('modernLoader');
-    const table = document.querySelector('.modern-table-wrapper');
-    
-    if (loader && table) {
-        loader.style.display = 'none';
-        table.style.opacity = '1';
+    hidePageLoader();
+}
+
+// Fonction pour ajouter un loader à un bouton
+function addButtonLoader(buttonElement, message = 'Traitement...') {
+    if (buttonElement) {
+        buttonElement.classList.add('btn-loading');
+        buttonElement.disabled = true;
+        const originalText = buttonElement.innerHTML;
+        buttonElement.setAttribute('data-original-text', originalText);
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>' + message;
+    }
+}
+
+// Fonction pour retirer le loader d'un bouton
+function removeButtonLoader(buttonElement) {
+    if (buttonElement) {
+        buttonElement.classList.remove('btn-loading');
+        buttonElement.disabled = false;
+        const originalText = buttonElement.getAttribute('data-original-text');
+        if (originalText) {
+            buttonElement.innerHTML = originalText;
+        }
     }
 }
 
@@ -486,22 +513,95 @@ function updateBulkActions() {
 
 // Fonction pour valider tous les tickets sélectionnés
 function validerTousLesTickets() {
+    const selectedTickets = [];
+    $('.ticket-checkbox:checked').each(function() {
+        selectedTickets.push($(this).val());
+    });
+
     if (selectedTickets.length === 0) {
-        showNotification('Veuillez sélectionner au moins un ticket', 'warning');
+        alert('Veuillez sélectionner au moins un ticket à valider');
         return;
     }
     
-    if (confirm(`Êtes-vous sûr de vouloir valider ${selectedTickets.length} ticket(s) ?`)) {
-        showModernLoader();
-        
-        // Simulation d'une requête AJAX
-        setTimeout(() => {
-            showNotification(`${selectedTickets.length} ticket(s) validé(s) avec succès!`, 'success');
-            hideModernLoader();
-            // Recharger la page ou mettre à jour l'interface
-            location.reload();
-        }, 2000);
+    // Mettre à jour le message du modal avec le nombre de tickets sélectionnés
+    $('#ticketCountMessage').text(selectedTickets.length + ' ticket(s) sélectionné(s)');
+    
+    // Ouvrir le modal de saisie du prix unitaire
+    $('#prixUnitaireModal').modal('show');
+}
+
+// Fonction pour confirmer la validation avec le prix unitaire saisi
+function confirmerValidationAvecPrix() {
+    const prixUnitaire = $('#prixUnitaire').val();
+    const updateAllUsine = $('#updateAllUsine').is(':checked');
+    
+    if (!prixUnitaire || prixUnitaire <= 0) {
+        alert('Veuillez saisir un prix unitaire valide');
+        return;
     }
+    
+    const selectedTickets = [];
+    $('.ticket-checkbox:checked').each(function() {
+        selectedTickets.push($(this).val());
+    });
+    
+    if (selectedTickets.length === 0) {
+        alert('Aucun ticket sélectionné');
+        return;
+    }
+    
+    // Fermer le modal
+    $('#prixUnitaireModal').modal('hide');
+    
+    // Afficher le loader de traitement
+    showProcessingLoader(updateAllUsine);
+    
+    // Envoyer la requête AJAX pour valider les tickets avec le prix unitaire
+    $.ajax({
+        url: 'valider_tickets.php',
+        method: 'POST',
+        data: {
+            ticket_ids: selectedTickets,
+            prix_unitaire: prixUnitaire,
+            is_mass_validation: true,
+            update_all_usine: updateAllUsine ? 1 : 0
+        },
+        success: function(response) {
+            try {
+                const data = typeof response === 'string' ? JSON.parse(response) : response;
+                
+                if (data.success) {
+                    // Simuler un temps de traitement pour montrer l'animation
+                    setTimeout(() => {
+                        hideProcessingLoader();
+                        
+                        // Afficher un message de succès personnalisé
+                        let message = data.message;
+                        if (updateAllUsine && data.usines_updated && data.usines_updated.length > 0) {
+                            message += '\n\n✅ Mise à jour automatique appliquée aux autres tickets des mêmes usines.';
+                        }
+                        
+                        showSuccessMessage(message, () => {
+                            window.location.reload();
+                        });
+                    }, updateAllUsine ? 3000 : 1500); // Plus de temps si mise à jour par usine
+                } else {
+                    hideProcessingLoader();
+                    alert(data.message || 'Erreur lors de la validation des tickets');
+                }
+            } catch (e) {
+                console.error('Erreur de parsing:', e);
+                hideProcessingLoader();
+                alert('Erreur lors du traitement de la réponse');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Erreur:', error);
+            console.error('Response:', xhr.responseText);
+            hideProcessingLoader();
+            alert('Erreur lors de la validation des tickets: ' + error);
+        }
+    });
 }
 
 // Fonction pour rejeter la sélection
@@ -574,14 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialiser Select2 si disponible
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-        $('#agent_select, #usine_select').select2({
-            theme: 'bootstrap4',
-            placeholder: 'Sélectionner...',
-            allowClear: true
-        });
-    }
+    // Select2 sera initialisé dans le script principal plus bas
     
     // Masquer le loader au chargement
     hideModernLoader();
@@ -639,6 +732,130 @@ function initializeSorting() {
 
 // Initialiser le tri au chargement
 document.addEventListener('DOMContentLoaded', initializeSorting);
+
+// Fonction pour afficher le loader de traitement avec animation
+function showProcessingLoader(isUsineUpdate = false) {
+    const loaderHtml = `
+        <div id="processingLoader" class="processing-loader-overlay">
+            <div class="processing-loader-content">
+                <div class="processing-animation">
+                    <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                </div>
+                <div class="processing-text">
+                    <h4 class="text-primary mb-2">
+                        <i class="fas fa-cog fa-spin me-2"></i>
+                        Traitement en cours...
+                    </h4>
+                    <p class="text-muted mb-0" id="processingMessage">
+                        ${isUsineUpdate ? 
+                            'Validation des tickets et mise à jour automatique par usine...' : 
+                            'Validation des tickets sélectionnés...'}
+                    </p>
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                             role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('body').append(loaderHtml);
+    
+    // Animation de la barre de progression
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 90) progress = 90;
+        
+        $('#processingLoader .progress-bar').css('width', progress + '%');
+        
+        if (progress > 50 && isUsineUpdate) {
+            $('#processingMessage').text('Mise à jour des tickets de la même usine...');
+        }
+    }, 200);
+    
+    // Stocker l'interval pour pouvoir l'arrêter
+    $('#processingLoader').data('progressInterval', progressInterval);
+}
+
+// Fonction pour masquer le loader de traitement
+function hideProcessingLoader() {
+    const loader = $('#processingLoader');
+    if (loader.length) {
+        // Arrêter l'animation de progression
+        const progressInterval = loader.data('progressInterval');
+        if (progressInterval) {
+            clearInterval(progressInterval);
+        }
+        
+        // Compléter la barre de progression
+        loader.find('.progress-bar').css('width', '100%');
+        
+        // Masquer avec animation
+        setTimeout(() => {
+            loader.fadeOut(300, function() {
+                $(this).remove();
+            });
+        }, 500);
+    }
+}
+
+// Fonction pour afficher un message de succès personnalisé
+function showSuccessMessage(message, callback) {
+    const successHtml = `
+        <div id="successMessage" class="success-message-overlay">
+            <div class="success-message-content">
+                <div class="success-animation">
+                    <div class="success-checkmark">
+                        <div class="check-icon">
+                            <span class="icon-line line-tip"></span>
+                            <span class="icon-line line-long"></span>
+                            <div class="icon-circle"></div>
+                            <div class="icon-fix"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="success-text">
+                    <h4 class="text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Opération réussie !
+                    </h4>
+                    <p class="text-muted mb-4">${message.replace(/\n/g, '<br>')}</p>
+                    <button type="button" class="btn btn-success" onclick="closeSuccessMessage()">
+                        <i class="fas fa-arrow-right me-2"></i>Continuer
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('body').append(successHtml);
+    
+    // Stocker le callback
+    window.successCallback = callback;
+    
+    // Auto-fermeture après 5 secondes
+    setTimeout(() => {
+        closeSuccessMessage();
+    }, 5000);
+}
+
+// Fonction pour fermer le message de succès
+function closeSuccessMessage() {
+    const successMessage = $('#successMessage');
+    if (successMessage.length) {
+        successMessage.fadeOut(300, function() {
+            $(this).remove();
+            if (window.successCallback) {
+                window.successCallback();
+                window.successCallback = null;
+            }
+        });
+    }
+}
 </script>
 
 <!-- Ajout du style pour l'autocomplétion -->
@@ -1288,7 +1505,6 @@ $(document).ready(function() {
 
 .results-count,
 .total-count {
-    font-weight: 700;
 }
 
 .bulk-actions {
@@ -1312,7 +1528,7 @@ $(document).ready(function() {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Loader moderne */
+/* Scripts modernes */
 .modern-loader {
     display: flex;
     justify-content: center;
@@ -1374,18 +1590,27 @@ $(document).ready(function() {
 .modern-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+.modern-table th {
+    padding: 1.2rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .table-head {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.table-head th {
+    background: var(--primary-gradient);
+    color: white;
     padding: 1rem 0.75rem;
     text-align: left;
     border-bottom: 2px solid #dee2e6;
-    font-weight: 700;
     color: var(--dark-color);
     position: relative;
 }
@@ -1491,16 +1716,18 @@ $(document).ready(function() {
 .createur-info {
     display: flex;
     align-items: center;
-    font-weight: 600;
-    color: var(--dark-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 1rem;
+    white-space: nowrap;
 }
 
 .status-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.6rem 1.2rem;
+    padding: 0.7rem 1.4rem;
     border-radius: 25px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 500;
     letter-spacing: 0.3px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -1570,7 +1797,6 @@ $(document).ready(function() {
 .usine-link {
     text-decoration: none;
     color: var(--primary-color);
-    font-weight: 600;
     transition: var(--transition);
 }
 
@@ -1587,11 +1813,10 @@ $(document).ready(function() {
 }
 
 .btn-action-table {
-    padding: 0.4rem 0.8rem;
+    padding: 0.6rem 1.2rem;
     border: none;
     border-radius: var(--border-radius);
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
     transition: var(--transition);
     display: flex;
@@ -1619,6 +1844,7 @@ $(document).ready(function() {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+
 /* Responsive */
 @media (max-width: 768px) {
     .page-header-content {
@@ -1642,7 +1868,7 @@ $(document).ready(function() {
     }
     
     .modern-table {
-        font-size: 0.8rem;
+        font-size: 1rem;
     }
     
     .action-buttons {
@@ -1652,6 +1878,97 @@ $(document).ready(function() {
     .active-filters-list {
         flex-direction: column;
     }
+}
+
+/* Amélioration de la lisibilité - Tailles de police plus grandes */
+.table tbody tr {
+    font-size: 1.1rem;
+}
+
+.table tbody td {
+    padding: 1.2rem;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.table thead th {
+    padding: 1.2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    font-size: 1.1rem !important;
+    padding: 0.8rem 1.5rem !important;
+}
+
+.btn-action-table {
+    font-size: 1.1rem !important;
+    padding: 0.7rem 1.3rem !important;
+}
+
+/* Responsive pour les nouvelles tailles */
+@media (max-width: 768px) {
+    .table tbody td, .table thead th {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+
+    .status-badge {
+        font-size: 1rem !important;
+        padding: 0.6rem 1.2rem !important;
+    }
+
+    .btn-action-table {
+        font-size: 1rem !important;
+        padding: 0.6rem 1rem !important;
+    }
+}
+
+/* Amélioration de la pagination */
+.pagination-container {
+    font-size: 1.2rem;
+    padding: 1.5rem;
+}
+
+.pagination-container .btn {
+    font-size: 1.1rem;
+    padding: 0.8rem 1.5rem;
+    margin: 0 0.5rem;
+}
+
+.pagination-container span {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Amélioration des filtres et labels */
+.filter-label {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.filter-input {
+    font-size: 1rem;
+    padding: 0.8rem 1rem;
+}
+
+.filter-tag-label {
+    font-size: 0.9rem;
+}
+
+.filter-tag-value {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+/* Amélioration des cartes statistiques */
+.stat-number {
+    font-size: 2.2rem;
+}
+
+.stat-label {
+    font-size: 1rem;
 }
 
 /* Animations d'entrée */
@@ -1678,29 +1995,7 @@ $(document).ready(function() {
 
 .stat-card:nth-child(1) { animation-delay: 0.1s; }
 .stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
-</style>
-
-  <style>
-        @media only screen and (max-width: 767px) {
-            
-            th {
-                display: none; 
-            }
-            tbody tr {
-                display: block;
-                margin-bottom: 20px;
-                border: 1px solid #ccc;
-                padding: 10px;
-            }
-            tbody tr td::before {
-
-                font-weight: bold;
-                margin-right: 5px;
-            }
         }
-        .margin-right-15 {
         margin-right: 15px;
        }
         .block-container {
@@ -1884,73 +2179,48 @@ $(document).ready(function() {
                                 <th class="sortable" data-sort="date">
                                     <div class="th-content">
                                         <span>Date Ticket</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
                                 <th class="sortable" data-sort="numero">
                                     <div class="th-content">
                                         <span>Numéro Ticket</span>
-                                        <i class="fas fa-sort sort-icon"></i>
+                                      
                                     </div>
                                 </th>
                                 <th class="sortable" data-sort="usine">
                                     <div class="th-content">
                                         <span>Usine</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
                                 <th class="sortable" data-sort="agent">
                                     <div class="th-content">
                                         <span>Chargé de Mission</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
                                 <th class="sortable" data-sort="vehicule">
                                     <div class="th-content">
                                         <span>Véhicule</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
                                 <th class="sortable" data-sort="poids">
                                     <div class="th-content">
                                         <span>Poids</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
-                                <th class="sortable" data-sort="createur">
-                                    <div class="th-content">
-                                        <span>Ticket Créé Par</span>
-                                        <i class="fas fa-sort sort-icon"></i>
-                                    </div>
-                                </th>
+
                                 <th class="sortable" data-sort="date_ajout">
                                     <div class="th-content">
                                         <span>Date Ajout</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
                                 <th class="sortable" data-sort="prix">
                                     <div class="th-content">
                                         <span>Prix Unitaire</span>
-                                        <i class="fas fa-sort sort-icon"></i>
-                                    </div>
-                                </th>
-                                <th class="sortable" data-sort="validation">
-                                    <div class="th-content">
-                                        <span>Date Validation</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
                                 <th class="sortable" data-sort="montant">
                                     <div class="th-content">
                                         <span>Montant</span>
-                                        <i class="fas fa-sort sort-icon"></i>
-                                    </div>
-                                </th>
-                                <th class="sortable" data-sort="paie">
-                                    <div class="th-content">
-                                        <span>Date Paie</span>
-                                        <i class="fas fa-sort sort-icon"></i>
                                     </div>
                                 </th>
                                 <th class="actions-column">
@@ -1973,7 +2243,6 @@ $(document).ready(function() {
                                         <td class="date-cell">
                                             <div class="cell-content">
                                                 <div class="date-badge">
-                                                    <i class="fas fa-calendar-alt me-2"></i>
                                                     <?= date('d/m/Y', strtotime($ticket['date_ticket'])) ?>
                                                 </div>
                                             </div>
@@ -1982,7 +2251,6 @@ $(document).ready(function() {
                                             <div class="cell-content">
                                                 <a href="#" class="ticket-link" data-toggle="modal" data-target="#ticketModal<?= $ticket['id_ticket'] ?>">
                                                     <div class="ticket-number">
-                                                        <i class="fas fa-ticket-alt me-2"></i>
                                                         <?= $ticket['numero_ticket'] ?>
                                                     </div>
                                                 </a>
@@ -1992,7 +2260,6 @@ $(document).ready(function() {
                                             <div class="cell-content">
                                                 <a href="javascript:void(0)" class="usine-link" onclick="showUsineTickets(<?= $ticket['id_usine'] ?>, '<?= addslashes($ticket['nom_usine']) ?>')">
                                                     <div class="usine-badge">
-                                                        <i class="fas fa-industry me-2"></i>
                                                         <?= $ticket['nom_usine'] ?>
                                                     </div>
                                                 </a>
@@ -2001,7 +2268,6 @@ $(document).ready(function() {
                                         <td class="agent-cell">
                                             <div class="cell-content">
                                                 <div class="agent-info">
-                                                    <i class="fas fa-user-tie me-2"></i>
                                                     <?= $ticket['agent_nom_complet'] ?>
                                                 </div>
                                             </div>
@@ -2009,7 +2275,6 @@ $(document).ready(function() {
                                         <td class="vehicule-cell">
                                             <div class="cell-content">
                                                 <div class="vehicule-badge">
-                                                    <i class="fas fa-truck me-2"></i>
                                                     <?= $ticket['matricule_vehicule'] ?>
                                                 </div>
                                             </div>
@@ -2017,24 +2282,14 @@ $(document).ready(function() {
                                         <td class="poids-cell">
                                             <div class="cell-content">
                                                 <div class="poids-value">
-                                                    <i class="fas fa-weight-hanging me-2"></i>
                                                     <?= $ticket['poids'] ?> kg
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="createur-cell">
-                                            <div class="cell-content">
-                                                <div class="createur-info">
-                                                    <i class="fas fa-user-plus me-2"></i>
-                                                    <?= $ticket['utilisateur_nom_complet'] ?>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="date-ajout-cell">
                                             <div class="cell-content">
                                                 <div class="date-badge">
-                                                    <i class="fas fa-plus-circle me-2"></i>
-                                                    <?= date('d/m/Y', strtotime($ticket['created_at'])) ?>
+                                                    <?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?>
                                                 </div>
                                             </div>
                                         </td>
@@ -2042,28 +2297,11 @@ $(document).ready(function() {
                                             <div class="cell-content">
                                                 <?php if ($ticket['prix_unitaire'] === null || $ticket['prix_unitaire'] == 0.00): ?>
                                                     <div class="status-badge status-pending">
-                                                        <i class="fas fa-clock me-2"></i>
-                                                        <span>En Attente de validation</span>
+                                                        <span>Attente</span>
                                                     </div>
                                                 <?php else: ?>
                                                     <div class="status-badge status-validated">
-                                                        <i class="fas fa-euro-sign me-2"></i>
-                                                        <span><?= $ticket['prix_unitaire'] ?> €</span>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                        <td class="validation-cell">
-                                            <div class="cell-content">
-                                                <?php if ($ticket['date_validation_boss'] === null): ?>
-                                                    <div class="status-badge status-in-progress">
-                                                        <i class="fas fa-spinner me-2"></i>
-                                                        <span>En cours</span>
-                                                    </div>
-                                                <?php else: ?>
-                                                    <div class="date-badge">
-                                                        <i class="fas fa-check-circle me-2"></i>
-                                                        <?= date('d/m/Y', strtotime($ticket['date_validation_boss'])) ?>
+                                                        <span><?= $ticket['prix_unitaire'] ?></span>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
@@ -2072,28 +2310,11 @@ $(document).ready(function() {
                                             <div class="cell-content">
                                                 <?php if ($ticket['montant_paie'] === null): ?>
                                                     <div class="status-badge status-waiting">
-                                                        <i class="fas fa-hourglass-half me-2"></i>
                                                         <span>En attente de PU</span>
                                                     </div>
                                                 <?php else: ?>
                                                     <div class="status-badge status-amount">
-                                                        <i class="fas fa-euro-sign me-2"></i>
-                                                        <span><?= $ticket['montant_paie'] ?> €</span>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                        <td class="paie-cell">
-                                            <div class="cell-content">
-                                                <?php if ($ticket['date_paie'] === null): ?>
-                                                    <div class="status-badge status-unpaid">
-                                                        <i class="fas fa-credit-card me-2"></i>
-                                                        <span>Paie non effectuée</span>
-                                                    </div>
-                                                <?php else: ?>
-                                                    <div class="date-badge">
-                                                        <i class="fas fa-money-check-alt me-2"></i>
-                                                        <?= date('d/m/Y', strtotime($ticket['date_paie'])) ?>
+                                                        <span><?= $ticket['montant_paie'] ?></span>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
@@ -2102,14 +2323,7 @@ $(document).ready(function() {
                                             <div class="cell-content">
                                                 <div class="action-buttons">
                                                     <button type="button" class="btn-action-table btn-validate" data-toggle="modal" data-target="#valider_un_ticket<?= $ticket['id_ticket'] ?>" title="Valider le ticket">
-                                                        <i class="fas fa-check"></i>
                                                         <span>Valider</span>
-                                                    </button>
-                                                    <button type="button" class="btn-action-table btn-view" onclick="viewTicketDetails(<?= $ticket['id_ticket'] ?>)" title="Voir les détails">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-action-table btn-reject" onclick="rejectTicket(<?= $ticket['id_ticket'] ?>)" title="Rejeter le ticket">
-                                                        <i class="fas fa-times"></i>
                                                     </button>
                                                 </div>
                                             </div>
@@ -2267,10 +2481,10 @@ function validerTicketsSelectionnes() {
         ?>
         <label for="limit">Afficher :</label>
         <select name="limit" id="limit" class="items-per-page-select" onchange="this.form.submit()">
-            <option value="15" <?= $limit == 15 ? 'selected' : '' ?>>15</option>
             <option value="25" <?= $limit == 25 ? 'selected' : '' ?>>25</option>
             <option value="50" <?= $limit == 50 ? 'selected' : '' ?>>50</option>
             <option value="100" <?= $limit == 100 ? 'selected' : '' ?>>100</option>
+            <option value="200" <?= $limit == 200 ? 'selected' : '' ?>>200</option>
         </select>
     </form>
   </div>
@@ -2529,41 +2743,41 @@ document.getElementById('searchByVehiculeForm').addEventListener('submit', funct
             <div class="col-md-6">
               <div class="info-group">
                 <label class="text-muted">Date du ticket:</label>
-                <p class="font-weight-bold"><?= date('d/m/Y', strtotime($ticket['date_ticket'])) ?></p>
+                <p><?= date('d/m/Y', strtotime($ticket['date_ticket'])) ?></p>
               </div>
               <div class="info-group">
                 <label class="text-muted">Usine:</label>
-                <p class="font-weight-bold"><?= $ticket['nom_usine'] ?></p>
+                <p><?= $ticket['nom_usine'] ?></p>
               </div>
               <div class="info-group">
                 <label class="text-muted">Agent:</label>
-                <p class="font-weight-bold"><?= $ticket['agent_nom_complet'] ?></p>
+                <p><?= $ticket['agent_nom_complet'] ?></p>
               </div>
               <div class="info-group">
                 <label class="text-muted">Véhicule:</label>
-                <p class="font-weight-bold"><?= $ticket['matricule_vehicule'] ?></p>
+                <p><?= $ticket['matricule_vehicule'] ?></p>
               </div>
               <div class="info-group">
                 <label class="text-muted">Poids ticket:</label>
-                <p class="font-weight-bold"><?= $ticket['poids'] ?> kg</p>
+                <p><?= $ticket['poids'] ?> kg</p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="info-group">
                 <label class="text-muted">Prix unitaire:</label>
-                <p class="font-weight-bold"><?= number_format($ticket['prix_unitaire'], 2, ',', ' ') ?> FCFA</p>
+                <p><?= number_format($ticket['prix_unitaire'], 2, ',', ' ') ?> FCFA</p>
               </div>
               <div class="info-group">
                 <label class="text-muted">Montant à payer:</label>
-                <p class="font-weight-bold text-primary"><?= number_format($ticket['montant_paie'], 2, ',', ' ') ?> FCFA</p>
+                <p class="text-primary"><?= number_format($ticket['montant_paie'], 2, ',', ' ') ?> FCFA</p>
               </div>
               <div class="info-group">
                 <label class="text-muted">Montant payé:</label>
-                <p class="font-weight-bold text-success"><?= number_format($ticket['montant_payer'] ?? 0, 2, ',', ' ') ?> FCFA</p>
+                <p class="text-success"><?= number_format($ticket['montant_payer'] ?? 0, 2, ',', ' ') ?> FCFA</p>
               </div>
               <div class="info-group">
                 <label class="text-muted">Reste à payer:</label>
-                <p class="font-weight-bold <?= ($ticket['montant_reste'] == 0) ? 'text-success' : 'text-danger' ?>">
+                <p class="<?= ($ticket['montant_reste'] == 0) ? 'text-success' : 'text-danger' ?>">
                   <?= number_format($ticket['montant_reste'] ?? $ticket['montant_paie'], 2, ',', ' ') ?> FCFA
                 </p>
               </div>
@@ -2572,11 +2786,11 @@ document.getElementById('searchByVehiculeForm').addEventListener('submit', funct
           <div class="border-top pt-3">
             <div class="info-group">
               <label class="text-muted">Créé par:</label>
-              <p class="font-weight-bold"><?= $ticket['utilisateur_nom_complet'] ?></p>
+              <p><?= $ticket['utilisateur_nom_complet'] ?></p>
             </div>
             <div class="info-group">
               <label class="text-muted">Date de création:</label>
-              <p class="font-weight-bold"><?= date('d/m/Y', strtotime($ticket['created_at'])) ?></p>
+              <p><?= date('d/m/Y', strtotime($ticket['created_at'])) ?></p>
             </div>
           </div>
         </div>
@@ -2933,7 +3147,7 @@ function showSearchModal(modalId) {
                     <div class="row">
                         <!-- Sélection des agents -->
                         <div class="col-md-6 mb-3">
-                            <label for="agents" class="font-weight-bold">Agents</label>
+                            <label for="agents">Agents</label>
                             <select class="form-control select2-agents" id="agents" name="agents">
                                 <?php
                                 $agents = getAgents($conn);
@@ -2945,7 +3159,7 @@ function showSearchModal(modalId) {
                         </div>
                         <!-- Sélection des usines -->
                         <div class="col-md-6 mb-3">
-                            <label for="usines" class="font-weight-bold">Usines</label>
+                            <label for="usines">Usines</label>
                             <select class="form-control select2-usines" id="usines" name="usines">
                                 <?php
                                 $usines = getUsines($conn);
@@ -2959,12 +3173,12 @@ function showSearchModal(modalId) {
                     <div class="row">
                         <!-- Date début -->
                         <div class="col-md-6 mb-3">
-                            <label for="date_debut" class="font-weight-bold">Date début</label>
+                            <label for="date_debut">Date début</label>
                             <input type="date" class="form-control" id="fdate_debut" name="date_debut" required>
                         </div>
                         <!-- Date fin -->
                         <div class="col-md-6 mb-3">
-                            <label for="date_fin" class="font-weight-bold">Date fin</label>
+                            <label for="date_fin">Date fin</label>
                             <input type="date" class="form-control" id="fdate_fin" name="date_fin" required>
                         </div>
                     </div>
@@ -2980,30 +3194,132 @@ function showSearchModal(modalId) {
 
 <!-- Script pour l'initialisation des select2 et la validation en masse -->
 <script>
-$(document).ready(function() {
-    // Initialisation des select2 pour les agents
-    $('.select2-agents').select2({
-        placeholder: 'Sélectionner des agents',
-        language: 'fr',
-        width: '100%',
-        dropdownParent: $('#modalUsineTickets'),
-        allowClear: true
-    });
+// Fonctions de gestion du loader
+function showPageLoader(message = 'Chargement des tickets...') {
+    const loader = document.getElementById('pageLoader');
+    const loadingText = loader.querySelector('.loading-text');
+    if (loader) {
+        loadingText.textContent = message;
+        loader.classList.remove('hidden');
+        loader.style.display = 'flex';
+    }
+}
 
-    // Initialisation des select2 pour les usines
-    $('.select2-usines').select2({
-        placeholder: 'Sélectionner des usines',
-        language: 'fr',
-        width: '100%',
-        dropdownParent: $('#modalUsineTickets'),
-        allowClear: true
-    });
+function hidePageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+        loader.classList.add('hidden');
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 300);
+    }
+}
+
+// Le loader est déjà affiché par PHP, pas besoin de le réafficher
+
+$(document).ready(function() {
+    console.log('🚀 Page tickets_attente.php chargée');
+    
+    // Vérifier que jQuery et les plugins sont disponibles
+    if (typeof $ === 'undefined') {
+        console.error('❌ jQuery non disponible');
+        hidePageLoader();
+        return;
+    }
+    
+    console.log('✅ jQuery disponible');
+    console.log('📦 Select2 disponible:', typeof $.fn.select2 !== 'undefined');
+    console.log('📦 DataTables disponible:', typeof $.fn.DataTable !== 'undefined');
+    
+    // Mettre à jour le message du loader
+    showPageLoader('Configuration des filtres...');
+    
+    // Restaurer les filtres sauvegardés
+    restoreFilters();
+
+    // Initialisation des select2 avec vérification
+    function initializeAllSelect2() {
+        if (typeof $.fn.select2 !== 'undefined') {
+            // Select2 pour les filtres principaux
+            $('#agent_select, #usine_select').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Sélectionner...',
+                allowClear: true,
+                width: '100%'
+            });
+            
+            // Select2 pour les modals
+            $('.select2-agents').select2({
+                placeholder: 'Sélectionner des agents',
+                language: 'fr',
+                width: '100%',
+                dropdownParent: $('#modalUsineTickets'),
+                allowClear: true
+            });
+
+            $('.select2-usines').select2({
+                placeholder: 'Sélectionner des usines',
+                language: 'fr',
+                width: '100%',
+                dropdownParent: $('#modalUsineTickets'),
+                allowClear: true
+            });
+            
+            console.log('✅ Tous les Select2 initialisés avec succès');
+        } else {
+            console.log('⚠️ Select2 non disponible, nouvelle tentative...');
+            setTimeout(initializeAllSelect2, 200);
+        }
+    }
+    
+    // Démarrer l'initialisation après un délai
+    setTimeout(initializeAllSelect2, 300);
 
     // Reset form on modal close
     $('#modalUsineTickets').on('hidden.bs.modal', function () {
         $('#formValidationMasse')[0].reset();
         $('.select2-agents, .select2-usines').val(null).trigger('change');
     });
+    
+    // Ajouter des loaders aux boutons d'action
+    $('.btn[onclick*="valider"], .btn[onclick*="rejeter"], .btn[onclick*="modifier"]').on('click', function() {
+        const button = this;
+        const action = button.textContent.toLowerCase();
+        
+        if (action.includes('valider')) {
+            addButtonLoader(button, 'Validation...');
+            showPageLoader('Validation des tickets...');
+        } else if (action.includes('rejeter')) {
+            addButtonLoader(button, 'Rejet...');
+            showPageLoader('Rejet des tickets...');
+        } else if (action.includes('modifier')) {
+            addButtonLoader(button, 'Modification...');
+            showPageLoader('Modification en cours...');
+        }
+        
+        // Simuler un délai pour voir le loader (à remplacer par la vraie logique)
+        setTimeout(() => {
+            removeButtonLoader(button);
+            hidePageLoader();
+        }, 2000);
+    });
+    
+    // Loader pour les formulaires de filtrage
+    $('form').on('submit', function() {
+        const submitButton = $(this).find('button[type="submit"], input[type="submit"]');
+        if (submitButton.length > 0) {
+            addButtonLoader(submitButton[0], 'Recherche...');
+        }
+        showPageLoader('Recherche des tickets...');
+    });
+    
+    // Loader pour les liens de pagination
+    $('.pagination a').on('click', function() {
+        showPageLoader('Chargement de la page...');
+    });
+
+    // Le loader sera caché automatiquement par le script window.addEventListener('load')
+    console.log('✅ jQuery et plugins initialisés');
 });
 
 function validerEnMasse() {
@@ -3142,6 +3458,64 @@ function validerEnMasse() {
                         <i class="fa fa-check"></i> Valider la sélection
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour saisir le prix unitaire -->
+<div class="modal fade" id="prixUnitaireModal" tabindex="-1" aria-labelledby="prixUnitaireModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--success-gradient); color: white;">
+                <h5 class="modal-title" id="prixUnitaireModalLabel">
+                    <i class="fas fa-euro-sign me-2"></i>Saisir le Prix Unitaire
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span id="ticketCountMessage">0 ticket(s) sélectionné(s)</span>
+                </div>
+                <form id="prixUnitaireForm">
+                    <div class="mb-3">
+                        <label for="prixUnitaire" class="form-label">
+                            <i class="fas fa-money-bill-wave me-2"></i>Prix Unitaire (FCFA)
+                        </label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="prixUnitaire" 
+                               name="prix_unitaire" 
+                               step="0.01" 
+                               min="0" 
+                               placeholder="Entrez le prix unitaire"
+                               required>
+                        <div class="form-text">Le prix sera appliqué à tous les tickets sélectionnés</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="updateAllUsine" name="update_all_usine" value="1">
+                            <label class="form-check-label" for="updateAllUsine">
+                                <i class="fas fa-industry me-2 text-primary"></i>
+                                <strong>Appliquer automatiquement ce prix à tous les tickets en attente de la même usine</strong>
+                            </label>
+                        </div>
+                        <div class="form-text text-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Si cette option est cochée, tous les tickets non validés de la même usine recevront automatiquement ce prix unitaire après validation.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Annuler
+                </button>
+                <button type="button" class="btn btn-success" onclick="confirmerValidationAvecPrix()">
+                    <i class="fas fa-check me-2"></i>Valider avec ce prix
+                </button>
             </div>
         </div>
     </div>
@@ -3333,6 +3707,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .table {
     background-color: white;
+    font-size: 1.1rem;
+}
+
+.table td, .table th {
+    padding: 1rem;
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+.table thead th {
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 /* Styles pour les filtres actifs */
@@ -3341,8 +3727,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .badge {
-    font-size: 0.9rem;
-    padding: 8px 12px;
+    font-size: 1rem;
+    padding: 10px 15px;
     margin-right: 8px;
     margin-bottom: 8px;
     border-radius: 20px;
@@ -3634,5 +4020,303 @@ $(document).ready(function() {
             <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
+    
+    // Réinitialiser le formulaire quand le modal se ferme
+    $('#prixUnitaireModal').on('hidden.bs.modal', function () {
+        $('#prixUnitaireForm')[0].reset();
+    });
 });
+</script>
+
+<!-- Styles CSS pour les nouveaux éléments -->
+<style>
+/* Styles pour le loader de traitement */
+.processing-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.processing-loader-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+    animation: slideInUp 0.5s ease-out;
+}
+
+.processing-animation {
+    margin-bottom: 2rem;
+}
+
+.processing-text h4 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+/* Styles pour le message de succès */
+.success-message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.success-message-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 450px;
+    width: 90%;
+    animation: bounceIn 0.6s ease-out;
+}
+
+.success-animation {
+    margin-bottom: 2rem;
+}
+
+.success-checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 2;
+    stroke: #28a745;
+    stroke-miterlimit: 10;
+    margin: 0 auto 1rem;
+    box-shadow: inset 0px 0px 0px #28a745;
+    animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+    position: relative;
+}
+
+.success-checkmark .check-icon {
+    width: 56px;
+    height: 56px;
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    z-index: 1;
+    transform: scale(0);
+    animation: scale 0.3s ease-in-out 0.9s both;
+}
+
+.check-icon .icon-line {
+    height: 2px;
+    background: #28a745;
+    display: block;
+    border-radius: 2px;
+    position: absolute;
+    z-index: 10;
+}
+
+.check-icon .line-tip {
+    top: 19px;
+    left: 14px;
+    width: 25px;
+    transform: rotate(45deg);
+    animation: icon-line-tip 0.75s;
+}
+
+.check-icon .line-long {
+    top: 38px;
+    right: 8px;
+    width: 47px;
+    transform: rotate(-45deg);
+    animation: icon-line-long 0.75s;
+}
+
+.check-icon .icon-circle {
+    top: -2px;
+    left: -2px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    position: absolute;
+    border: 4px solid rgba(40, 167, 69, 0.2);
+    z-index: 10;
+}
+
+.check-icon .icon-fix {
+    top: 8px;
+    width: 5px;
+    left: 26px;
+    z-index: 1;
+    height: 85px;
+    position: absolute;
+    transform: rotate(-45deg);
+}
+
+/* Animations */
+@keyframes slideInUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fill {
+    100% {
+        box-shadow: inset 0px 0px 0px 30px #28a745;
+    }
+}
+
+@keyframes scale {
+    0%, 20% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes icon-line-tip {
+    0% {
+        width: 0;
+        left: 1px;
+        top: 19px;
+    }
+    54% {
+        width: 0;
+        left: 1px;
+        top: 19px;
+    }
+    70% {
+        width: 50px;
+        left: -8px;
+        top: 37px;
+    }
+    84% {
+        width: 17px;
+        left: 21px;
+        top: 48px;
+    }
+    100% {
+        width: 25px;
+        left: 14px;
+        top: 45px;
+    }
+}
+
+@keyframes icon-line-long {
+    0% {
+        width: 0;
+        right: 46px;
+        top: 54px;
+    }
+    65% {
+        width: 0;
+        right: 46px;
+        top: 54px;
+    }
+    84% {
+        width: 55px;
+        right: 0px;
+        top: 35px;
+    }
+    100% {
+        width: 47px;
+        right: 8px;
+        top: 38px;
+    }
+}
+
+/* Amélioration du style de la checkbox */
+.form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.form-check-label {
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.form-check-label strong {
+    color: #495057;
+}
+
+.form-text.text-warning {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+</style>
+
+<!-- Script pour cacher le loader à la fin du chargement -->
+<script>
+// Cacher le loader dès que la page est complètement chargée
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 300);
+        }
+        console.log('✅ Page tickets_attente.php complètement chargée');
+    }, 500); // Petit délai pour voir l'animation
+});
+
+// Backup: cacher le loader après un délai maximum
+setTimeout(function() {
+    const loader = document.getElementById('pageLoader');
+    if (loader && loader.style.display !== 'none') {
+        loader.classList.add('hidden');
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 300);
+        console.log('⚠️ Loader caché par timeout de sécurité');
+    }
+}, 5000); // 5 secondes maximum
 </script>

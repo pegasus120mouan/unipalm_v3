@@ -46,7 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['error'] = "Erreur lors de la modification du financement";
             }
         }
-        header('Location: financements.php');
+        
+        // Gestion de la redirection personnalisée
+        $redirect_to = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'financements.php';
+        header('Location: ' . $redirect_to);
         exit();
     }
 }
