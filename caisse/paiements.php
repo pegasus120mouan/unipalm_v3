@@ -6,9 +6,9 @@ include('header_caisse.php');
 // Récupérer l'ID de l'utilisateur
 $id_user = $_SESSION['user_id'];
 
-// Fonction pour vérifier si un agent a un financement
+// Fonction pour récupérer le solde de financement d'un agent (tous les mouvements, créditeurs et débiteurs)
 function getFinancementAgent($conn, $id_agent) {
-    $stmt = $conn->prepare("SELECT COALESCE(SUM(montant), 0) as montant_total FROM financement WHERE id_agent = ? AND montant > 0");
+    $stmt = $conn->prepare("SELECT COALESCE(SUM(montant), 0) as montant_total FROM financement WHERE id_agent = ?");
     $stmt->execute([$id_agent]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -37,6 +37,12 @@ $stmt_vehicules = $conn->query($sql_vehicules);
 $vehicules = $stmt_vehicules->fetchAll(PDO::FETCH_ASSOC);
 
 $solde_caisse = getSoldeCaisse();
+
+// Affichage d'un éventuel message d'erreur venant de save_paiement.php
+if (isset($_SESSION['error_message']) && !empty($_SESSION['error_message'])) {
+    echo '<div class="alert alert-danger" role="alert">' . htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8') . '</div>';
+    unset($_SESSION['error_message']);
+}
 
 // Construction des conditions WHERE pour les bordereaux
 $where_bordereaux = [];
@@ -615,10 +621,16 @@ label {
                             <div class="form-group">
                                 <label>Source de paiement</label>
                                 <select class="form-control" name="source_paiement" required>
-                                    <option value="transactions">Sortie de caisse</option>
-                                    <option value="financement" <?= (!$financement || $financement['montant_total'] <= 0) ? 'disabled style="color: #999; background-color: #f4f4f4;"' : '' ?>>
-                                        Financement (Solde: <?= number_format(($financement ? $financement['montant_total'] : 0), 0, ',', ' ') ?> FCFA)
-                                    </option>
+                                    <?php if ($financement && $financement['montant_total'] > 0): ?>
+                                        <option value="financement">
+                                            Financement (Solde: <?= number_format($financement['montant_total'], 0, ',', ' ') ?> FCFA)
+                                        </option>
+                                    <?php else: ?>
+                                        <option value="transactions">Sortie de caisse</option>
+                                        <option value="financement" disabled style="color: #999; background-color: #f4f4f4;">
+                                            Financement (Solde: 0 FCFA)
+                                        </option>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
@@ -682,10 +694,16 @@ label {
                             <div class="form-group">
                                 <label>Source de paiement</label>
                                 <select class="form-control" name="source_paiement" required>
-                                    <option value="transactions">Sortie de caisse</option>
-                                    <option value="financement" <?= (!$financement || $financement['montant_total'] <= 0) ? 'disabled style="color: #999; background-color: #f4f4f4;"' : '' ?>>
-                                        Financement (Solde: <?= number_format(($financement ? $financement['montant_total'] : 0), 0, ',', ' ') ?> FCFA)
-                                    </option>
+                                    <?php if ($financement && $financement['montant_total'] > 0): ?>
+                                        <option value="financement">
+                                            Financement (Solde: <?= number_format($financement['montant_total'], 0, ',', ' ') ?> FCFA)
+                                        </option>
+                                    <?php else: ?>
+                                        <option value="transactions">Sortie de caisse</option>
+                                        <option value="financement" disabled style="color: #999; background-color: #f4f4f4;">
+                                            Financement (Solde: 0 FCFA)
+                                        </option>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
@@ -799,6 +817,24 @@ $(document).ready(function() {
         }
     });
 
+    // Sécuriser la valeur envoyée pour le montant au submit
+    // (remplit le champ caché 'montant' si, pour une raison quelconque,
+    //  il est encore vide alors que l'utilisateur a saisi un montant affiché)
+    $('form.forms-sample').on('submit', function() {
+        var $form = $(this);
+        var $inputAffiche = $form.find('.montant-input');
+        var $inputCache = $form.find('input[name="montant"]');
+
+        if ($inputCache.length && $inputAffiche.length) {
+            var valAffiche = $inputAffiche.val();
+            var valCache = $inputCache.val();
+
+            if (valCache === '' && valAffiche !== '') {
+                $inputCache.val(unformatNumber(valAffiche));
+            }
+        }
+    });
+
     // Initialiser les datepickers
     $('#date_debut, #date_fin').datepicker({
         format: 'yyyy-mm-dd',
@@ -835,14 +871,8 @@ $(document).ready(function() {
     }, 3000);
 });
 <?php 
-// Nettoyer les variables de session après affichage
+// Nettoyer uniquement le flag de succès pour ne pas réafficher le modal inutilement
 unset($_SESSION['paiement_success']);
-unset($_SESSION['nouveau_solde']);
-unset($_SESSION['montant_paye']);
-unset($_SESSION['numero_recu']);
-unset($_SESSION['id_recu_pdf']);
-unset($_SESSION['type_document']);
-unset($_SESSION['numero_document']);
 endif; 
 ?>
 </script>

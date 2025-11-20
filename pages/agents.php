@@ -938,6 +938,7 @@ background: var(--secondary-color);
                 <table class="table table-modern">
                     <thead>
                         <tr>
+                            <th><i class="fas fa-id-card"></i> N° Agent</th>
                             <th><i class="fas fa-user"></i> Nom</th>
                             <th><i class="fas fa-user"></i> Prénom</th>
                             <th><i class="fas fa-phone"></i> Contact</th>
@@ -951,6 +952,12 @@ background: var(--secondary-color);
                         <?php if (!empty($agents_list)): ?>
                             <?php foreach ($agents_list as $agent) : ?>
                                 <tr>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-id-card me-1"></i>
+                                            <?= htmlspecialchars($agent['numero_agent'] ?? 'N/A') ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-circle me-2">
@@ -989,7 +996,7 @@ background: var(--secondary-color);
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center">
+                                <td colspan="8" class="text-center">
                                     <div class="py-4">
                                         <i class="fas fa-users fa-3x mb-3" style="color: rgba(255,255,255,0.3);"></i>
                                         <p class="mb-0">Aucun agent trouvé</p>

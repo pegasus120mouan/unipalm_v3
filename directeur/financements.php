@@ -8,33 +8,111 @@ include('header.php');
 $id_user=$_SESSION['user_id'];
 //echo $id_user;
 
+// Filtres de recherche (numéro financement / motif, agent, période)
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$agent_id = isset($_GET['agent_id']) ? trim($_GET['agent_id']) : '';
+$date_debut = isset($_GET['date_debut']) ? trim($_GET['date_debut']) : '';
+$date_fin = isset($_GET['date_fin']) ? trim($_GET['date_fin']) : '';
+
 ////$stmt = $conn->prepare("SELECT * FROM users");
 $sql_agents = "SELECT id_agent, CONCAT(nom, ' ', prenom) as nom_complet FROM agents ORDER BY nom, prenom";
 $stmt_agents = $conn->prepare($sql_agents);
 $stmt_agents->execute();
 $agents = $stmt_agents->fetchAll(PDO::FETCH_ASSOC);
 
-// Récupération des agents avec leurs montants totaux de financement
+// Récupération des agents avec leurs montants de financement et remboursements (avec filtres éventuels)
+// Tout est calculé à partir de la table `financement` pour rester cohérent
+// avec le solde utilisé dans le modal de paiement (getFinancementAgent).
 $sql_totaux = "SELECT 
     a.id_agent,
     CONCAT(a.nom, ' ', a.prenom) AS nom_agent,
-    COALESCE(SUM(f.montant), 0) AS montant_total,
+    -- Montant initial accordé (sommes positives dans financement)
+    COALESCE(SUM(CASE WHEN f.montant > 0 THEN f.montant ELSE 0 END), 0) AS montant_initial,
+    -- Montant déjà remboursé (sommes négatives, retournées en positif)
+    COALESCE(-SUM(CASE WHEN f.montant < 0 THEN f.montant ELSE 0 END), 0) AS montant_rembourse,
+    -- Solde de financement restant (somme nette des mouvements, minimum 0)
+    GREATEST(COALESCE(SUM(f.montant), 0), 0) AS solde_financement,
     COALESCE(COUNT(f.Numero_financement), 0) AS nombre_financements
 FROM agents a
-LEFT JOIN financement f ON a.id_agent = f.id_agent
-GROUP BY a.id_agent, a.nom, a.prenom
-ORDER BY montant_total DESC, a.nom, a.prenom";
+LEFT JOIN financement f ON a.id_agent = f.id_agent";
+
+$params_totaux = [];
+$conditions_totaux = [];
+
+// Filtre agent pour le résumé
+if ($agent_id !== '') {
+    $conditions_totaux[] = 'a.id_agent = :agent_id_tot';
+    $params_totaux[':agent_id_tot'] = $agent_id;
+}
+
+// Filtres de période sur date_financement pour le résumé
+if ($date_debut !== '' && $date_fin !== '') {
+    $conditions_totaux[] = 'DATE(f.date_financement) BETWEEN :date_debut_tot AND :date_fin_tot';
+    $params_totaux[':date_debut_tot'] = $date_debut;
+    $params_totaux[':date_fin_tot'] = $date_fin;
+} elseif ($date_debut !== '') {
+    $conditions_totaux[] = 'DATE(f.date_financement) >= :date_debut_tot';
+    $params_totaux[':date_debut_tot'] = $date_debut;
+} elseif ($date_fin !== '') {
+    $conditions_totaux[] = 'DATE(f.date_financement) <= :date_fin_tot';
+    $params_totaux[':date_fin_tot'] = $date_fin;
+}
+
+if (!empty($conditions_totaux)) {
+    $sql_totaux .= ' WHERE ' . implode(' AND ', $conditions_totaux);
+}
+
+$sql_totaux .= ' GROUP BY a.id_agent, a.nom, a.prenom ORDER BY solde_financement DESC, a.nom, a.prenom';
+
 $stmt_totaux = $conn->prepare($sql_totaux);
-$stmt_totaux->execute();
+$stmt_totaux->execute($params_totaux);
 $agents_financements = $stmt_totaux->fetchAll(PDO::FETCH_ASSOC);
 
-// Récupération des financements avec les noms des agents
+// Récupération des financements avec les noms des agents (avec filtres éventuels)
 $sql = "SELECT f.*, CONCAT(a.nom, ' ', a.prenom) as nom_agent 
        FROM financement f 
-       INNER JOIN agents a ON f.id_agent = a.id_agent 
-       ORDER BY f.Numero_financement DESC";
+       INNER JOIN agents a ON f.id_agent = a.id_agent";
+
+$params = [];
+$conditions = [];
+
+// Filtre texte global (numéro, agent, motif)
+if ($search !== '') {
+    $conditions[] = "(f.Numero_financement LIKE :search1 
+                    OR CONCAT(a.nom, ' ', a.prenom) LIKE :search2 
+                    OR f.motif LIKE :search3)";
+    $params[':search1'] = '%' . $search . '%';
+    $params[':search2'] = '%' . $search . '%';
+    $params[':search3'] = '%' . $search . '%';
+}
+
+// Filtre agent explicite (liste déroulante)
+if ($agent_id !== '') {
+    $conditions[] = "a.id_agent = :agent_id";
+    $params[':agent_id'] = $agent_id;
+}
+
+// Filtres de période sur date_financement
+if ($date_debut !== '' && $date_fin !== '') {
+    $conditions[] = "DATE(f.date_financement) BETWEEN :date_debut AND :date_fin";
+    $params[':date_debut'] = $date_debut;
+    $params[':date_fin'] = $date_fin;
+} elseif ($date_debut !== '') {
+    $conditions[] = "DATE(f.date_financement) >= :date_debut";
+    $params[':date_debut'] = $date_debut;
+} elseif ($date_fin !== '') {
+    $conditions[] = "DATE(f.date_financement) <= :date_fin";
+    $params[':date_fin'] = $date_fin;
+}
+
+if (!empty($conditions)) {
+    $sql .= ' WHERE ' . implode(' AND ', $conditions);
+}
+
+$sql .= " ORDER BY f.Numero_financement DESC";
+
 $stmt = $conn->prepare($sql);
-$stmt->execute();
+$stmt->execute($params);
 $financements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Organiser les financements par agent
@@ -147,6 +225,106 @@ label {
     }
     </style>
 
+<style>
+   /* Filtres avancés financements */
+   .filter-card {
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+      border: none;
+      overflow: hidden;
+      margin-bottom: 25px;
+   }
+
+   .filter-card-header {
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      color: #fff;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+   }
+
+   .filter-card-header-title {
+      display: flex;
+      flex-direction: column;
+   }
+
+   .filter-card-header-title h5 {
+      margin: 0;
+      font-weight: 600;
+   }
+
+   .filter-card-header-title small {
+      opacity: 0.9;
+      font-size: 0.85rem;
+   }
+
+   .filter-card-header-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 18px;
+   }
+
+   .filter-card-toggle i {
+      transition: transform 0.25s ease;
+   }
+
+   .filter-card-toggle.collapsed i {
+      transform: rotate(180deg);
+   }
+
+   .filter-card-body {
+      background: #f9fafb;
+      padding: 20px 24px 10px 24px;
+   }
+
+   .filter-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: #374151;
+   }
+
+   .filter-input-icon {
+      position: relative;
+   }
+
+   .filter-input-icon i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6b7280;
+      font-size: 14px;
+   }
+
+   .filter-input-icon input,
+   .filter-input-icon select {
+      padding-left: 34px;
+   }
+
+   .filter-actions {
+      margin-top: 10px;
+   }
+
+   @media (max-width: 767.98px) {
+      .filter-card-header {
+         flex-direction: column;
+         align-items: flex-start;
+      }
+      .filter-card-header-icon {
+         margin-bottom: 10px;
+      }
+   }
+    </style>
+
 
 <div class="row">
     <?php if (isset($_SESSION['warning'])): ?>
@@ -185,7 +363,7 @@ label {
         <?php unset($_SESSION['delete_pop']); ?>
     <?php endif; ?>
 
-    <div class="block-container">
+<div class="block-container">
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-financement">
       <i class="fa fa-edit"></i>Enregistrer un financement
     </button>
@@ -230,12 +408,96 @@ label {
 
 
 <div class="container-fluid">
+    <!-- Filtres avancés financements -->
+    <div class="card filter-card mb-4">
+        <div class="filter-card-header" data-toggle="collapse" data-target="#filtersFinancements" aria-expanded="true" aria-controls="filtersFinancements">
+            <div class="d-flex align-items-center">
+                <div class="filter-card-header-icon">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="filter-card-header-title">
+                    <h5>Filtres Avancés - Financements</h5>
+                    <small>Rechercher et filtrer les financements par numéro, agent ou période</small>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-light filter-card-toggle" aria-label="Réduire / Déplier">
+                <i class="fas fa-chevron-up"></i>
+            </button>
+        </div>
+        <div id="filtersFinancements" class="collapse show">
+            <div class="filter-card-body">
+                <form method="get">
+                    <div class="form-row">
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="search_numero">
+                                <i class="fas fa-hashtag mr-1"></i> Numéro de financement
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="search_numero" name="search" class="form-control" placeholder="Ex: FIN-2024-001" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="agent_id">
+                                <i class="fas fa-user-tie mr-1"></i> Agent
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="fas fa-user"></i>
+                                <select id="agent_id" name="agent_id" class="form-control">
+                                    <option value="">Sélectionner un agent...</option>
+                                    <?php foreach ($agents as $agent): ?>
+                                        <option value="<?= $agent['id_agent'] ?>" <?= ($agent_id !== '' && $agent_id == $agent['id_agent']) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($agent['nom_complet'], ENT_QUOTES, 'UTF-8') ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="date_debut">
+                                <i class="fas fa-calendar-alt mr-1"></i> Date de début
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="far fa-calendar"></i>
+                                <input type="date" id="date_debut" name="date_debut" class="form-control" value="<?= isset($_GET['date_debut']) ? htmlspecialchars($_GET['date_debut'], ENT_QUOTES, 'UTF-8') : '' ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="date_fin">
+                                <i class="fas fa-calendar-day mr-1"></i> Date de fin
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="far fa-calendar-check"></i>
+                                <input type="date" id="date_fin" name="date_fin" class="form-control" value="<?= isset($_GET['date_fin']) ? htmlspecialchars($_GET['date_fin'], ENT_QUOTES, 'UTF-8') : '' ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center filter-actions">
+                        <small class="text-muted d-none d-md-inline">Astuce : vous pouvez combiner plusieurs filtres pour affiner la recherche.</small>
+                        <div>
+                            <a href="financements.php" class="btn btn-light mr-2">
+                                <i class="fas fa-undo mr-1"></i> Réinitialiser
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search mr-1"></i> Appliquer les filtres
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Résumé des financements -->
     <div class="card mb-4">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h3 class="card-title">Résumé des financements par agent</h3>
-                <div>
+                <h3 class="card-title mb-0">Résumé des financements par agent</h3>
+                <div class="text-right">
                     <button type="button" class="btn btn-info mr-2" data-toggle="modal" data-target="#listeDetaillee">
                         <i class="fas fa-list"></i> Liste détaillée des financements
                     </button>
@@ -252,7 +514,9 @@ label {
                         <tr>
                             <th>Agent</th>
                             <th class="text-center">Nombre de financements</th>
-                            <th class="text-right">Montant total</th>
+                            <th class="text-right">Montant initial</th>
+                            <th class="text-right">Déjà remboursé</th>
+                            <th class="text-right">Solde financement</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -264,7 +528,9 @@ label {
                                 </a>
                             </td>
                             <td class="text-center"><?= $agent['nombre_financements'] ?></td>
-                            <td class="text-right"><?= number_format($agent['montant_total'], 0, ',', ' ') ?> FCFA</td>
+                            <td class="text-right"><?= number_format($agent['montant_initial'], 0, ',', ' ') ?> FCFA</td>
+                            <td class="text-right"><?= number_format($agent['montant_rembourse'], 0, ',', ' ') ?> FCFA</td>
+                            <td class="text-right"><?= number_format($agent['solde_financement'], 0, ',', ' ') ?> FCFA</td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -928,8 +1194,8 @@ $(document).ready(function() {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="3" class="text-right">Total:</th>
-                                    <th class="text-right"><?= number_format($agent['montant_total'], 0, ',', ' ') ?> FCFA</th>
+                                    <th colspan="3" class="text-right">Solde financement (net):</th>
+                                    <th class="text-right"><?= number_format($agent['solde_financement'], 0, ',', ' ') ?> FCFA</th>
                                     <th></th>
                                 </tr>
                             </tfoot>

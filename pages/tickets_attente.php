@@ -8,7 +8,23 @@ require_once '../inc/functions/requete/requete_agents.php';
 
 include('header.php');
 
-$limit = $_GET['limit'] ?? 15;
+// Afficher le loader immédiatement avec styles inline de secours
+echo '<style>
+#pageLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+.spinner-circle { width: 80px; height: 80px; border: 4px solid rgba(26,188,156,0.2); border-top: 4px solid #1abc9c; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+.loading-text { color: #1abc9c; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+<div id="pageLoader" style="display: flex;">
+    <div class="spinner-circle"></div>
+    <div class="loading-text">Chargement des tickets en attente...</div>
+</div>';
+
+// Forcer le flush du contenu pour afficher le loader immédiatement
+if (ob_get_level()) ob_flush();
+flush();
+
+$limit = $_GET['limit'] ?? 50; // Limite plus élevée pour les tickets en attente
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
 // Récupérer les paramètres de filtrage
@@ -20,12 +36,18 @@ $search_agent = $_GET['search_agent'] ?? '';
 $search_usine = $_GET['search_usine'] ?? '';
 $numero_ticket = $_GET['numero_ticket'] ?? '';
 
-// Récupérer les tickets en attente avec les filtres
-$tickets = getTicketsAttente($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket);
+// Calculer le nombre total de tickets (pour la pagination) directement en SQL
+$total_tickets = countTicketsAttente($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket);
+$total_pages = $total_tickets > 0 ? ceil($total_tickets / $limit) : 1;
+$page = max(1, min($page, $total_pages));
+$offset = ($page - 1) * $limit;
 
-// Filtrer les tickets si un terme de recherche est présent
+// Récupérer uniquement les tickets de la page courante avec LIMIT/OFFSET (limite: 50 par page)
+$tickets_list = getTicketsAttente($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket, null, $limit, $offset);
+
+// Filtrer les tickets si un terme de recherche texte est présent (en PHP pour flexibilité)
 if (!empty($search_agent) || !empty($search_usine)) {
-    $tickets = array_filter($tickets, function($ticket) use ($search_agent, $search_usine) {
+    $tickets_list = array_filter($tickets_list, function($ticket) use ($search_agent, $search_usine) {
         $match = true;
         if (!empty($search_agent)) {
             $match = $match && stripos($ticket['agent_nom_complet'], $search_agent) !== false;
@@ -37,14 +59,8 @@ if (!empty($search_agent) || !empty($search_usine)) {
     });
 }
 
-// Calculer la pagination
-$total_tickets = count($tickets);
-$total_pages = ceil($total_tickets / $limit);
-$page = max(1, min($page, $total_pages));
-$offset = ($page - 1) * $limit;
-
-// Extraire les tickets pour la page courante
-$tickets_list = array_slice($tickets, $offset, $limit);
+// Pour compatibilité avec le reste du fichier
+$tickets = $tickets_list;
 
 // Récupérer les listes pour l'autocomplétion
 $agents = getAgents($conn);
@@ -334,7 +350,7 @@ function toggleFilters() {
 // Fonction pour appliquer les filtres avec animation
 function appliquerFiltres() {
     // Afficher le loader moderne
-    showModernLoader();
+    showModernLoader('Application des filtres...');
     
     const agent_id = document.getElementById('agent_select').value;
     const usine_id = document.getElementById('usine_select').value;
@@ -401,24 +417,35 @@ function clearAllFilters() {
 }
 
 // Fonction pour afficher le loader moderne
-function showModernLoader() {
-    const loader = document.getElementById('modernLoader');
-    const table = document.querySelector('.modern-table-wrapper');
-    
-    if (loader && table) {
-        loader.style.display = 'flex';
-        table.style.opacity = '0.5';
-    }
+function showModernLoader(message = 'Traitement en cours...') {
+    showPageLoader(message);
 }
 
 // Fonction pour masquer le loader moderne
 function hideModernLoader() {
-    const loader = document.getElementById('modernLoader');
-    const table = document.querySelector('.modern-table-wrapper');
-    
-    if (loader && table) {
-        loader.style.display = 'none';
-        table.style.opacity = '1';
+    hidePageLoader();
+}
+
+// Fonction pour ajouter un loader à un bouton
+function addButtonLoader(buttonElement, message = 'Traitement...') {
+    if (buttonElement) {
+        buttonElement.classList.add('btn-loading');
+        buttonElement.disabled = true;
+        const originalText = buttonElement.innerHTML;
+        buttonElement.setAttribute('data-original-text', originalText);
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>' + message;
+    }
+}
+
+// Fonction pour retirer le loader d'un bouton
+function removeButtonLoader(buttonElement) {
+    if (buttonElement) {
+        buttonElement.classList.remove('btn-loading');
+        buttonElement.disabled = false;
+        const originalText = buttonElement.getAttribute('data-original-text');
+        if (originalText) {
+            buttonElement.innerHTML = originalText;
+        }
     }
 }
 
@@ -647,14 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialiser Select2 si disponible
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-        $('#agent_select, #usine_select').select2({
-            theme: 'bootstrap4',
-            placeholder: 'Sélectionner...',
-            allowClear: true
-        });
-    }
+    // Select2 sera initialisé dans le script principal plus bas
     
     // Masquer le loader au chargement
     hideModernLoader();
@@ -2461,10 +2481,10 @@ function validerTicketsSelectionnes() {
         ?>
         <label for="limit">Afficher :</label>
         <select name="limit" id="limit" class="items-per-page-select" onchange="this.form.submit()">
-            <option value="15" <?= $limit == 15 ? 'selected' : '' ?>>15</option>
             <option value="25" <?= $limit == 25 ? 'selected' : '' ?>>25</option>
             <option value="50" <?= $limit == 50 ? 'selected' : '' ?>>50</option>
             <option value="100" <?= $limit == 100 ? 'selected' : '' ?>>100</option>
+            <option value="200" <?= $limit == 200 ? 'selected' : '' ?>>200</option>
         </select>
     </form>
   </div>
@@ -3174,30 +3194,132 @@ function showSearchModal(modalId) {
 
 <!-- Script pour l'initialisation des select2 et la validation en masse -->
 <script>
-$(document).ready(function() {
-    // Initialisation des select2 pour les agents
-    $('.select2-agents').select2({
-        placeholder: 'Sélectionner des agents',
-        language: 'fr',
-        width: '100%',
-        dropdownParent: $('#modalUsineTickets'),
-        allowClear: true
-    });
+// Fonctions de gestion du loader
+function showPageLoader(message = 'Chargement des tickets...') {
+    const loader = document.getElementById('pageLoader');
+    const loadingText = loader.querySelector('.loading-text');
+    if (loader) {
+        loadingText.textContent = message;
+        loader.classList.remove('hidden');
+        loader.style.display = 'flex';
+    }
+}
 
-    // Initialisation des select2 pour les usines
-    $('.select2-usines').select2({
-        placeholder: 'Sélectionner des usines',
-        language: 'fr',
-        width: '100%',
-        dropdownParent: $('#modalUsineTickets'),
-        allowClear: true
-    });
+function hidePageLoader() {
+    const loader = document.getElementById('pageLoader');
+    if (loader) {
+        loader.classList.add('hidden');
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 300);
+    }
+}
+
+// Le loader est déjà affiché par PHP, pas besoin de le réafficher
+
+$(document).ready(function() {
+    console.log('🚀 Page tickets_attente.php chargée');
+    
+    // Vérifier que jQuery et les plugins sont disponibles
+    if (typeof $ === 'undefined') {
+        console.error('❌ jQuery non disponible');
+        hidePageLoader();
+        return;
+    }
+    
+    console.log('✅ jQuery disponible');
+    console.log('📦 Select2 disponible:', typeof $.fn.select2 !== 'undefined');
+    console.log('📦 DataTables disponible:', typeof $.fn.DataTable !== 'undefined');
+    
+    // Mettre à jour le message du loader
+    showPageLoader('Configuration des filtres...');
+    
+    // Restaurer les filtres sauvegardés
+    restoreFilters();
+
+    // Initialisation des select2 avec vérification
+    function initializeAllSelect2() {
+        if (typeof $.fn.select2 !== 'undefined') {
+            // Select2 pour les filtres principaux
+            $('#agent_select, #usine_select').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Sélectionner...',
+                allowClear: true,
+                width: '100%'
+            });
+            
+            // Select2 pour les modals
+            $('.select2-agents').select2({
+                placeholder: 'Sélectionner des agents',
+                language: 'fr',
+                width: '100%',
+                dropdownParent: $('#modalUsineTickets'),
+                allowClear: true
+            });
+
+            $('.select2-usines').select2({
+                placeholder: 'Sélectionner des usines',
+                language: 'fr',
+                width: '100%',
+                dropdownParent: $('#modalUsineTickets'),
+                allowClear: true
+            });
+            
+            console.log('✅ Tous les Select2 initialisés avec succès');
+        } else {
+            console.log('⚠️ Select2 non disponible, nouvelle tentative...');
+            setTimeout(initializeAllSelect2, 200);
+        }
+    }
+    
+    // Démarrer l'initialisation après un délai
+    setTimeout(initializeAllSelect2, 300);
 
     // Reset form on modal close
     $('#modalUsineTickets').on('hidden.bs.modal', function () {
         $('#formValidationMasse')[0].reset();
         $('.select2-agents, .select2-usines').val(null).trigger('change');
     });
+    
+    // Ajouter des loaders aux boutons d'action
+    $('.btn[onclick*="valider"], .btn[onclick*="rejeter"], .btn[onclick*="modifier"]').on('click', function() {
+        const button = this;
+        const action = button.textContent.toLowerCase();
+        
+        if (action.includes('valider')) {
+            addButtonLoader(button, 'Validation...');
+            showPageLoader('Validation des tickets...');
+        } else if (action.includes('rejeter')) {
+            addButtonLoader(button, 'Rejet...');
+            showPageLoader('Rejet des tickets...');
+        } else if (action.includes('modifier')) {
+            addButtonLoader(button, 'Modification...');
+            showPageLoader('Modification en cours...');
+        }
+        
+        // Simuler un délai pour voir le loader (à remplacer par la vraie logique)
+        setTimeout(() => {
+            removeButtonLoader(button);
+            hidePageLoader();
+        }, 2000);
+    });
+    
+    // Loader pour les formulaires de filtrage
+    $('form').on('submit', function() {
+        const submitButton = $(this).find('button[type="submit"], input[type="submit"]');
+        if (submitButton.length > 0) {
+            addButtonLoader(submitButton[0], 'Recherche...');
+        }
+        showPageLoader('Recherche des tickets...');
+    });
+    
+    // Loader pour les liens de pagination
+    $('.pagination a').on('click', function() {
+        showPageLoader('Chargement de la page...');
+    });
+
+    // Le loader sera caché automatiquement par le script window.addEventListener('load')
+    console.log('✅ jQuery et plugins initialisés');
 });
 
 function validerEnMasse() {
@@ -4169,3 +4291,32 @@ $(document).ready(function() {
     margin-top: 0.5rem;
 }
 </style>
+
+<!-- Script pour cacher le loader à la fin du chargement -->
+<script>
+// Cacher le loader dès que la page est complètement chargée
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 300);
+        }
+        console.log('✅ Page tickets_attente.php complètement chargée');
+    }, 500); // Petit délai pour voir l'animation
+});
+
+// Backup: cacher le loader après un délai maximum
+setTimeout(function() {
+    const loader = document.getElementById('pageLoader');
+    if (loader && loader.style.display !== 'none') {
+        loader.classList.add('hidden');
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 300);
+        console.log('⚠️ Loader caché par timeout de sécurité');
+    }
+}, 5000); // 5 secondes maximum
+</script>

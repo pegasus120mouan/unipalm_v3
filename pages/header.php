@@ -96,6 +96,9 @@ if (!isset($_SESSION['user_id'])) {
   <link href="../plugins/select2/css/select2.min.css" rel="stylesheet" />
   <link href="../plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css" rel="stylesheet" />
   
+  <!-- Loader moderne -->
+  <link rel="stylesheet" href="../dist/css/loading-spinner.css">
+  
   <!-- Scripts nécessaires -->
   <script src="../plugins/jquery/jquery.min.js"></script>
   <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -996,9 +999,21 @@ if (!isset($_SESSION['user_id'])) {
                   </a>
                 </li>
                 <li class="nav-item">
+                  <a href="prets.php" class="nav-link">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <p>Prêts</p>
+                  </a>
+                </li>
+                <li class="nav-item">
                   <a href="gestion_usines.php" class="nav-link">
                     <i class="fas fa-money-bill-wave"></i>
                     <p>Montant Usines</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="comptes_agents.php" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <p>Comptes agents</p>
                   </a>
                 </li>
                 

@@ -4,6 +4,7 @@ function getAgents($conn) {
     $stmt = $conn->prepare(
         "SELECT 
     agents.id_agent,
+    agents.numero_agent,
     agents.nom AS nom_agent,
     agents.prenom AS prenom_agent,
     CONCAT(agents.nom, ' ', agents.prenom) AS nom_complet_agent,

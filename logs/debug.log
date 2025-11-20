@@ -3803,3 +3803,709 @@
 [2025-11-08 15:59:38] Bordereau #66 mis à jour avec montant_payer=16200000, montant_reste=5764960
 [2025-11-08 15:59:38] Transaction de paiement créée #133, nouveau solde: 79510000
 [2025-11-08 15:59:38] Paiement enregistré avec succès
+[2025-11-14 08:25:11] Début de l'enregistrement du paiement
+[2025-11-14 08:25:11] Solde actuel avant paiement: 81510000
+[2025-11-14 08:25:11] Nouveau solde calculé: 80510000
+[2025-11-14 08:25:11] Bordereau #65 mis à jour avec montant_payer=1000000, montant_reste=10240640
+[2025-11-14 08:25:11] Transaction de paiement créée #134, nouveau solde: 80510000
+[2025-11-14 08:25:11] Paiement enregistré avec succès
+[2025-11-14 09:21:06] Début de l'enregistrement du paiement
+[2025-11-14 09:21:06] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 09:21:06] Nouveau solde caisse calculé: 81510000
+[2025-11-14 09:21:06] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 09:21:06] Solde financement agent #185: 3000000
+[2025-11-14 09:21:06] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 09:21:06] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 09:21:06] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(289): PDOStatement->execute()
+#1 {main}
+[2025-11-14 09:29:13] Début de l'enregistrement du paiement
+[2025-11-14 09:29:13] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 09:29:13] Nouveau solde caisse calculé: 81510000
+[2025-11-14 09:29:13] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 09:29:13] Solde financement agent #185: 3000000
+[2025-11-14 09:29:13] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 09:29:13] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 09:29:13] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(289): PDOStatement->execute()
+#1 {main}
+[2025-11-14 10:09:40] Début de l'enregistrement du paiement
+[2025-11-14 10:09:40] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 10:09:40] Nouveau solde caisse calculé: 81510000
+[2025-11-14 10:09:40] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 10:09:40] Solde financement agent #185: 3000000
+[2025-11-14 10:09:40] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 10:09:40] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 10:09:40] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(289): PDOStatement->execute()
+#1 {main}
+[2025-11-14 10:27:32] Début de l'enregistrement du paiement
+[2025-11-14 10:27:32] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 10:27:32] Nouveau solde caisse calculé: 81510000
+[2025-11-14 10:27:32] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 10:27:32] Solde financement agent #185: 3000000
+[2025-11-14 10:27:32] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 10:27:32] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 10:27:32] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(289): PDOStatement->execute()
+#1 {main}
+[2025-11-14 10:46:57] Début de l'enregistrement du paiement
+[2025-11-14 10:46:57] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 10:46:57] Nouveau solde caisse calculé: 81510000
+[2025-11-14 10:46:57] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 10:46:57] Solde financement agent #185: 3000000
+[2025-11-14 10:46:57] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 10:46:57] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 10:46:57] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(285): PDOStatement->execute()
+#1 {main}
+[2025-11-14 10:52:43] Début de l'enregistrement du paiement
+[2025-11-14 10:52:43] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 10:52:43] Nouveau solde caisse calculé: 81510000
+[2025-11-14 10:52:43] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 10:52:43] Solde financement agent #185: 3000000
+[2025-11-14 10:52:43] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 10:52:43] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 10:52:43] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(285): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:00:44] Début de l'enregistrement du paiement
+[2025-11-14 11:00:44] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:00:44] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:00:44] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 11:00:44] Solde financement agent #185: 3000000 | Source initiale: financement
+[2025-11-14 11:00:45] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:00:45] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 11:00:45] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:00:45] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(286): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:10:55] Début de l'enregistrement du paiement
+[2025-11-14 11:10:55] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:10:55] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:10:55] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 11:10:55] Solde financement agent #185: 3000000 | Source initiale: financement
+[2025-11-14 11:10:55] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:10:55] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 11:10:55] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:10:55] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(286): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:18:59] Début de l'enregistrement du paiement
+[2025-11-14 11:18:59] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:18:59] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:18:59] Bordereau #65 mis à jour avec montant_payer=1500000, montant_reste=9740640
+[2025-11-14 11:18:59] Financement agent #185 => solde=3000000, nb_lignes=1, source initiale=financement
+[2025-11-14 11:18:59] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:18:59] Financement de l'agent #185 diminué de 500000 (Numéro financement 2)
+[2025-11-14 11:18:59] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:18:59] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:19:15] Début de l'enregistrement du paiement
+[2025-11-14 11:19:15] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:19:15] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:19:15] Bordereau #61 mis à jour avec montant_payer=3250000, montant_reste=613360
+[2025-11-14 11:19:15] Financement agent #185 => solde=3000000, nb_lignes=1, source initiale=financement
+[2025-11-14 11:19:15] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:19:15] Financement de l'agent #185 diminué de 250000 (Numéro financement 2)
+[2025-11-14 11:19:15] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:19:15] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:36:03] Début de l'enregistrement du paiement
+[2025-11-14 11:36:03] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:36:03] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:36:03] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 11:36:03] Financement agent #185 => solde=3000000, nb_lignes=1, source initiale=financement
+[2025-11-14 11:36:03] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:36:03] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 11:36:03] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:36:03] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:37:06] Début de l'enregistrement du paiement
+[2025-11-14 11:37:06] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:37:06] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:37:06] Bordereau #65 mis à jour avec montant_payer=2000000, montant_reste=9240640
+[2025-11-14 11:37:06] Financement agent #185 => solde=3000000, nb_lignes=1, source initiale=financement
+[2025-11-14 11:37:06] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:37:06] Financement de l'agent #185 diminué de 1000000 (Numéro financement 2)
+[2025-11-14 11:37:06] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:37:06] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:41:05] Début de l'enregistrement du paiement
+[2025-11-14 11:41:05] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:41:05] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:41:05] Bordereau #65 mis à jour avec montant_payer=1500000, montant_reste=9740640
+[2025-11-14 11:41:05] Financement agent #185 => solde=3000000, nb_lignes=1, source initiale=financement
+[2025-11-14 11:41:06] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:41:06] Financement de l'agent #185 diminué de 500000 (Numéro financement 2)
+[2025-11-14 11:41:06] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:41:06] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:48:07] Début de l'enregistrement du paiement
+[2025-11-14 11:48:07] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:48:07] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:48:07] Bordereau #65 mis à jour avec montant_payer=1500000, montant_reste=9740640
+[2025-11-14 11:48:07] Financement agent #185 => solde=3000000, nb_lignes=1, source initiale=financement
+[2025-11-14 11:48:07] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:48:07] Financement de l'agent #185 diminué de 500000 (Numéro financement 2)
+[2025-11-14 11:48:07] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:48:07] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 11:59:35] Début de l'enregistrement du paiement
+[2025-11-14 11:59:35] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 11:59:35] Nouveau solde caisse calculé: 81510000
+[2025-11-14 11:59:35] Bordereau #65 mis à jour avec montant_payer=2500000, montant_reste=8740640
+[2025-11-14 11:59:35] Financement agent #185 => solde=9000000, nb_lignes=2, source initiale=financement
+[2025-11-14 11:59:35] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 11:59:35] Financement de l'agent #185 diminué de 1500000 (Numéro financement 3)
+[2025-11-14 11:59:35] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 11:59:35] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 12:08:50] Début de l'enregistrement du paiement
+[2025-11-14 12:08:50] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:08:50] Nouveau solde caisse calculé: 81510000
+[2025-11-14 12:08:50] Bordereau #65 mis à jour avec montant_payer=1500000, montant_reste=9740640
+[2025-11-14 12:08:50] Financement agent #185 => solde=9000000, nb_lignes=2, source initiale=financement
+[2025-11-14 12:08:50] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 12:08:50] Financement de l'agent #185 diminué de 500000 (Numéro financement 3)
+[2025-11-14 12:08:51] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 12:08:51] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 12:13:37] Début de l'enregistrement du paiement
+[2025-11-14 12:13:37] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:13:37] Nouveau solde caisse calculé: 81510000
+[2025-11-14 12:13:37] Bordereau #65 mis à jour avec montant_payer=1500000, montant_reste=9740640
+[2025-11-14 12:13:37] Financement agent #185 => solde=9000000, nb_lignes=2, source initiale=financement
+[2025-11-14 12:13:37] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 12:13:37] Financement de l'agent #185 diminué de 500000 (Numéro financement 3)
+[2025-11-14 12:13:37] ERREUR: SQLSTATE[01000]: Warning: 1265 Data truncated for column 'type_transaction' at row 1
+[2025-11-14 12:13:37] Trace: #0 C:\laragon\www\unipalm\directeur\save_paiement.php(288): PDOStatement->execute()
+#1 {main}
+[2025-11-14 12:17:33] Début de l'enregistrement du paiement
+[2025-11-14 12:17:33] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:17:33] Nouveau solde caisse calculé: 81510000
+[2025-11-14 12:17:33] Bordereau #65 mis à jour avec montant_payer=1500000, montant_reste=9740640
+[2025-11-14 12:17:33] Financement agent #185 => solde=9000000, nb_lignes=2, source initiale=financement
+[2025-11-14 12:17:33] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 12:17:33] Financement de l'agent #185 diminué de 500000 (Numéro financement 3)
+[2025-11-14 12:17:33] Transaction de paiement créée #135, nouveau solde: 81510000
+[2025-11-14 12:17:33] Paiement enregistré avec succès
+[2025-11-14 12:18:37] Début de l'enregistrement du paiement
+[2025-11-14 12:18:37] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:18:37] Nouveau solde caisse calculé: 81510000
+[2025-11-14 12:18:37] Bordereau #65 mis à jour avec montant_payer=3500000, montant_reste=7740640
+[2025-11-14 12:18:37] Financement agent #185 => solde=8500000, nb_lignes=3, source initiale=financement
+[2025-11-14 12:18:37] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 12:18:37] Financement de l'agent #185 diminué de 2000000 (Numéro financement 4)
+[2025-11-14 12:18:37] Transaction de paiement créée #136, nouveau solde: 81510000
+[2025-11-14 12:18:38] Paiement enregistré avec succès
+[2025-11-14 12:26:16] Début de l'enregistrement du paiement
+[2025-11-14 12:26:16] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:26:16] Nouveau solde caisse calculé: 80510000
+[2025-11-14 12:26:16] Bordereau #66 mis à jour avec montant_payer=17200000, montant_reste=4764960
+[2025-11-14 12:26:16] Financement agent #162 => solde=0, nb_lignes=0, source initiale=transactions
+[2025-11-14 12:26:16] Transaction de paiement créée #137, nouveau solde: 80510000
+[2025-11-14 12:26:16] Paiement enregistré avec succès
+[2025-11-14 12:26:46] Début de l'enregistrement du paiement
+[2025-11-14 12:26:46] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:26:46] Nouveau solde caisse calculé: 80510000
+[2025-11-14 12:26:46] Bordereau #66 mis à jour avec montant_payer=18200000, montant_reste=3764960
+[2025-11-14 12:26:46] Financement agent #162 => solde=0, nb_lignes=0, source initiale=transactions
+[2025-11-14 12:26:46] Transaction de paiement créée #138, nouveau solde: 80510000
+[2025-11-14 12:26:46] Paiement enregistré avec succès
+[2025-11-14 12:27:29] Début de l'enregistrement du paiement
+[2025-11-14 12:27:29] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:27:29] Nouveau solde caisse calculé: 81510000
+[2025-11-14 12:27:29] Bordereau #65 mis à jour avec montant_payer=5500000, montant_reste=5740640
+[2025-11-14 12:27:29] Financement agent #185 => solde=6500000, nb_lignes=4, source initiale=financement
+[2025-11-14 12:27:29] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 12:27:29] Financement de l'agent #185 diminué de 2000000 (Numéro financement 5)
+[2025-11-14 12:27:29] Transaction de paiement créée #139, nouveau solde: 81510000
+[2025-11-14 12:27:29] Paiement enregistré avec succès
+[2025-11-14 12:36:44] Début de l'enregistrement du paiement
+[2025-11-14 12:36:44] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 12:36:44] Nouveau solde caisse calculé: 81510000
+[2025-11-14 12:36:44] Bordereau #65 mis à jour avec montant_payer=8500000, montant_reste=2740640
+[2025-11-14 12:36:44] Financement agent #185 => solde=9500000, nb_lignes=6, source initiale=financement
+[2025-11-14 12:36:44] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 12:36:44] Financement de l'agent #185 diminué de 3000000 (Numéro financement 7)
+[2025-11-14 12:36:44] Transaction de paiement créée #140, nouveau solde: 81510000
+[2025-11-14 12:36:44] Paiement enregistré avec succès
+[2025-11-14 13:30:06] Début de l'enregistrement du paiement
+[2025-11-14 13:30:06] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 13:30:06] Nouveau solde caisse calculé: 81510000
+[2025-11-14 13:30:06] Bordereau #65 mis à jour avec montant_payer=11240640, montant_reste=0
+[2025-11-14 13:30:06] Financement agent #185 => solde=6500000, nb_lignes=7, source initiale=financement
+[2025-11-14 13:30:06] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 13:30:06] Financement de l'agent #185 diminué de 2740640 (Numéro financement 8)
+[2025-11-14 13:30:06] Transaction de paiement créée #141, nouveau solde: 81510000
+[2025-11-14 13:30:06] Paiement enregistré avec succès
+[2025-11-14 13:42:05] Début de l'enregistrement du paiement
+[2025-11-14 13:42:05] Solde actuel avant paiement: 81510000
+[2025-11-14 13:42:05] Nouveau solde calculé: 80510000
+[2025-11-14 13:42:05] Bordereau #64 mis à jour avec montant_payer=1000000, montant_reste=3898000
+[2025-11-14 13:42:05] Transaction de paiement créée #142, nouveau solde: 80510000
+[2025-11-14 13:42:06] Paiement enregistré avec succès
+[2025-11-14 13:43:23] Début de l'enregistrement du paiement
+[2025-11-14 13:43:23] Solde actuel avant paiement: 81510000
+[2025-11-14 13:43:23] Nouveau solde calculé: 80510000
+[2025-11-14 13:43:23] Bordereau #61 mis à jour avec montant_payer=4000000, montant_reste=-136640
+[2025-11-14 13:43:23] Transaction de paiement créée #143, nouveau solde: 80510000
+[2025-11-14 13:43:23] Paiement enregistré avec succès
+[2025-11-14 13:51:33] Début de l'enregistrement du paiement
+[2025-11-14 13:51:33] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 13:51:33] Nouveau solde caisse calculé: 81510000
+[2025-11-14 13:51:33] Bordereau #64 mis à jour avec montant_payer=1800000, montant_reste=3098000
+[2025-11-14 13:51:33] Financement agent #185 => solde=3759360, nb_lignes=8, source initiale=financement
+[2025-11-14 13:51:33] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 13:51:33] Financement de l'agent #185 diminué de 800000 (Numéro financement 9)
+[2025-11-14 13:51:33] Transaction de paiement créée #144, nouveau solde: 81510000
+[2025-11-14 13:51:33] Paiement enregistré avec succès
+[2025-11-14 13:53:53] Début de l'enregistrement du paiement
+[2025-11-14 13:53:53] Solde caisse actuel avant paiement: 81510000
+[2025-11-14 13:53:53] Nouveau solde caisse calculé: 81510000
+[2025-11-14 13:53:53] Bordereau #64 mis à jour avec montant_payer=2800000, montant_reste=2098000
+[2025-11-14 13:53:53] Financement agent #185 => solde=2959360, nb_lignes=9, source initiale=financement
+[2025-11-14 13:53:53] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 13:53:53] Financement de l'agent #185 diminué de 1000000 (Numéro financement 10)
+[2025-11-14 13:53:53] Transaction de paiement créée #145, nouveau solde: 81510000
+[2025-11-14 13:53:53] Paiement enregistré avec succès
+[2025-11-14 17:57:02] Début de l'enregistrement de l'approvisionnement
+[2025-11-14 17:57:02] Montant reçu: 11000000000
+[2025-11-14 17:57:02] Source reçue: SIB
+[2025-11-14 17:57:02] Motifs reçus: Approvisionnement de la caisse
+[2025-11-14 17:57:02] Solde actuel avant approvisionnement: 81510000
+[2025-11-14 17:57:02] Nouveau solde calculé: 11081510000
+[2025-11-14 17:57:02] Transaction d'approvisionnement créée #146, nouveau solde: 11081510000
+[2025-11-14 19:17:44] Début de l'enregistrement du paiement
+[2025-11-14 19:17:44] Solde caisse actuel avant paiement: 11081510000
+[2025-11-14 19:17:44] Nouveau solde caisse calculé: 11081510000
+[2025-11-14 19:17:44] Bordereau #64 mis à jour avec montant_payer=4800000, montant_reste=98000
+[2025-11-14 19:17:44] Financement agent #185 => solde=1959360, nb_lignes=10, source initiale=financement
+[2025-11-14 19:17:44] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 19:17:44] Financement de l'agent #185 diminué de 2000000 (Numéro financement 12)
+[2025-11-14 19:17:44] Transaction de paiement créée #147, nouveau solde: 11081510000
+[2025-11-14 19:17:44] Paiement enregistré avec succès
+[2025-11-14 19:23:01] Début de l'enregistrement du paiement
+[2025-11-14 19:23:01] Solde caisse actuel avant paiement: 11081510000
+[2025-11-14 19:23:01] Nouveau solde caisse calculé: 11080510000
+[2025-11-14 19:23:01] Bordereau #64 mis à jour avec montant_payer=5800000, montant_reste=-902000
+[2025-11-14 19:23:01] Financement agent #185 => solde=-40640, nb_lignes=11, source initiale=transactions
+[2025-11-14 19:23:01] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-14 19:23:01] Financement de l'agent #185 diminué de 1000000 (Numéro financement 13)
+[2025-11-14 19:23:01] Transaction de paiement créée #148, nouveau solde: 11080510000
+[2025-11-14 19:23:01] Paiement enregistré avec succès
+[2025-11-14 19:23:23] Début de l'enregistrement du paiement
+[2025-11-14 19:23:23] Solde caisse actuel avant paiement: 11081510000
+[2025-11-14 19:23:23] Nouveau solde caisse calculé: 11081210000
+[2025-11-14 19:23:23] Ticket #11572 mis à jour avec montant_payer=300000, montant_reste=33000
+[2025-11-14 19:23:23] Financement agent #264 => solde=0, nb_lignes=0, source initiale=transactions
+[2025-11-14 19:23:23] Transaction de paiement créée #149, nouveau solde: 11081210000
+[2025-11-14 19:23:23] Paiement enregistré avec succès
+[2025-11-15 13:45:16] Début de l'enregistrement du paiement
+[2025-11-15 13:45:16] Solde caisse actuel avant paiement: 11081510000
+[2025-11-15 13:45:16] Nouveau solde caisse calculé: 11081510000
+[2025-11-15 13:45:16] Ticket #11570 mis à jour avec montant_payer=200000, montant_reste=133000
+[2025-11-15 13:45:16] Financement agent #202 => solde=1500000, nb_lignes=1, source initiale=financement
+[2025-11-15 13:45:16] Source de paiement forcée à 'financement' pour l'agent #202
+[2025-11-15 13:45:16] Financement de l'agent #202 diminué de 200000 (Numéro financement 16)
+[2025-11-15 13:45:16] Transaction de paiement créée #150, nouveau solde: 11081510000
+[2025-11-15 13:45:16] Paiement enregistré avec succès
+[2025-11-15 14:37:01] Début de l'enregistrement du paiement
+[2025-11-15 14:37:01] Solde caisse actuel avant paiement: 11081510000
+[2025-11-15 14:37:01] Nouveau solde caisse calculé: 11081510000
+[2025-11-15 14:37:01] Ticket #11254 mis à jour avec montant_payer=972000, montant_reste=0
+[2025-11-15 14:37:01] Financement agent #202 => solde=2800000, nb_lignes=3, source initiale=financement
+[2025-11-15 14:37:01] Source de paiement forcée à 'financement' pour l'agent #202
+[2025-11-15 14:37:01] Financement de l'agent #202 diminué de 972000 (Numéro financement 18)
+[2025-11-15 14:37:01] Transaction de paiement créée #151, nouveau solde: 11081510000
+[2025-11-15 14:37:01] Paiement enregistré avec succès
+[2025-11-15 15:45:57] Début de l'enregistrement du paiement
+[2025-11-15 15:45:57] Solde actuel avant paiement: 11081510000
+[2025-11-15 15:45:57] Nouveau solde calculé: 11080910000
+[2025-11-15 15:45:57] Ticket #11450 mis à jour avec montant_payer=600000, montant_reste=564000
+[2025-11-15 15:45:57] Transaction de paiement créée #152, nouveau solde: 11080910000
+[2025-11-15 15:45:57] Paiement enregistré avec succès
+[2025-11-15 16:11:03] Début de l'enregistrement du paiement
+[2025-11-15 16:11:03] Solde actuel avant paiement: 11081510000
+[2025-11-15 16:11:03] Nouveau solde calculé: 11080510000
+[2025-11-15 16:11:03] Bordereau #68 mis à jour avec montant_payer=1000000, montant_reste=2110400
+[2025-11-15 16:11:03] Transaction de paiement créée #153, nouveau solde: 11080510000
+[2025-11-15 16:11:03] Paiement enregistré avec succès
+[2025-11-15 16:12:14] Début de l'enregistrement du paiement
+[2025-11-15 16:12:14] Solde actuel avant paiement: 11081510000
+[2025-11-15 16:12:14] Nouveau solde calculé: 11080910000
+[2025-11-15 16:12:14] Bordereau #68 mis à jour avec montant_payer=1600000, montant_reste=1510400
+[2025-11-15 16:12:14] Transaction de paiement créée #154, nouveau solde: 11080910000
+[2025-11-15 16:12:14] Paiement enregistré avec succès
+[2025-11-15 16:19:48] Début de l'enregistrement du paiement
+[2025-11-15 16:19:48] Solde actuel avant paiement: 11081510000
+[2025-11-15 16:19:48] Nouveau solde calculé: 11081410000
+[2025-11-15 16:19:48] Bordereau #68 mis à jour avec montant_payer=1700000, montant_reste=1410400
+[2025-11-15 16:19:48] Transaction de paiement créée #155, nouveau solde: 11081410000
+[2025-11-15 16:19:48] Paiement enregistré avec succès
+[2025-11-15 16:20:51] Début de l'enregistrement du paiement
+[2025-11-15 16:20:51] Solde actuel avant paiement: 11081510000
+[2025-11-15 16:20:51] Nouveau solde calculé: 11081210000
+[2025-11-15 16:20:51] Bordereau #68 mis à jour avec montant_payer=2000000, montant_reste=1110400
+[2025-11-15 16:20:51] Transaction de paiement créée #156, nouveau solde: 11081210000
+[2025-11-15 16:20:51] Paiement enregistré avec succès
+[2025-11-15 16:22:01] Début de l'enregistrement du paiement
+[2025-11-15 16:22:01] Solde caisse actuel avant paiement: 11081510000
+[2025-11-15 16:22:01] Nouveau solde caisse calculé: 11080510000
+[2025-11-15 16:22:01] Bordereau #66 mis à jour avec montant_payer=19200000, montant_reste=2764960
+[2025-11-15 16:22:01] Financement agent #162 => solde=0, nb_lignes=0, source initiale=transactions
+[2025-11-15 16:22:01] Transaction de paiement créée #157, nouveau solde: 11080510000
+[2025-11-15 16:22:01] Paiement enregistré avec succès
+[2025-11-15 16:22:30] Début de l'enregistrement du paiement
+[2025-11-15 16:22:30] Solde caisse actuel avant paiement: 11081510000
+[2025-11-15 16:22:30] Nouveau solde caisse calculé: 11080510000
+[2025-11-15 16:22:30] Bordereau #66 mis à jour avec montant_payer=20200000, montant_reste=1764960
+[2025-11-15 16:22:30] Financement agent #162 => solde=0, nb_lignes=0, source initiale=transactions
+[2025-11-15 16:22:30] Transaction de paiement créée #158, nouveau solde: 11080510000
+[2025-11-15 16:22:30] Paiement enregistré avec succès
+[2025-11-15 16:22:51] Début de l'enregistrement du paiement
+[2025-11-15 16:22:51] Solde caisse actuel avant paiement: 11081510000
+[2025-11-15 16:22:51] Nouveau solde caisse calculé: 11081510000
+[2025-11-15 16:22:51] Bordereau #68 mis à jour avec montant_payer=2100000, montant_reste=1010400
+[2025-11-15 16:22:51] Financement agent #185 => solde=959360, nb_lignes=13, source initiale=financement
+[2025-11-15 16:22:51] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 16:22:51] Financement de l'agent #185 diminué de 100000 (Numéro financement 19)
+[2025-11-15 16:22:51] Transaction de paiement créée #159, nouveau solde: 11081510000
+[2025-11-15 16:22:51] Paiement enregistré avec succès
+[2025-11-15 16:28:16] Début de l'enregistrement du paiement
+[2025-11-15 16:28:16] Solde actuel avant paiement: 11081510000
+[2025-11-15 16:28:16] Nouveau solde calculé: 11081410000
+[2025-11-15 16:28:16] Bordereau #68 mis à jour avec montant_payer=2200000, montant_reste=910400
+[2025-11-15 16:28:16] Transaction de paiement créée #160, nouveau solde: 11081410000
+[2025-11-15 16:28:16] Paiement enregistré avec succès
+[2025-11-15 16:42:30] Début de l'enregistrement du paiement
+[2025-11-15 16:42:30] Solde actuel avant paiement: 11081510000
+[2025-11-15 16:42:30] Nouveau solde calculé: 11081410000
+[2025-11-15 16:42:30] Bordereau #68 mis à jour avec montant_payer=2300000, montant_reste=810400
+[2025-11-15 16:42:30] Transaction de paiement créée #161, nouveau solde: 11081410000
+[2025-11-15 16:42:30] Paiement enregistré avec succès
+[2025-11-15 16:43:38] Début de l'enregistrement du paiement
+[2025-11-15 16:43:38] Solde actuel avant paiement: 11081510000
+[2025-11-15 16:43:38] Nouveau solde calculé: 11081410000
+[2025-11-15 16:43:38] Bordereau #68 mis à jour avec montant_payer=2400000, montant_reste=710400
+[2025-11-15 16:43:38] Transaction de paiement créée #162, nouveau solde: 11081410000
+[2025-11-15 16:43:38] Paiement enregistré avec succès
+[2025-11-15 16:55:32] Début de l'enregistrement du paiement
+[2025-11-15 16:55:32] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 16:55:33] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 16:55:33] Bordereau #68 mis à jour avec montant_payer=2500000, montant_reste=610400
+[2025-11-15 16:55:33] [save_paiement_agent] Financement agent #185 => solde=859360, nb_lignes=14, source initiale=financement
+[2025-11-15 16:55:33] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 16:55:33] [save_paiement_agent] Financement de l'agent #185 diminué de 100000 (Numéro financement 20)
+[2025-11-15 16:55:33] Transaction de paiement (save_paiement_agent) créée #163, nouveau solde caisse: 11081510000
+[2025-11-15 16:55:33] Paiement enregistré avec succès
+[2025-11-15 16:56:36] Début de l'enregistrement du paiement
+[2025-11-15 16:56:36] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 16:56:36] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 16:56:36] Bordereau #68 mis à jour avec montant_payer=2700000, montant_reste=410400
+[2025-11-15 16:56:36] [save_paiement_agent] Financement agent #185 => solde=759360, nb_lignes=15, source initiale=financement
+[2025-11-15 16:56:36] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 16:56:36] [save_paiement_agent] Financement de l'agent #185 diminué de 200000 (Numéro financement 21)
+[2025-11-15 16:56:36] Transaction de paiement (save_paiement_agent) créée #164, nouveau solde caisse: 11081510000
+[2025-11-15 16:56:36] Paiement enregistré avec succès
+[2025-11-15 17:29:13] Début de l'enregistrement du paiement
+[2025-11-15 17:29:13] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 17:29:13] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 17:29:13] Bordereau #68 mis à jour avec montant_payer=3110400, montant_reste=0
+[2025-11-15 17:29:13] [save_paiement_agent] Financement agent #185 => solde=559360, nb_lignes=16, source initiale=financement
+[2025-11-15 17:29:13] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 17:29:13] [save_paiement_agent] Financement de l'agent #185 diminué de 410400 (Numéro financement 22)
+[2025-11-15 17:29:13] Transaction de paiement (save_paiement_agent) créée #165, nouveau solde caisse: 11081510000
+[2025-11-15 17:29:13] Paiement enregistré avec succès
+[2025-11-15 20:27:04] Mise à jour automatique de 3 ticket(s) avec les prix unitaires correspondants à leurs dates
+[2025-11-15 20:41:59] Début de l'enregistrement du paiement
+[2025-11-15 20:41:59] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 20:41:59] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 20:41:59] Bordereau #69 mis à jour avec montant_payer=148960, montant_reste=4651040
+[2025-11-15 20:41:59] [save_paiement_agent] Financement agent #185 => solde=148960, nb_lignes=17, source initiale=financement
+[2025-11-15 20:41:59] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 20:41:59] [save_paiement_agent] Financement de l'agent #185 diminué de 148960 (Numéro financement 23)
+[2025-11-15 20:41:59] Transaction de paiement (save_paiement_agent) créée #166, nouveau solde caisse: 11081510000
+[2025-11-15 20:41:59] Paiement enregistré avec succès
+[2025-11-15 20:47:00] Début de l'enregistrement du paiement
+[2025-11-15 20:47:00] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 20:47:00] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 20:47:00] Bordereau #69 mis à jour avec montant_payer=548960, montant_reste=4251040
+[2025-11-15 20:47:00] [save_paiement_agent] Financement agent #185 => solde=5000000, nb_lignes=19, source initiale=financement
+[2025-11-15 20:47:00] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 20:47:00] [save_paiement_agent] Financement de l'agent #185 diminué de 400000 (Numéro financement 25)
+[2025-11-15 20:47:00] Transaction de paiement (save_paiement_agent) créée #167, nouveau solde caisse: 11081510000
+[2025-11-15 20:47:00] Paiement enregistré avec succès
+[2025-11-15 20:50:38] Début de l'enregistrement du paiement
+[2025-11-15 20:50:38] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 20:50:38] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 20:50:38] Bordereau #69 mis à jour avec montant_payer=4800000, montant_reste=0
+[2025-11-15 20:50:38] [save_paiement_agent] Financement agent #185 => solde=4600000, nb_lignes=20, source initiale=financement
+[2025-11-15 20:50:38] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 20:50:38] [save_paiement_agent] Financement de l'agent #185 diminué de 4251040 (Numéro financement 26)
+[2025-11-15 20:50:38] Transaction de paiement (save_paiement_agent) créée #168, nouveau solde caisse: 11081510000
+[2025-11-15 20:50:38] Paiement enregistré avec succès
+[2025-11-15 21:06:40] Début de l'enregistrement du paiement
+[2025-11-15 21:06:40] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 21:06:40] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 21:06:40] Bordereau #70 mis à jour avec montant_payer=1800000, montant_reste=0
+[2025-11-15 21:06:40] [save_paiement_agent] Financement agent #185 => solde=348960, nb_lignes=21, source initiale=financement
+[2025-11-15 21:06:40] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 21:06:40] [save_paiement_agent] Financement de l'agent #185 diminué de 1800000 (Numéro financement 27)
+[2025-11-15 21:06:40] Transaction de paiement (save_paiement_agent) créée #169, nouveau solde caisse: 11081510000
+[2025-11-15 21:06:40] Paiement enregistré avec succès
+[2025-11-15 21:37:53] Début de l'enregistrement du paiement
+[2025-11-15 21:37:53] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 21:37:53] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 21:37:53] Bordereau #71 mis à jour avec montant_payer=3360000, montant_reste=0
+[2025-11-15 21:37:53] [save_paiement_agent] Financement agent #185 => solde=19148960, nb_lignes=24, source initiale=financement
+[2025-11-15 21:37:53] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 21:37:53] [save_paiement_agent] Financement de l'agent #185 diminué de 3360000 (Numéro financement 30)
+[2025-11-15 21:37:53] Transaction de paiement (save_paiement_agent) créée #170, nouveau solde caisse: 11081510000
+[2025-11-15 21:37:53] Paiement enregistré avec succès
+[2025-11-15 21:54:04] Début de l'enregistrement du paiement
+[2025-11-15 21:54:04] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 21:54:04] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 21:54:04] Bordereau #73 mis à jour avec montant_payer=15788960, montant_reste=224211040
+[2025-11-15 21:54:04] [save_paiement_agent] Financement agent #185 => solde=15788960, nb_lignes=25, source initiale=financement
+[2025-11-15 21:54:04] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 21:54:04] [save_paiement_agent] Financement de l'agent #185 diminué de 15788960 (Numéro financement 31)
+[2025-11-15 21:54:04] Transaction de paiement (save_paiement_agent) créée #171, nouveau solde caisse: 11081510000
+[2025-11-15 21:54:04] Paiement enregistré avec succès
+[2025-11-15 22:13:57] Début de l'enregistrement du paiement
+[2025-11-15 22:13:57] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 22:13:57] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 22:13:57] Bordereau #73 mis à jour avec montant_payer=16788960, montant_reste=223211040
+[2025-11-15 22:13:57] [save_paiement_agent] Financement agent #185 => solde=1000000, nb_lignes=27, source initiale=financement
+[2025-11-15 22:13:57] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 22:13:57] [save_paiement_agent] Financement de l'agent #185 diminué de 1000000 (Numéro financement 33)
+[2025-11-15 22:13:57] Transaction de paiement (save_paiement_agent) créée #172, nouveau solde caisse: 11081510000
+[2025-11-15 22:13:57] Paiement enregistré avec succès
+[2025-11-15 22:16:51] Début de l'enregistrement du paiement
+[2025-11-15 22:16:51] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-15 22:16:51] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-15 22:16:51] Bordereau #73 mis à jour avec montant_payer=240000000, montant_reste=0
+[2025-11-15 22:16:51] [save_paiement_agent] Financement agent #185 => solde=1000000, nb_lignes=29, source initiale=financement
+[2025-11-15 22:16:51] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-15 22:16:51] [save_paiement_agent] Financement de l'agent #185 diminué de 223211040 (Numéro financement 35)
+[2025-11-15 22:16:51] Transaction de paiement (save_paiement_agent) créée #173, nouveau solde caisse: 11081510000
+[2025-11-15 22:16:51] Paiement enregistré avec succès
+[2025-11-16 11:47:08] Début de l'enregistrement du paiement
+[2025-11-16 11:47:08] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-16 11:47:08] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-16 11:47:08] Bordereau #74 mis à jour avec montant_payer=79788960, montant_reste=4720211040
+[2025-11-16 11:47:08] [save_paiement_agent] Financement agent #185 => solde=79788960, nb_lignes=32, source initiale=financement
+[2025-11-16 11:47:08] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-16 11:47:08] [save_paiement_agent] Financement de l'agent #185 diminué de 79788960 (Numéro financement 38)
+[2025-11-16 11:47:08] Transaction de paiement (save_paiement_agent) créée #174, nouveau solde caisse: 11081510000
+[2025-11-16 11:47:08] Paiement enregistré avec succès
+[2025-11-16 11:48:29] Début de l'enregistrement du paiement
+[2025-11-16 11:48:29] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-16 11:48:29] Nouveau solde caisse calculé (save_paiement_agent): 10081510000
+[2025-11-16 11:48:29] Bordereau #74 mis à jour avec montant_payer=1079788960, montant_reste=3720211040
+[2025-11-16 11:48:29] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=33, source initiale=transactions
+[2025-11-16 11:48:29] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-16 11:48:29] ERREUR: Solde de financement insuffisant pour cet agent.
+[2025-11-16 11:48:29] Trace: #0 {main}
+[2025-11-16 11:53:34] Début de l'enregistrement du paiement
+[2025-11-16 11:53:34] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-16 11:53:34] Nouveau solde caisse calculé (save_paiement_agent): 11080510000
+[2025-11-16 11:53:34] Bordereau #74 mis à jour avec montant_payer=80788960, montant_reste=4719211040
+[2025-11-16 11:53:34] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=33, source initiale=transactions
+[2025-11-16 11:53:34] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-16 11:53:34] ERREUR: Solde de financement insuffisant pour cet agent.
+[2025-11-16 11:53:34] Trace: #0 {main}
+[2025-11-16 12:02:54] Début de l'enregistrement du paiement
+[2025-11-16 12:02:54] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000
+[2025-11-16 12:02:54] Nouveau solde caisse calculé (save_paiement_agent): 11080510000
+[2025-11-16 12:02:54] Bordereau #74 mis à jour avec montant_payer=80788960, montant_reste=4719211040
+[2025-11-16 12:02:54] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=33, source initiale=transactions
+[2025-11-16 12:02:54] [save_paiement_agent] Source de paiement forcée à 'financement' pour l'agent #185
+[2025-11-16 12:02:54] ERREUR: Solde de financement insuffisant pour cet agent.
+[2025-11-16 12:02:54] Trace: #0 {main}
+[2025-11-16 12:11:43] Début de l'enregistrement du paiement
+[2025-11-16 12:11:43] Bordereau #74 mis à jour avec montant_payer=79798960, montant_reste=4720201040
+[2025-11-16 12:11:43] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=33, source choisie=transactions
+[2025-11-16 12:11:43] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000 | source finale=transactions
+[2025-11-16 12:11:43] Nouveau solde caisse calculé (save_paiement_agent): 11081500000
+[2025-11-16 12:11:43] Transaction de paiement (save_paiement_agent) créée #175, nouveau solde caisse: 11081500000
+[2025-11-16 12:11:43] Paiement enregistré avec succès
+[2025-11-16 12:12:10] Début de l'enregistrement du paiement
+[2025-11-16 12:12:10] Bordereau #74 mis à jour avec montant_payer=80798960, montant_reste=4719201040
+[2025-11-16 12:12:10] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=33, source choisie=transactions
+[2025-11-16 12:12:10] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000 | source finale=transactions
+[2025-11-16 12:12:10] Nouveau solde caisse calculé (save_paiement_agent): 11080510000
+[2025-11-16 12:12:10] Transaction de paiement (save_paiement_agent) créée #176, nouveau solde caisse: 11080510000
+[2025-11-16 12:12:10] Paiement enregistré avec succès
+[2025-11-16 12:15:19] Début de l'enregistrement du paiement
+[2025-11-16 12:15:19] Bordereau #74 mis à jour avec montant_payer=85798960, montant_reste=4714201040
+[2025-11-16 12:15:19] [save_paiement_agent] Financement agent #185 => solde=10000000, nb_lignes=34, source choisie=financement
+[2025-11-16 12:15:19] [save_paiement_agent] Financement de l'agent #185 diminué de 5000000 (Numéro financement 40)
+[2025-11-16 12:15:19] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000 | source finale=financement
+[2025-11-16 12:15:19] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-16 12:15:19] Transaction de paiement (save_paiement_agent) créée #177, nouveau solde caisse: 11081510000
+[2025-11-16 12:15:19] Paiement enregistré avec succès
+[2025-11-16 12:18:49] Début de l'enregistrement du paiement
+[2025-11-16 12:18:49] Bordereau #74 mis à jour avec montant_payer=88798960, montant_reste=4711201040
+[2025-11-16 12:18:49] [save_paiement_agent] Financement agent #185 => solde=5000000, nb_lignes=35, source choisie=financement
+[2025-11-16 12:18:49] [save_paiement_agent] Financement de l'agent #185 diminué de 3000000 (Numéro financement 41)
+[2025-11-16 12:18:49] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000 | source finale=financement
+[2025-11-16 12:18:49] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-16 12:18:49] Transaction de paiement (save_paiement_agent) créée #178, nouveau solde caisse: 11081510000
+[2025-11-16 12:18:49] Paiement enregistré avec succès
+[2025-11-16 12:19:10] Début de l'enregistrement du paiement
+[2025-11-16 12:19:10] Bordereau #74 mis à jour avec montant_payer=90798960, montant_reste=4709201040
+[2025-11-16 12:19:10] [save_paiement_agent] Financement agent #185 => solde=2000000, nb_lignes=36, source choisie=financement
+[2025-11-16 12:19:10] [save_paiement_agent] Financement de l'agent #185 diminué de 2000000 (Numéro financement 42)
+[2025-11-16 12:19:10] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000 | source finale=financement
+[2025-11-16 12:19:10] Nouveau solde caisse calculé (save_paiement_agent): 11081510000
+[2025-11-16 12:19:10] Transaction de paiement (save_paiement_agent) créée #179, nouveau solde caisse: 11081510000
+[2025-11-16 12:19:10] Paiement enregistré avec succès
+[2025-11-16 12:19:56] Début de l'enregistrement du paiement
+[2025-11-16 12:19:56] Bordereau #74 mis à jour avec montant_payer=92798960, montant_reste=4707201040
+[2025-11-16 12:19:56] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=37, source choisie=transactions
+[2025-11-16 12:19:56] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000 | source finale=transactions
+[2025-11-16 12:19:56] Nouveau solde caisse calculé (save_paiement_agent): 11079510000
+[2025-11-16 12:19:56] Transaction de paiement (save_paiement_agent) créée #180, nouveau solde caisse: 11079510000
+[2025-11-16 12:19:56] Paiement enregistré avec succès
+[2025-11-16 12:20:24] Début de l'enregistrement du paiement
+[2025-11-16 12:20:24] Bordereau #74 mis à jour avec montant_payer=4800000000, montant_reste=0
+[2025-11-16 12:20:24] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=37, source choisie=transactions
+[2025-11-16 12:20:24] Solde caisse actuel avant paiement (save_paiement_agent): 11081510000 | source finale=transactions
+[2025-11-16 12:20:24] Nouveau solde caisse calculé (save_paiement_agent): 6374308960
+[2025-11-16 12:20:24] Transaction de paiement (save_paiement_agent) créée #181, nouveau solde caisse: 6374308960
+[2025-11-16 12:20:24] Paiement enregistré avec succès
+[2025-11-16 12:21:28] Début de l'enregistrement de l'approvisionnement
+[2025-11-16 12:21:28] Montant reçu: 3000000000
+[2025-11-16 12:21:28] Source reçue: SIB
+[2025-11-16 12:21:28] Motifs reçus: Approvisionnement de la caisse
+[2025-11-16 12:21:28] Solde actuel avant approvisionnement: 11081510000
+[2025-11-16 12:21:28] Nouveau solde calculé: 14081510000
+[2025-11-16 12:21:28] Transaction d'approvisionnement créée #182, nouveau solde: 14081510000
+[2025-11-16 12:30:02] Début de l'enregistrement du paiement
+[2025-11-16 12:30:02] Bordereau #75 mis à jour avec montant_payer=1500000, montant_reste=2124000
+[2025-11-16 12:30:02] [save_paiement_agent] Financement agent #185 => solde=1500000, nb_lignes=38, source choisie=financement
+[2025-11-16 12:30:02] [save_paiement_agent] Financement de l'agent #185 diminué de 1500000 (Numéro financement 44)
+[2025-11-16 12:30:02] Solde caisse actuel avant paiement (save_paiement_agent): 14081510000 | source finale=financement
+[2025-11-16 12:30:02] Nouveau solde caisse calculé (save_paiement_agent): 14081510000
+[2025-11-16 12:30:02] Transaction de paiement (save_paiement_agent) créée #183, nouveau solde caisse: 14081510000
+[2025-11-16 12:30:02] Paiement enregistré avec succès
+[2025-11-17 12:09:17] Début de l'enregistrement du paiement
+[2025-11-17 12:09:17] Bordereau #75 mis à jour avec montant_payer=3624000, montant_reste=0
+[2025-11-17 12:09:17] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=39, source choisie=transactions
+[2025-11-17 12:09:17] Solde caisse actuel avant paiement (save_paiement_agent): 14081510000 | source finale=transactions
+[2025-11-17 12:09:17] Nouveau solde caisse calculé (save_paiement_agent): 14079386000
+[2025-11-17 12:09:17] Transaction de paiement (save_paiement_agent) créée #184, nouveau solde caisse: 14079386000
+[2025-11-17 12:09:17] Paiement enregistré avec succès
+[2025-11-17 17:50:02] Début de l'enregistrement du paiement
+[2025-11-17 17:50:02] Bordereau #76 mis à jour avec montant_payer=3275000, montant_reste=1000000
+[2025-11-17 17:50:02] [save_paiement_agent] Financement agent #185 => solde=10200000, nb_lignes=41, source choisie=financement
+[2025-11-17 17:50:02] [save_paiement_agent] Financement de l'agent #185 diminué de 3275000 (Numéro financement 47)
+[2025-11-17 17:50:02] Solde caisse actuel avant paiement (save_paiement_agent): 14081510000 | source finale=financement
+[2025-11-17 17:50:02] Nouveau solde caisse calculé (save_paiement_agent): 14081510000
+[2025-11-17 17:50:02] Transaction de paiement (save_paiement_agent) créée #185, nouveau solde caisse: 14081510000
+[2025-11-17 17:50:02] Paiement enregistré avec succès
+[2025-11-17 17:50:37] Début de l'enregistrement du paiement
+[2025-11-17 17:50:37] Bordereau #76 mis à jour avec montant_payer=4275000, montant_reste=0
+[2025-11-17 17:50:37] [save_paiement_agent] Financement agent #185 => solde=6925000, nb_lignes=42, source choisie=financement
+[2025-11-17 17:50:37] [save_paiement_agent] Financement de l'agent #185 diminué de 1000000 (Numéro financement 48)
+[2025-11-17 17:50:37] Solde caisse actuel avant paiement (save_paiement_agent): 14081510000 | source finale=financement
+[2025-11-17 17:50:37] Nouveau solde caisse calculé (save_paiement_agent): 14081510000
+[2025-11-17 17:50:37] Transaction de paiement (save_paiement_agent) créée #186, nouveau solde caisse: 14081510000
+[2025-11-17 17:50:37] Paiement enregistré avec succès
+[2025-11-17 17:55:04] Début de l'enregistrement du paiement
+[2025-11-17 17:55:04] Bordereau #77 mis à jour avec montant_payer=5925000, montant_reste=4323000
+[2025-11-17 17:55:04] [save_paiement_agent] Financement agent #185 => solde=5925000, nb_lignes=43, source choisie=financement
+[2025-11-17 17:55:04] [save_paiement_agent] Financement de l'agent #185 diminué de 5925000 (Numéro financement 49)
+[2025-11-17 17:55:04] Solde caisse actuel avant paiement (save_paiement_agent): 14081510000 | source finale=financement
+[2025-11-17 17:55:04] Nouveau solde caisse calculé (save_paiement_agent): 14081510000
+[2025-11-17 17:55:04] Transaction de paiement (save_paiement_agent) créée #187, nouveau solde caisse: 14081510000
+[2025-11-17 17:55:04] Paiement enregistré avec succès
+[2025-11-17 18:00:58] Début de l'enregistrement de l'approvisionnement
+[2025-11-17 18:00:58] Montant reçu: 50000000
+[2025-11-17 18:00:58] Source reçue: SIB
+[2025-11-17 18:00:58] Motifs reçus: Approvisionnement de la caisse
+[2025-11-17 18:00:58] Solde actuel avant approvisionnement: 14081510000
+[2025-11-17 18:00:58] Nouveau solde calculé: 14131510000
+[2025-11-17 18:00:58] Transaction d'approvisionnement créée #188, nouveau solde: 14131510000
+[2025-11-17 19:16:54] Début de l'enregistrement du paiement
+[2025-11-17 19:16:54] Bordereau #80 mis à jour avec montant_payer=9352014960, montant_reste=5647985040
+[2025-11-17 19:16:54] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=44, source choisie=transactions
+[2025-11-17 19:16:54] Solde caisse actuel avant paiement (save_paiement_agent): 14131510000 | source finale=transactions
+[2025-11-17 19:16:54] Nouveau solde caisse calculé (save_paiement_agent): 4779495040
+[2025-11-17 19:16:54] Transaction de paiement (save_paiement_agent) créée #189, nouveau solde caisse: 4779495040
+[2025-11-17 19:16:54] Paiement enregistré avec succès
+[2025-11-17 19:33:33] Début de l'enregistrement de l'approvisionnement
+[2025-11-17 19:33:33] Montant reçu: 10000000
+[2025-11-17 19:33:33] Source reçue: SIB
+[2025-11-17 19:33:33] Motifs reçus: Approvisionnement de la caisse
+[2025-11-17 19:33:33] Solde actuel avant approvisionnement: 14131510000
+[2025-11-17 19:33:33] Nouveau solde calculé: 14141510000
+[2025-11-17 19:33:33] Transaction d'approvisionnement créée #190, nouveau solde: 14141510000
+[2025-11-17 19:45:54] Début de l'enregistrement du paiement
+[2025-11-17 19:45:54] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'where clause'
+[2025-11-17 19:45:54] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(38): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+[2025-11-17 19:46:54] Début de l'enregistrement du paiement
+[2025-11-17 19:46:54] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'where clause'
+[2025-11-17 19:46:54] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(38): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+[2025-11-17 19:50:27] Début de l'enregistrement du paiement
+[2025-11-17 19:50:27] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'where clause'
+[2025-11-17 19:50:27] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(38): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+[2025-11-17 19:58:52] Début de l'enregistrement du paiement
+[2025-11-17 19:58:52] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'where clause'
+[2025-11-17 19:58:52] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(38): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+[2025-11-17 19:59:23] Début de l'enregistrement du paiement
+[2025-11-17 19:59:23] Bordereau #77 mis à jour avec montant_payer=6925000, montant_reste=3323000
+[2025-11-17 19:59:23] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=44, source choisie=transactions
+[2025-11-17 19:59:23] Solde caisse actuel avant paiement (save_paiement_agent): 14141510000 | source finale=transactions
+[2025-11-17 19:59:23] Nouveau solde caisse calculé (save_paiement_agent): 14140510000
+[2025-11-17 19:59:23] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'field list'
+[2025-11-17 19:59:23] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(288): PDO->prepare('\r\n             ...')
+#1 {main}
+[2025-11-17 19:59:51] Début de l'enregistrement du paiement
+[2025-11-17 19:59:51] Bordereau #77 mis à jour avec montant_payer=6925000, montant_reste=3323000
+[2025-11-17 19:59:51] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=44, source choisie=transactions
+[2025-11-17 19:59:51] Solde caisse actuel avant paiement (save_paiement_agent): 14141510000 | source finale=transactions
+[2025-11-17 19:59:51] Nouveau solde caisse calculé (save_paiement_agent): 14140510000
+[2025-11-17 19:59:51] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'field list'
+[2025-11-17 19:59:51] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(288): PDO->prepare('\r\n             ...')
+#1 {main}
+[2025-11-17 20:05:34] Début de l'enregistrement du paiement
+[2025-11-17 20:05:34] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'where clause'
+[2025-11-17 20:05:34] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(38): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+[2025-11-17 20:13:08] Début de l'enregistrement du paiement
+[2025-11-17 20:13:08] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'where clause'
+[2025-11-17 20:13:08] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(38): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+[2025-11-17 20:16:15] Début de l'enregistrement du paiement
+[2025-11-17 20:16:15] ERREUR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'numero_cheque' in 'where clause'
+[2025-11-17 20:16:15] Trace: #0 C:\laragon\www\unipalm\pages\save_paiement_agent.php(38): PDO->prepare('SELECT COUNT(*)...')
+#1 {main}
+[2025-11-17 20:27:35] Début de l'enregistrement du paiement
+[2025-11-17 20:27:35] Bordereau #77 mis à jour avec montant_payer=6925000, montant_reste=3323000, statut=non soldé
+[2025-11-17 20:27:35] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=44, source choisie=cheque
+[2025-11-17 20:27:35] [save_paiement_agent] Paiement par chèque #Pegasus120-AB - Aucun débit du financement ni de la caisse
+[2025-11-17 20:27:35] Solde caisse actuel avant paiement (save_paiement_agent): 14141510000 | source finale=cheque
+[2025-11-17 20:27:35] Nouveau solde caisse calculé (save_paiement_agent): 14141510000
+[2025-11-17 20:27:35] Paiement par chèque #Pegasus120-AB - Aucune transaction créée dans la caisse
+[2025-11-17 20:27:35] Paiement enregistré avec succès
+[2025-11-17 20:28:39] Début de l'enregistrement du paiement
+[2025-11-17 20:28:40] Bordereau #77 mis à jour avec montant_payer=7925000, montant_reste=2323000, statut=non soldé
+[2025-11-17 20:28:40] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=44, source choisie=transactions
+[2025-11-17 20:28:40] Solde caisse actuel avant paiement (save_paiement_agent): 14141510000 | source finale=transactions
+[2025-11-17 20:28:40] Nouveau solde caisse calculé (save_paiement_agent): 14140510000
+[2025-11-17 20:28:40] Transaction de paiement (save_paiement_agent) créée #191, nouveau solde caisse: 14140510000
+[2025-11-17 20:28:40] Paiement enregistré avec succès
+[2025-11-17 20:35:30] Début de l'enregistrement du paiement
+[2025-11-17 20:35:30] Bordereau #77 mis à jour avec montant_payer=8925000, montant_reste=1323000, statut=non soldé
+[2025-11-17 20:35:30] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=44, source choisie=cheque
+[2025-11-17 20:35:30] [save_paiement_agent] Paiement par chèque #sdddddsssd-ab - Aucun débit du financement ni de la caisse
+[2025-11-17 20:35:30] Solde caisse actuel avant paiement (save_paiement_agent): 14141510000 | source finale=cheque
+[2025-11-17 20:35:30] Nouveau solde caisse calculé (save_paiement_agent): 14141510000
+[2025-11-17 20:35:30] Paiement par chèque #sdddddsssd-ab - Aucune transaction créée dans la caisse
+[2025-11-17 20:35:30] Paiement enregistré avec succès
+[2025-11-17 20:49:30] Début de l'enregistrement du paiement
+[2025-11-17 20:49:30] Bordereau #77 mis à jour avec montant_payer=9925000, montant_reste=323000, statut=non soldé
+[2025-11-17 20:49:30] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=44, source choisie=transactions
+[2025-11-17 20:49:30] Solde caisse actuel avant paiement (save_paiement_agent): 14141510000 | source finale=transactions
+[2025-11-17 20:49:30] Nouveau solde caisse calculé (save_paiement_agent): 14140510000
+[2025-11-17 20:49:30] Transaction de paiement (save_paiement_agent) créée #192, nouveau solde caisse: 14140510000
+[2025-11-17 20:49:30] Paiement enregistré avec succès

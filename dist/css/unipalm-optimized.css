@@ -1,0 +1,277 @@
+/* ===== UNIPALM OPTIMIZED STYLES ===== */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.15);
+    --shadow-heavy: 0 15px 35px rgba(31, 38, 135, 0.25);
+    --border-radius: 20px;
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fallback pour les polices si Google Fonts ne charge pas */
+body, .content-wrapper, .main-sidebar, .navbar {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    font-display: swap;
+}
+
+/* Navbar professionnel */
+.main-header.navbar {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(15px) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    box-shadow: var(--shadow-light) !important;
+    padding: 0.75rem 1.5rem !important;
+    min-height: 70px !important;
+}
+
+.navbar-nav .nav-link {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    padding: 0.75rem 1.25rem !important;
+    border-radius: 12px !important;
+    transition: var(--transition) !important;
+    position: relative !important;
+    margin: 0 0.25rem !important;
+}
+
+.navbar-nav .nav-link:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)) !important;
+    color: #667eea !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2) !important;
+}
+
+.navbar-nav .nav-link.active {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    box-shadow: var(--shadow-light) !important;
+}
+
+/* Optimisations de performance */
+* {
+    box-sizing: border-box;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Gestion des erreurs de chargement */
+.fa, .fas, .far, .fab {
+    font-family: "Font Awesome 5 Free", "Font Awesome 5 Brands", sans-serif !important;
+}
+
+/* Styles de fallback pour les icônes manquantes */
+.fa::before, .fas::before, .far::before, .fab::before {
+    content: "●" !important;
+    color: #6c757d;
+}
+
+/* Optimisation du rendu */
+.navbar, .sidebar, .content-wrapper {
+    contain: layout style paint;
+}
+
+/* Amélioration des performances de scroll */
+.content-wrapper {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Cache les éléments qui causent des erreurs */
+.mapbox-gl-map, .leaflet-container {
+    display: none !important;
+}
+
+/* Optimisation des tables */
+.table-responsive {
+    contain: layout style paint;
+    overflow-x: auto;
+}
+
+/* Réduction des reflows */
+.card, .box {
+    contain: layout style paint;
+}
+
+/* Réduction des reflows */
+.content-wrapper {
+    will-change: transform;
+}
+
+/* Optimisation des animations */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Cache des éléments non visibles */
+.d-none {
+    display: none !important;
+}
+
+/* Optimisation des tables */
+.table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.table td, .table th {
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Optimisation des modals */
+.modal {
+    will-change: opacity, transform;
+}
+
+.modal-backdrop {
+    will-change: opacity;
+}
+
+/* Optimisation des filtres */
+.filters-section {
+    contain: layout style paint;
+}
+
+/* Optimisation des cartes */
+.card {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimisation des boutons */
+.btn {
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+}
+
+/* Optimisation des icônes */
+.fas, .far, .fab {
+    font-display: swap;
+}
+
+/* Optimisation du scrolling */
+.table-container {
+    contain: strict;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Optimisation des gradients */
+.gradient-bg {
+    background-attachment: fixed;
+    will-change: transform;
+}
+
+/* Optimisation des ombres */
+.shadow-optimized {
+    box-shadow: var(--shadow-light);
+    will-change: box-shadow;
+}
+
+/* Optimisation des transitions */
+.transition-optimized {
+    transition: var(--transition);
+    will-change: transform, opacity;
+}
+
+/* Optimisation des polices */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-display: swap;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Optimisation des images de fond */
+.bg-image {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    will-change: transform;
+}
+
+/* Optimisation des formulaires */
+.form-control, .form-select {
+    will-change: border-color, box-shadow;
+}
+
+/* Optimisation des alertes */
+.alert {
+    contain: layout style paint;
+}
+
+/* Optimisation des badges */
+.badge {
+    contain: layout style paint;
+    will-change: transform;
+}
+
+/* Optimisation des listes */
+.list-group {
+    contain: layout style paint;
+}
+
+/* Optimisation des barres de progression */
+.progress {
+    contain: layout style paint;
+}
+
+/* Optimisation des tooltips */
+.tooltip {
+    will-change: opacity, transform;
+    contain: layout style paint;
+}
+
+/* Optimisation des dropdowns */
+.dropdown-menu {
+    will-change: opacity, transform;
+    contain: layout style paint;
+}
+
+/* Optimisation des accordéons */
+.accordion {
+    contain: layout style paint;
+}
+
+/* Optimisation des onglets */
+.nav-tabs {
+    contain: layout style paint;
+}
+
+/* Optimisation des carrousels */
+.carousel {
+    will-change: transform;
+    contain: layout style paint;
+}
+
+/* Optimisation des spinners */
+.spinner-border {
+    will-change: transform;
+}
+
+/* Optimisation des offcanvas */
+.offcanvas {
+    will-change: transform;
+    contain: layout style paint;
+}
+
+/* Optimisation des toasts */
+.toast {
+    will-change: opacity, transform;
+    contain: layout style paint;
+}

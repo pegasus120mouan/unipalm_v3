@@ -44,12 +44,12 @@ try {
     // Mettre à jour le montant total et le poids total du bordereau
     $sql_update_bordereau = "UPDATE bordereau b 
                            SET b.montant_total = (
-                               SELECT COALESCE(CAST(SUM(t.prix_unitaire * t.poids) AS DECIMAL(20,2)), 0)
+                               SELECT COALESCE(CAST(SUM(t.prix_unitaire * t.poids) AS DECIMAL(15,2)), 0)
                                FROM tickets t 
                                WHERE t.numero_bordereau = b.numero_bordereau
                            ),
                            b.poids_total = (
-                               SELECT COALESCE(CAST(SUM(t.poids) AS DECIMAL(10,2)), 0)
+                               SELECT COALESCE(CAST(SUM(t.poids) AS DECIMAL(15,2)), 0)
                                FROM tickets t 
                                WHERE t.numero_bordereau = b.numero_bordereau
                            )

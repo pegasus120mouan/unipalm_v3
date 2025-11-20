@@ -7,8 +7,15 @@ require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
 include('header.php');
 
-$limit = $_GET['limit'] ?? 15;
+// Paramètres de pagination
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 15;
+if ($limit <= 0) {
+    $limit = 15;
+}
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page <= 0) {
+    $page = 1;
+}
 
 // Récupérer les paramètres de filtrage
 $agent_id = $_GET['agent_id'] ?? null;
@@ -19,53 +26,36 @@ $search_agent = $_GET['search_agent'] ?? '';
 $search_usine = $_GET['search_usine'] ?? '';
 $numero_ticket = $_GET['numero_ticket'] ?? '';
 
-// Récupérer les tickets du jour avec les filtres
-$tickets = getTicketsJour($conn);
+// Calculer le nombre total de tickets (pour la pagination) directement en SQL
+$total_tickets = countTicketsJour($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket);
+$total_pages = $total_tickets > 0 ? ceil($total_tickets / $limit) : 1;
+$page = max(1, min($page, $total_pages));
+$offset = ($page - 1) * $limit;
 
-// Filtrer les tickets si un terme de recherche est présent
-if (!empty($search_agent) || !empty($search_usine) || !empty($agent_id) || !empty($usine_id) || !empty($date_debut) || !empty($date_fin) || !empty($numero_ticket)) {
-    $tickets = array_filter($tickets, function($ticket) use ($search_agent, $search_usine, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket) {
+// Récupérer uniquement les tickets de la page courante avec LIMIT/OFFSET
+$tickets_list = getTicketsJour($conn, $agent_id, $usine_id, $date_debut, $date_fin, $numero_ticket, null, $limit, $offset);
+
+// Filtrer les tickets si un terme de recherche texte (agent/usine) est présent
+if (!empty($search_agent) || !empty($search_usine)) {
+    $tickets_list = array_filter($tickets_list, function($ticket) use ($search_agent, $search_usine) {
         $match = true;
-        
         if (!empty($search_agent)) {
             $match = $match && stripos($ticket['agent_nom_complet'], $search_agent) !== false;
         }
         if (!empty($search_usine)) {
             $match = $match && stripos($ticket['nom_usine'], $search_usine) !== false;
         }
-        if (!empty($agent_id)) {
-            $match = $match && $ticket['id_agent'] == $agent_id;
-        }
-        if (!empty($usine_id)) {
-            $match = $match && $ticket['id_usine'] == $usine_id;
-        }
-        if (!empty($numero_ticket)) {
-            $match = $match && stripos($ticket['numero_ticket'], $numero_ticket) !== false;
-        }
-        if (!empty($date_debut)) {
-            $match = $match && strtotime($ticket['date_ticket']) >= strtotime($date_debut);
-        }
-        if (!empty($date_fin)) {
-            $match = $match && strtotime($ticket['date_ticket']) <= strtotime($date_fin);
-        }
         return $match;
     });
 }
 
-// Récupérer les données pour les filtres
-$usines = getUsines($conn);
+// Pour compatibilité avec le reste du fichier qui utilise encore $tickets (par ex. modals),
+// on ne conserve en mémoire que les tickets de la page courante
+$tickets = $tickets_list;
+
+// Récupérer les listes pour l'autocomplétion (seulement si nécessaire)
 $agents = getAgents($conn);
-$chefs_equipes = getChefEquipes($conn);
-$vehicules = getVehicules($conn);
-
-// Calculer la pagination
-$total_tickets = count($tickets);
-$total_pages = ceil($total_tickets / $limit);
-$page = max(1, min($page, $total_pages));
-$offset = ($page - 1) * $limit;
-
-// Extraire les tickets pour la page courante
-$tickets_list = array_slice($tickets, $offset, $limit);
+$usines = getUsines($conn);
 ?>
 
 <!-- Section de filtres ultra-professionnelle -->

@@ -2,6 +2,78 @@
 require_once '../inc/functions/connexion.php';
 session_start();
 
+/**
+ * Génère un numéro d'agent unique au format AGT-25-CHEF-INITIALES+SEQUENCE
+ * @param PDO $conn Connexion à la base de données
+ * @param int $id_chef ID du chef d'équipe
+ * @param string $nom_agent Nom de l'agent
+ * @param string $prenom_agent Prénom de l'agent
+ * @return string Numéro d'agent généré
+ */
+function genererNumeroAgent($conn, $id_chef, $nom_agent, $prenom_agent) {
+    $annee_courte = date('y'); // Année sur 2 chiffres (25 pour 2025)
+    
+    // Récupérer le nom du chef et créer un code
+    $stmt = $conn->prepare("SELECT nom, prenoms FROM chef_equipe WHERE id_chef = ?");
+    $stmt->execute([$id_chef]);
+    $chef = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$chef) {
+        throw new Exception("Chef d'équipe non trouvé");
+    }
+    
+    // Créer un code chef à partir du nom (3 premières lettres en majuscules)
+    $code_chef = strtoupper(substr($chef['nom'], 0, 3));
+    
+    // Créer les initiales de l'agent (première lettre du nom + première lettre du prénom)
+    $initiale_nom = strtoupper(substr($nom_agent, 0, 1));
+    $initiale_prenom = strtoupper(substr($prenom_agent, 0, 1));
+    $initiales_agent = $initiale_nom . $initiale_prenom;
+    
+    // Format: AGT-25-ZAL-YD (AGT + Année + Code Chef + Initiales Agent)
+    $prefixe = "AGT-" . $annee_courte . "-" . $code_chef . "-" . $initiales_agent;
+    
+    // Récupérer le dernier numéro d'agent créé avec ces initiales pour ce chef cette année
+    $stmt = $conn->prepare("
+        SELECT numero_agent 
+        FROM agents 
+        WHERE numero_agent LIKE ? 
+        ORDER BY numero_agent DESC 
+        LIMIT 1
+    ");
+    $stmt->execute([$prefixe . '%']);
+    $dernier_numero = $stmt->fetchColumn();
+    
+    if ($dernier_numero) {
+        // Extraire le numéro séquentiel et l'incrémenter
+        // Format: AGT-25-ZAL-YD01 -> extraire les 2 derniers chiffres
+        $sequence = (int)substr($dernier_numero, -2) + 1;
+    } else {
+        // Premier agent avec ces initiales pour ce chef cette année
+        $sequence = 1;
+    }
+    
+    // Formater avec des zéros à gauche (2 chiffres pour la séquence)
+    $sequence_format = str_pad($sequence, 2, '0', STR_PAD_LEFT);
+    $numero_agent = $prefixe . $sequence_format;
+    
+    // Vérifier l'unicité (sécurité supplémentaire)
+    $stmt_check = $conn->prepare("SELECT COUNT(*) FROM agents WHERE numero_agent = ?");
+    $stmt_check->execute([$numero_agent]);
+    
+    if ($stmt_check->fetchColumn() > 0) {
+        // Si le numéro existe déjà, incrémenter jusqu'à trouver un numéro libre
+        do {
+            $sequence++;
+            $sequence_format = str_pad($sequence, 2, '0', STR_PAD_LEFT);
+            $numero_agent = $prefixe . $sequence_format;
+            $stmt_check->execute([$numero_agent]);
+        } while ($stmt_check->fetchColumn() > 0);
+    }
+    
+    return $numero_agent;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Ajout d'un agent
     if (isset($_POST['add_agent'])) {
@@ -32,13 +104,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
+            // Générer un numéro d'agent unique
+            $numero_agent = genererNumeroAgent($conn, $id_chef, $nom, $prenom);
+            
             // Insertion de l'agent
-            $stmt = $conn->prepare("INSERT INTO agents (nom, prenom, contact, id_chef, cree_par, date_ajout) VALUES (?, ?, ?, ?, ?, NOW())");
-            $result = $stmt->execute([$nom, $prenom, $contact, $id_chef, $cree_par]);
+            $stmt = $conn->prepare("INSERT INTO agents (numero_agent, nom, prenom, contact, id_chef, cree_par, date_ajout) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            $result = $stmt->execute([$numero_agent, $nom, $prenom, $contact, $id_chef, $cree_par]);
 
             if ($result) {
                 $_SESSION['popup'] = true;
-                $_SESSION['message'] = "Agent ajouté avec succès !";
+                $_SESSION['message'] = "Agent ajouté avec succès ! Numéro d'agent : " . $numero_agent;
                 $_SESSION['status'] = "success";
             } else {
                 $_SESSION['popup'] = true;

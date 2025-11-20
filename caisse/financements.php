@@ -1,12 +1,18 @@
 <?php
 require_once '../inc/functions/connexion.php';
 //require_once '../inc/functions/requete/requetes_selection_boutique.php';
-include('header_caisse.php');
+include('header.php');
 
 
 //$_SESSION['user_id'] = $user['id'];
 $id_user=$_SESSION['user_id'];
 //echo $id_user;
+
+// Filtres de recherche (numéro financement / motif, agent, période)
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$agent_id = isset($_GET['agent_id']) ? trim($_GET['agent_id']) : '';
+$date_debut = isset($_GET['date_debut']) ? trim($_GET['date_debut']) : '';
+$date_fin = isset($_GET['date_fin']) ? trim($_GET['date_fin']) : '';
 
 ////$stmt = $conn->prepare("SELECT * FROM users");
 $sql_agents = "SELECT id_agent, CONCAT(nom, ' ', prenom) as nom_complet FROM agents ORDER BY nom, prenom";
@@ -14,27 +20,99 @@ $stmt_agents = $conn->prepare($sql_agents);
 $stmt_agents->execute();
 $agents = $stmt_agents->fetchAll(PDO::FETCH_ASSOC);
 
-// Récupération des agents avec leurs montants totaux de financement
+// Récupération des agents avec leurs montants de financement et remboursements (avec filtres éventuels)
+// Tout est calculé à partir de la table `financement` pour rester cohérent
+// avec le solde utilisé dans le modal de paiement (getFinancementAgent).
 $sql_totaux = "SELECT 
     a.id_agent,
     CONCAT(a.nom, ' ', a.prenom) AS nom_agent,
-    COALESCE(SUM(f.montant), 0) AS montant_total,
+    -- Montant initial accordé (sommes positives dans financement)
+    COALESCE(SUM(CASE WHEN f.montant > 0 THEN f.montant ELSE 0 END), 0) AS montant_initial,
+    -- Montant déjà remboursé (sommes négatives, retournées en positif)
+    COALESCE(-SUM(CASE WHEN f.montant < 0 THEN f.montant ELSE 0 END), 0) AS montant_rembourse,
+    -- Solde de financement restant (somme nette des mouvements, minimum 0)
+    GREATEST(COALESCE(SUM(f.montant), 0), 0) AS solde_financement,
     COALESCE(COUNT(f.Numero_financement), 0) AS nombre_financements
 FROM agents a
-LEFT JOIN financement f ON a.id_agent = f.id_agent
-GROUP BY a.id_agent, a.nom, a.prenom
-ORDER BY montant_total DESC, a.nom, a.prenom";
+LEFT JOIN financement f ON a.id_agent = f.id_agent";
+
+$params_totaux = [];
+$conditions_totaux = [];
+
+// Filtre agent pour le résumé
+if ($agent_id !== '') {
+    $conditions_totaux[] = 'a.id_agent = :agent_id_tot';
+    $params_totaux[':agent_id_tot'] = $agent_id;
+}
+
+// Filtres de période sur date_financement pour le résumé
+if ($date_debut !== '' && $date_fin !== '') {
+    $conditions_totaux[] = 'DATE(f.date_financement) BETWEEN :date_debut_tot AND :date_fin_tot';
+    $params_totaux[':date_debut_tot'] = $date_debut;
+    $params_totaux[':date_fin_tot'] = $date_fin;
+} elseif ($date_debut !== '') {
+    $conditions_totaux[] = 'DATE(f.date_financement) >= :date_debut_tot';
+    $params_totaux[':date_debut_tot'] = $date_debut;
+} elseif ($date_fin !== '') {
+    $conditions_totaux[] = 'DATE(f.date_financement) <= :date_fin_tot';
+    $params_totaux[':date_fin_tot'] = $date_fin;
+}
+
+if (!empty($conditions_totaux)) {
+    $sql_totaux .= ' WHERE ' . implode(' AND ', $conditions_totaux);
+}
+
+$sql_totaux .= ' GROUP BY a.id_agent, a.nom, a.prenom ORDER BY solde_financement DESC, a.nom, a.prenom';
+
 $stmt_totaux = $conn->prepare($sql_totaux);
-$stmt_totaux->execute();
+$stmt_totaux->execute($params_totaux);
 $agents_financements = $stmt_totaux->fetchAll(PDO::FETCH_ASSOC);
 
-// Récupération des financements avec les noms des agents
+// Récupération des financements avec les noms des agents (avec filtres éventuels)
 $sql = "SELECT f.*, CONCAT(a.nom, ' ', a.prenom) as nom_agent 
        FROM financement f 
-       INNER JOIN agents a ON f.id_agent = a.id_agent 
-       ORDER BY f.Numero_financement DESC";
+       INNER JOIN agents a ON f.id_agent = a.id_agent";
+
+$params = [];
+$conditions = [];
+
+// Filtre texte global (numéro, agent, motif)
+if ($search !== '') {
+    $conditions[] = "(f.Numero_financement LIKE :search1 
+                    OR CONCAT(a.nom, ' ', a.prenom) LIKE :search2 
+                    OR f.motif LIKE :search3)";
+    $params[':search1'] = '%' . $search . '%';
+    $params[':search2'] = '%' . $search . '%';
+    $params[':search3'] = '%' . $search . '%';
+}
+
+// Filtre agent explicite (liste déroulante)
+if ($agent_id !== '') {
+    $conditions[] = "a.id_agent = :agent_id";
+    $params[':agent_id'] = $agent_id;
+}
+
+// Filtres de période sur date_financement
+if ($date_debut !== '' && $date_fin !== '') {
+    $conditions[] = "DATE(f.date_financement) BETWEEN :date_debut AND :date_fin";
+    $params[':date_debut'] = $date_debut;
+    $params[':date_fin'] = $date_fin;
+} elseif ($date_debut !== '') {
+    $conditions[] = "DATE(f.date_financement) >= :date_debut";
+    $params[':date_debut'] = $date_debut;
+} elseif ($date_fin !== '') {
+    $conditions[] = "DATE(f.date_financement) <= :date_fin";
+    $params[':date_fin'] = $date_fin;
+}
+
+if (!empty($conditions)) {
+    $sql .= ' WHERE ' . implode(' AND ', $conditions);
+}
+
+$sql .= " ORDER BY f.Numero_financement DESC";
+
 $stmt = $conn->prepare($sql);
-$stmt->execute();
+$stmt->execute($params);
 $financements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Organiser les financements par agent
@@ -68,664 +146,239 @@ foreach ($financements as $financement) {
 
 <!-- Main row -->
 <style>
-    /* ===== STYLES ULTRA-PROFESSIONNELS POUR FINANCEMENTS ===== */
-    
-    :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --success-gradient: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
-        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        --danger-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
-        --glass-bg: rgba(255, 255, 255, 0.95);
-        --glass-border: rgba(255, 255, 255, 0.3);
-        --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.15);
-        --shadow-heavy: 0 15px 35px rgba(31, 38, 135, 0.25);
-        --border-radius: 20px;
-        --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  .pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
 
-    /* Page Header */
-    .page-header {
-        background: var(--primary-gradient);
-        color: white;
-        padding: 2rem 1.5rem;
-        border-radius: var(--border-radius);
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-heavy);
-        position: relative;
-        overflow: hidden;
-    }
+.pagination-link {
+    padding: 8px;
+    text-decoration: none;
+    color: white;
+    background-color: #007bff; 
+    border: 1px solid #007bff;
+    border-radius: 4px; 
+    margin-right: 4px;
+}
 
-    .page-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 200px;
-        height: 200px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        transform: translate(50%, -50%);
-    }
+.items-per-page-form {
+    margin-left: 20px;
+}
 
-    .page-header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin: 0;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }
+label {
+    margin-right: 5px;
+}
 
-    .page-header p {
-        font-size: 1.1rem;
-        margin: 0.5rem 0 0 0;
-        opacity: 0.9;
-    }
+.items-per-page-select {
+    padding: 6px;
+    border-radius: 4px; 
+}
 
-    /* Action Buttons Container */
-    .action-buttons-container {
-        background: var(--glass-bg);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--border-radius);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-light);
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .btn-professional {
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: var(--transition);
-        border: none;
-        position: relative;
-        overflow: hidden;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .btn-professional:disabled {
-        background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%) !important;
-        color: rgba(255, 255, 255, 0.7) !important;
-        cursor: not-allowed !important;
-        opacity: 0.6 !important;
-        transform: none !important;
-        box-shadow: none !important;
-    }
-
-    .btn-professional:not(:disabled):hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        text-decoration: none;
-        color: white;
-    }
-
-    .btn-add {
-        background: var(--success-gradient);
-        color: white;
-        box-shadow: 0 4px 15px rgba(86, 171, 47, 0.3);
-    }
-
-    .btn-print {
-        background: var(--danger-gradient);
-        color: white;
-        box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
-    }
-
-    .btn-search {
-        background: var(--info-gradient);
-        color: white;
-        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
-    }
-
-    .btn-export {
-        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-        color: white;
-        box-shadow: 0 4px 15px rgba(44, 62, 80, 0.3);
-    }
-
-    /* Statistics Cards */
-    .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: var(--glass-bg);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--border-radius);
-        padding: 1.5rem;
-        box-shadow: var(--shadow-light);
-        position: relative;
-        overflow: hidden;
-        transition: var(--transition);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-heavy);
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--primary-gradient);
-    }
-
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        margin-bottom: 1rem;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-        color: #7f8c8d;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* Table Professional */
-    .table-container {
-        background: var(--glass-bg);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--border-radius);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow-light);
-        overflow: hidden;
-    }
-
-    .table-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #f8f9fa;
-    }
-
-    .table-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #2c3e50;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .table-professional {
-        margin: 0;
-        border-collapse: separate;
-        border-spacing: 0;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-professional thead th {
-        background: var(--primary-gradient);
-        color: white;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 1rem;
-        border: none;
-        font-size: 0.9rem;
-        text-align: center;
-    }
-
-    .table-professional tbody tr {
-        background: white;
-        transition: var(--transition);
-    }
-
-    .table-professional tbody tr:hover {
-        background: rgba(102, 126, 234, 0.05);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .table-professional tbody td {
-        padding: 1rem;
-        border-bottom: 1px solid #f8f9fa;
-        font-size: 0.95rem;
-        vertical-align: middle;
-        text-align: center;
-    }
-
-    .table-professional tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    /* Agent Links */
-    .agent-link {
-        color: #2c3e50;
-        font-weight: 600;
-        text-decoration: none;
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .agent-link:hover {
-        color: #667eea;
-        text-decoration: none;
-        transform: scale(1.05);
-    }
-
-    /* Price Display */
-    .price-display {
-        font-weight: 700;
-        color: #27ae60;
-        font-size: 1.1rem;
-    }
-
-    .count-badge {
-        background: var(--info-gradient);
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-    /* Alert Improvements */
-    .alert-professional {
-        border: none;
-        border-radius: 12px;
-        padding: 1rem 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: var(--shadow-light);
-        backdrop-filter: blur(15px);
-    }
-
-    .alert-success {
-        background: rgba(86, 171, 47, 0.1);
-        color: #2d5016;
-        border-left: 4px solid #56ab2f;
-    }
-
-    .alert-danger {
-        background: rgba(255, 65, 108, 0.1);
-        color: #8b1538;
-        border-left: 4px solid #ff416c;
-    }
-
-    .alert-warning {
-        background: rgba(240, 147, 251, 0.1);
-        color: #7d1a7d;
-        border-left: 4px solid #f093fb;
-    }
-
-    /* Modal Improvements */
-    .modal-content {
-        border: none;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-heavy);
-        backdrop-filter: blur(15px);
-    }
-
-    .modal-header {
-        background: var(--primary-gradient);
-        color: white;
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
-        padding: 1.5rem;
-    }
-
-    .modal-title {
-        font-weight: 700;
-        font-size: 1.2rem;
-    }
-
-    .modal-body {
-        padding: 2rem;
-    }
-
-    .form-control {
-        border: 2px solid #e9ecef;
-        border-radius: 12px;
-        padding: 12px 16px;
-        font-size: 0.95rem;
-        transition: var(--transition);
-        background: white;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        outline: none;
-    }
-
-    /* Styles pour les champs de montant */
-    .input-group-text {
-        background: var(--primary-gradient);
-        color: white;
-        border: none;
-        font-weight: 600;
-    }
-
-    .form-control.focused {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .form-text {
-        font-size: 0.8rem;
-        margin-top: 0.5rem;
-    }
-
-    /* Animation pour les labels */
-    .form-group label {
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-        transition: var(--transition);
-    }
-
-    .form-group:focus-within label {
-        color: #667eea;
-    }
-
-    /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-
-    @keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.05);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    .animate-fade-in-up {
-        animation: fadeInUp 0.6s ease-out forwards;
-    }
-
-    .animate-fade-in {
-        animation: fadeIn 0.4s ease-out forwards;
-    }
-
-    .animate-pulse {
-        animation: pulse 2s infinite;
-    }
-
-    /* Hover effects */
-    .stat-card:hover .stat-icon {
-        animation: pulse 1s ease-in-out;
-    }
-
-    /* Loading states */
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.9);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-
-    .loading-spinner {
-        width: 50px;
-        height: 50px;
-        border: 4px solid rgba(102, 126, 234, 0.1);
-        border-left: 4px solid #667eea;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .page-header h1 {
-            font-size: 2rem;
-        }
-        
-        .action-buttons-container {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        
-        .btn-professional {
-            justify-content: center;
-            margin-bottom: 0.5rem;
-        }
-        
-        .table-container {
-            padding: 1rem;
-            overflow-x: auto;
-        }
-        
-        .stats-container {
-            grid-template-columns: 1fr;
-        }
-
-        .table-header {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .table-professional thead {
-            display: none;
-        }
-        
-        .table-professional tbody tr {
-            display: block;
-            margin-bottom: 1rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 1rem;
-        }
-        
-        .table-professional tbody td {
-            display: block;
-            text-align: left;
-            border: none;
-            padding: 0.5rem 0;
-        }
-        
-        .table-professional tbody td::before {
-            content: attr(data-label) ": ";
-            font-weight: 700;
-            color: #667eea;
-            display: inline-block;
-            width: 120px;
-        }
-
-        .stats-container {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .stat-card {
-            padding: 1rem;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-        }
-    }
+.submit-button {
+    padding: 6px 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px; 
+    cursor: pointer;
+}
+ .custom-icon {
+            color: green;
+            font-size: 24px;
+            margin-right: 8px;
+ }
+ .spacing {
+    margin-right: 10px; 
+    margin-bottom: 20px;
+}
 </style>
 
+  <style>
+        @media only screen and (max-width: 767px) {
+            
+            th {
+                display: none; 
+            }
+            tbody tr {
+                display: block;
+                margin-bottom: 20px;
+                border: 1px solid #ccc;
+                padding: 10px;
+            }
+            tbody tr td::before {
 
-<!-- Page Header -->
-<div class="page-header">
-    <h1><i class="fas fa-money-bill-wave mr-3"></i>Gestion des Financements</h1>
-    <p>Gérez et suivez les financements accordés aux agents avec des outils d'analyse avancés</p>
-</div>
+                font-weight: bold;
+                margin-right: 5px;
+            }
+        }
+        .margin-right-15 {
+        margin-right: 15px;
+       }
+        .block-container {
+      background-color:  #d7dbdd ;
+      padding: 20px;
+      border-radius: 5px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    </style>
 
-<!-- Alerts Professional -->
-<?php if (isset($_SESSION['warning'])): ?>
-    <div class="alert alert-warning alert-professional alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle mr-2"></i>
-        <?= $_SESSION['warning'] ?>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <?php unset($_SESSION['warning']); ?>
-<?php endif; ?>
+<style>
+   /* Filtres avancés financements */
+   .filter-card {
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+      border: none;
+      overflow: hidden;
+      margin-bottom: 25px;
+   }
 
-<?php if (isset($_SESSION['popup'])): ?>
-    <div class="alert alert-success alert-professional alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle mr-2"></i>
-        Financement enregistré avec succès
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <?php unset($_SESSION['popup']); ?>
-<?php endif; ?>
+   .filter-card-header {
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      color: #fff;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+   }
 
-<?php if (isset($_SESSION['delete_pop'])): ?>
-    <div class="alert alert-danger alert-professional alert-dismissible fade show" role="alert">
-        <i class="fas fa-times-circle mr-2"></i>
-        Une erreur s'est produite
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <?php unset($_SESSION['delete_pop']); ?>
-<?php endif; ?>
+   .filter-card-header-title {
+      display: flex;
+      flex-direction: column;
+   }
 
-<!-- Statistics Cards -->
-<?php
-$total_financements = array_sum(array_column($agents_financements, 'nombre_financements'));
-$total_montant = array_sum(array_column($agents_financements, 'montant_total'));
-$nb_agents_finances = count(array_filter($agents_financements, function($agent) { return $agent['nombre_financements'] > 0; }));
-$montant_moyen = $nb_agents_finances > 0 ? $total_montant / $nb_agents_finances : 0;
-?>
+   .filter-card-header-title h5 {
+      margin: 0;
+      font-weight: 600;
+   }
 
-<div class="stats-container">
-    <div class="stat-card">
-        <div class="stat-icon" style="background: var(--success-gradient);">
-            <i class="fas fa-money-bill-wave"></i>
+   .filter-card-header-title small {
+      opacity: 0.9;
+      font-size: 0.85rem;
+   }
+
+   .filter-card-header-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 18px;
+   }
+
+   .filter-card-toggle i {
+      transition: transform 0.25s ease;
+   }
+
+   .filter-card-toggle.collapsed i {
+      transform: rotate(180deg);
+   }
+
+   .filter-card-body {
+      background: #f9fafb;
+      padding: 20px 24px 10px 24px;
+   }
+
+   .filter-label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: #374151;
+   }
+
+   .filter-input-icon {
+      position: relative;
+   }
+
+   .filter-input-icon i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6b7280;
+      font-size: 14px;
+   }
+
+   .filter-input-icon input,
+   .filter-input-icon select {
+      padding-left: 34px;
+   }
+
+   .filter-actions {
+      margin-top: 10px;
+   }
+
+   @media (max-width: 767.98px) {
+      .filter-card-header {
+         flex-direction: column;
+         align-items: flex-start;
+      }
+      .filter-card-header-icon {
+         margin-bottom: 10px;
+      }
+   }
+    </style>
+
+
+<div class="row">
+    <?php if (isset($_SESSION['warning'])): ?>
+        <div class="col-12">
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <?= $_SESSION['warning'] ?>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
         </div>
-        <div class="stat-value"><?= number_format($total_montant, 0, ',', ' ') ?></div>
-        <div class="stat-label">Montant Total (FCFA)</div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon" style="background: var(--info-gradient);">
-            <i class="fas fa-list-ol"></i>
+        <?php unset($_SESSION['warning']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['popup'])): ?>
+        <div class="col-12">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                Ticket enregistré avec succès
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
         </div>
-        <div class="stat-value"><?= $total_financements ?></div>
-        <div class="stat-label">Total Financements</div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon" style="background: var(--warning-gradient);">
-            <i class="fas fa-users"></i>
+        <?php unset($_SESSION['popup']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['delete_pop'])): ?>
+        <div class="col-12">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Une erreur s'est produite
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
         </div>
-        <div class="stat-value"><?= $nb_agents_finances ?></div>
-        <div class="stat-label">Agents Financés</div>
-    </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon" style="background: var(--danger-gradient);">
-            <i class="fas fa-calculator"></i>
-        </div>
-        <div class="stat-value"><?= number_format($montant_moyen, 0, ',', ' ') ?></div>
-        <div class="stat-label">Montant Moyen (FCFA)</div>
-    </div>
-</div>
+        <?php unset($_SESSION['delete_pop']); ?>
+    <?php endif; ?>
 
-<!-- Action Buttons -->
-<div class="action-buttons-container">
-    <div class="d-flex gap-3 flex-wrap">
-        <button type="button" class="btn-professional btn-add" data-toggle="modal" data-target="#add-financement">
-            <i class="fas fa-plus"></i>
-            Nouveau Financement
-        </button>
+    <div class="block-container">
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-financement">
+      <i class="fa fa-edit"></i>Enregistrer un financement
+    </button>
 
-        <button type="button" class="btn-professional btn-print" disabled style="cursor: not-allowed; opacity: 0.6;">
-            <i class="fas fa-print"></i>
-            Imprimer la Liste
-        </button>
+    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#print-bordereau">
+      <i class="fa fa-print"></i> Imprimer la liste des financements
+    </button>
 
-        <button type="button" class="btn-professional btn-search" disabled style="cursor: not-allowed; opacity: 0.6;">
-            <i class="fas fa-search"></i>
-            Rechercher
-        </button>
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#search_ticket">
+      <i class="fa fa-search"></i> Rechercher un ticket
+    </button>
 
-        <button type="button" class="btn-professional btn-export" disabled style="cursor: not-allowed; opacity: 0.6;">
-            <i class="fas fa-download"></i>
-            Exporter
-        </button>
-    </div>
-    <div class="d-flex align-items-center">
-        <span class="badge badge-info">
-            <i class="fas fa-database mr-1"></i>
-            <?= count($agents_financements) ?> agents
-        </span>
-    </div>
+    <button type="button" class="btn btn-dark" onclick="window.location.href='export_tickets.php'">
+              <i class="fa fa-print"></i> Exporter la liste les tickets
+             </button>
 </div>
 
 
@@ -754,68 +407,138 @@ $montant_moyen = $nb_agents_finances > 0 ? $total_montant / $nb_agents_finances 
 
 
 
-<!-- Table Container -->
-<div class="table-container">
-    <div class="table-header">
-        <div class="table-title">
-            <i class="fas fa-chart-bar"></i>
-            Résumé des Financements par Agent
-        </div>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-info btn-sm" data-toggle="modal" data-target="#listeDetaillee">
-                <i class="fas fa-list"></i> Liste détaillée
+<div class="container-fluid">
+    <!-- Filtres avancés financements -->
+    <div class="card filter-card mb-4">
+        <div class="filter-card-header" data-toggle="collapse" data-target="#filtersFinancements" aria-expanded="true" aria-controls="filtersFinancements">
+            <div class="d-flex align-items-center">
+                <div class="filter-card-header-icon">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="filter-card-header-title">
+                    <h5>Filtres Avancés - Financements</h5>
+                    <small>Rechercher et filtrer les financements par numéro, agent ou période</small>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-light filter-card-toggle" aria-label="Réduire / Déplier">
+                <i class="fas fa-chevron-up"></i>
             </button>
         </div>
-    </div>
-    
-    <div class="table-responsive">
-        <table class="table-professional w-100">
-            <thead>
-                <tr>
-                    <th><i class="fas fa-user-tie mr-2"></i>Agent</th>
-                    <th><i class="fas fa-hashtag mr-2"></i>Nb Financements</th>
-                    <th><i class="fas fa-money-bill-wave mr-2"></i>Montant Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($agents_financements)): ?>
-                    <?php foreach ($agents_financements as $agent): ?>
-                    <tr>
-                        <td data-label="Agent">
-                            <a href="#" class="agent-link" data-toggle="modal" data-target="#detailsModal<?= $agent['id_agent'] ?>">
-                                <i class="fas fa-user-circle"></i>
-                                <?= htmlspecialchars($agent['nom_agent']) ?>
-                            </a>
-                        </td>
-                        <td data-label="Nb Financements">
-                            <span class="count-badge">
-                                <?= $agent['nombre_financements'] ?>
-                            </span>
-                        </td>
-                        <td data-label="Montant Total">
-                            <span class="price-display">
-                                <?= number_format($agent['montant_total'], 0, ',', ' ') ?> FCFA
-                            </span>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" class="text-center py-5">
-                            <div class="d-flex flex-column align-items-center">
-                                <i class="fas fa-money-bill-wave text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                                <h5 class="text-muted mb-2">Aucun financement trouvé</h5>
-                                <p class="text-muted mb-3">Commencez par ajouter un nouveau financement</p>
-                                <button type="button" class="btn-professional btn-add" data-toggle="modal" data-target="#add-financement">
-                                    <i class="fas fa-plus mr-2"></i>Nouveau Financement
-                                </button>
+        <div id="filtersFinancements" class="collapse show">
+            <div class="filter-card-body">
+                <form method="get">
+                    <div class="form-row">
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="search_numero">
+                                <i class="fas fa-hashtag mr-1"></i> Numéro de financement
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="search_numero" name="search" class="form-control" placeholder="Ex: FIN-2024-001" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
                             </div>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                        </div>
+
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="agent_id">
+                                <i class="fas fa-user-tie mr-1"></i> Agent
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="fas fa-user"></i>
+                                <select id="agent_id" name="agent_id" class="form-control">
+                                    <option value="">Sélectionner un agent...</option>
+                                    <?php foreach ($agents as $agent): ?>
+                                        <option value="<?= $agent['id_agent'] ?>" <?= ($agent_id !== '' && $agent_id == $agent['id_agent']) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($agent['nom_complet'], ENT_QUOTES, 'UTF-8') ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="date_debut">
+                                <i class="fas fa-calendar-alt mr-1"></i> Date de début
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="far fa-calendar"></i>
+                                <input type="date" id="date_debut" name="date_debut" class="form-control" value="<?= isset($_GET['date_debut']) ? htmlspecialchars($_GET['date_debut'], ENT_QUOTES, 'UTF-8') : '' ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-3 col-sm-6">
+                            <label class="filter-label" for="date_fin">
+                                <i class="fas fa-calendar-day mr-1"></i> Date de fin
+                            </label>
+                            <div class="filter-input-icon">
+                                <i class="far fa-calendar-check"></i>
+                                <input type="date" id="date_fin" name="date_fin" class="form-control" value="<?= isset($_GET['date_fin']) ? htmlspecialchars($_GET['date_fin'], ENT_QUOTES, 'UTF-8') : '' ?>">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center filter-actions">
+                        <small class="text-muted d-none d-md-inline">Astuce : vous pouvez combiner plusieurs filtres pour affiner la recherche.</small>
+                        <div>
+                            <a href="financements.php" class="btn btn-light mr-2">
+                                <i class="fas fa-undo mr-1"></i> Réinitialiser
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search mr-1"></i> Appliquer les filtres
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+
+    <!-- Résumé des financements -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">Résumé des financements par agent</h3>
+                <div class="text-right">
+                    <button type="button" class="btn btn-info mr-2" data-toggle="modal" data-target="#listeDetaillee">
+                        <i class="fas fa-list"></i> Liste détaillée des financements
+                    </button>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-financement">
+                        <i class="fas fa-plus"></i> Nouveau financement
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tableResume" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th class="text-center">Nombre de financements</th>
+                            <th class="text-right">Montant initial</th>
+                            <th class="text-right">Déjà remboursé</th>
+                            <th class="text-right">Solde financement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($agents_financements as $agent): ?>
+                        <tr>
+                            <td>
+                                <a href="#" class="text-dark" data-toggle="modal" data-target="#detailsModal<?= $agent['id_agent'] ?>">
+                                    <?= htmlspecialchars($agent['nom_agent']) ?>
+                                </a>
+                            </td>
+                            <td class="text-center"><?= $agent['nombre_financements'] ?></td>
+                            <td class="text-right"><?= number_format($agent['montant_initial'], 0, ',', ' ') ?> FCFA</td>
+                            <td class="text-right"><?= number_format($agent['montant_rembourse'], 0, ',', ' ') ?> FCFA</td>
+                            <td class="text-right"><?= number_format($agent['solde_financement'], 0, ',', ' ') ?> FCFA</td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 
@@ -844,18 +567,7 @@ $montant_moyen = $nb_agents_finances > 0 ? $total_montant / $nb_agents_finances 
                     </div>
                     <div class="form-group">
                         <label for="montant">Montant (FCFA)</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="montant" name="montant" 
-                                   placeholder="Saisissez le montant..." 
-                                   autocomplete="off" required>
-                            <div class="input-group-append">
-                                <span class="input-group-text">FCFA</span>
-                            </div>
-                        </div>
-                        <small class="form-text text-muted">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Le montant sera automatiquement formaté
-                        </small>
+                        <input type="number" class="form-control" id="montant" name="montant" required>
                     </div>
                     <div class="form-group">
                         <label for="motif">Motif</label>
@@ -897,18 +609,7 @@ $montant_moyen = $nb_agents_finances > 0 ? $total_montant / $nb_agents_finances 
                     </div>
                     <div class="form-group">
                         <label for="edit_montant">Montant (FCFA)</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="edit_montant" name="montant" 
-                                   placeholder="Saisissez le montant..." 
-                                   autocomplete="off" required>
-                            <div class="input-group-append">
-                                <span class="input-group-text">FCFA</span>
-                            </div>
-                        </div>
-                        <small class="form-text text-muted">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Le montant sera automatiquement formaté
-                        </small>
+                        <input type="number" class="form-control" id="edit_montant" name="montant" required>
                     </div>
                     <div class="form-group">
                         <label for="edit_motif">Motif</label>
@@ -1289,156 +990,11 @@ document.addEventListener('DOMContentLoaded', function() {
         show: false
     });
 
-    // Animation des cartes statistiques au chargement
-    $('.stat-card').each(function(index) {
-        $(this).css('animation-delay', (index * 0.2) + 's');
-        $(this).addClass('animate-fade-in-up');
-    });
-
-    // Animation des lignes du tableau
-    $('.table-professional tbody tr').each(function(index) {
-        $(this).css('animation-delay', (index * 0.1) + 's');
-        $(this).addClass('animate-fade-in');
-    });
-
-    // Gestion des liens d'agents avec effet de chargement
-    $('.agent-link').on('click', function(e) {
-        const $this = $(this);
-        const originalText = $this.html();
-        
-        $this.html('<i class="fas fa-spinner fa-spin mr-2"></i>Chargement...');
-        
-        // Restaurer le texte après 2 secondes (simulation)
-        setTimeout(() => {
-            $this.html(originalText);
-        }, 2000);
-    });
-
-    // Validation du formulaire de financement (améliorée)
-    $('#add-financement form').on('submit', function(e) {
-        const agent = $('#id_agent').val();
-        const montantField = $('#montant');
-        const montantValue = montantField.attr('data-value') || montantField.val().replace(/\s/g, '');
-        
-        if (!agent) {
-            e.preventDefault();
-            alert('Veuillez sélectionner un agent');
-            $('#id_agent').focus();
-            return false;
-        }
-        
-        if (!montantValue || parseInt(montantValue) <= 0) {
-            e.preventDefault();
-            alert('Veuillez saisir un montant valide supérieur à 0');
-            montantField.focus();
-            return false;
-        }
-        
-        // Restaurer la valeur numérique avant soumission
-        montantField.val(montantValue);
-        
-        // Animation de soumission
-        $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin mr-2"></i>Enregistrement...');
-    });
-
-    // Formatage automatique des montants (amélioré)
-    $('#montant, #edit_montant').on('input', function() {
-        let value = $(this).val().replace(/\s/g, '');
-        
-        // Permettre seulement les chiffres
-        value = value.replace(/[^\d]/g, '');
-        
-        if (value) {
-            // Stocker la valeur numérique dans un attribut data
-            $(this).attr('data-value', value);
-            // Afficher la valeur formatée
-            $(this).val(parseInt(value).toLocaleString('fr-FR'));
-        } else {
-            $(this).removeAttr('data-value');
-            $(this).val('');
-        }
-    });
-
-    // Gérer le focus pour une meilleure UX
-    $('#montant, #edit_montant').on('focus', function() {
-        $(this).addClass('focused');
-        const numericValue = $(this).attr('data-value');
-        if (numericValue) {
-            $(this).val(numericValue);
-        }
-    });
-
-    $('#montant, #edit_montant').on('blur', function() {
-        $(this).removeClass('focused');
-        const value = $(this).val().replace(/\s/g, '').replace(/[^\d]/g, '');
-        if (value) {
-            $(this).attr('data-value', value);
-            $(this).val(parseInt(value).toLocaleString('fr-FR'));
-        }
-    });
-
-    // Avant soumission, restaurer la valeur numérique
-    $('#add-financement form, #editFinancementModal form').on('submit', function(e) {
-        $('#montant, #edit_montant').each(function() {
-            const numericValue = $(this).attr('data-value');
-            if (numericValue) {
-                $(this).val(numericValue);
-            }
-        });
-    });
-
-    // Statistiques animées (compteur)
-    $('.stat-value').each(function() {
-        const $this = $(this);
-        const finalValue = parseInt($this.text().replace(/\s/g, ''));
-        let currentValue = 0;
-        const increment = finalValue / 50;
-        
-        const timer = setInterval(() => {
-            currentValue += increment;
-            if (currentValue >= finalValue) {
-                currentValue = finalValue;
-                clearInterval(timer);
-            }
-            $this.text(Math.floor(currentValue).toLocaleString('fr-FR'));
-        }, 30);
-    });
-
-    // Gestion de la suppression avec confirmation moderne
-    $('.trash, .btn-delete').click(function(e) {
+    // Gestion de la suppression
+    $('.trash').click(function(e) {
         e.preventDefault();
-        
-        Swal.fire({
-            title: 'Êtes-vous sûr ?',
-            text: "Cette action ne peut pas être annulée !",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Oui, supprimer !',
-            cancelButtonText: 'Annuler'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Procéder à la suppression
-                window.location.href = $(this).attr('href') || $(this).data('href');
-            }
-        });
-    });
-
-    // Recherche en temps réel dans le tableau
-    $('#searchInput').on('keyup', function() {
-        const searchTerm = $(this).val().toLowerCase();
-        $('.table-professional tbody tr').each(function() {
-            const rowText = $(this).text().toLowerCase();
-            $(this).toggle(rowText.includes(searchTerm));
-        });
-    });
-
-    console.log('✅ Page Financements initialisée avec succès');
-    console.log('📊 Statistiques chargées:', {
-        totalFinancements: <?= $total_financements ?>,
-        totalMontant: <?= $total_montant ?>,
-        agentsFinances: <?= $nb_agents_finances ?>
+        var ticketId = $(this).data('id');
+        $('#confirmDeleteBtn').attr('href', 'traitement_tickets.php?action=delete&id=' + ticketId);
     });
 });
 </script>
@@ -1638,8 +1194,8 @@ $(document).ready(function() {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="3" class="text-right">Total:</th>
-                                    <th class="text-right"><?= number_format($agent['montant_total'], 0, ',', ' ') ?> FCFA</th>
+                                    <th colspan="3" class="text-right">Solde financement (net):</th>
+                                    <th class="text-right"><?= number_format($agent['solde_financement'], 0, ',', ' ') ?> FCFA</th>
                                     <th></th>
                                 </tr>
                             </tfoot>
