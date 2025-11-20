@@ -25,6 +25,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
         $source_paiement = $_POST['source_paiement'];
         $type = $_POST['type'];
         $status = $_POST['status'];
+        
+        // Validation du numéro de chèque si nécessaire
+        $numero_cheque = null;
+        if ($source_paiement === 'cheque') {
+            if (!isset($_POST['numero_cheque']) || empty(trim($_POST['numero_cheque']))) {
+                throw new Exception("Le numéro de chèque est obligatoire pour les paiements par chèque");
+            }
+            $numero_cheque = trim($_POST['numero_cheque']);
+            
+            // Vérifier l'unicité du numéro de chèque
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM recus_paiements WHERE numero_cheque = ? AND numero_cheque IS NOT NULL");
+            $stmt->execute([$numero_cheque]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new Exception("Ce numéro de chèque a déjà été utilisé");
+            }
+        }
 
         if ($montant <= 0) {
             throw new Exception("Le montant doit être supérieur à 0");
@@ -38,13 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
         
         writeLog("Solde actuel avant paiement: " . $solde_actuel);
 
-        // Vérifier si le solde est suffisant
-        if ($solde_actuel < $montant) {
+        // Vérifier si le solde est suffisant (sauf pour les paiements par chèque)
+        if ($source_paiement !== 'cheque' && $solde_actuel < $montant) {
             throw new Exception("Solde insuffisant pour effectuer ce paiement. Solde actuel : " . number_format($solde_actuel, 0, ',', ' ') . " FCFA");
         }
 
-        // Calculer le nouveau solde
-        $nouveau_solde = $solde_actuel - $montant;
+        // Calculer le nouveau solde (pas de débit pour les chèques)
+        $nouveau_solde = ($source_paiement === 'cheque') ? $solde_actuel : ($solde_actuel - $montant);
         writeLog("Nouveau solde calculé: " . $nouveau_solde);
 
         // Variables pour le reçu
@@ -212,33 +228,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
             writeLog("Demande #$id_demande mise à jour avec montant_payer=$nouveau_montant_paye, montant_reste=$nouveau_montant_reste, statut=$nouveau_statut");
         }
 
-        // Créer la transaction
-        $motifs = "Paiement " . ($type_document === 'demande' ? "de la" : "du") . " " . $type_document . " " . $numero_document;
-        $stmt = $conn->prepare("
-            INSERT INTO transactions (
-                type_transaction, 
-                montant, 
-                date_transaction, 
-                motifs, 
-                id_utilisateur,
-                solde
-            ) VALUES (
-                'paiement',
-                :montant,
-                NOW(),
-                :motifs,
-                :id_utilisateur,
-                :solde
-            )
-        ");
-        
-        $stmt->bindValue(':montant', $montant, PDO::PARAM_STR);
-        $stmt->bindValue(':motifs', $motifs, PDO::PARAM_STR);
-        $stmt->bindValue(':id_utilisateur', $_SESSION['user_id'], PDO::PARAM_INT);
-        $stmt->bindValue(':solde', $nouveau_solde, PDO::PARAM_STR);
-        $stmt->execute();
-        $id_transaction = $conn->lastInsertId();
-        writeLog("Transaction de paiement créée #$id_transaction, nouveau solde: $nouveau_solde");
+        // Créer la transaction seulement si ce n'est pas un paiement par chèque
+        $id_transaction = null;
+        if ($source_paiement !== 'cheque') {
+            $motifs = "Paiement " . ($type_document === 'demande' ? "de la" : "du") . " " . $type_document . " " . $numero_document;
+            
+            $stmt = $conn->prepare("
+                INSERT INTO transactions (
+                    type_transaction, 
+                    montant, 
+                    date_transaction, 
+                    motifs, 
+                    id_utilisateur,
+                    solde,
+                    numero_cheque
+                ) VALUES (
+                    'paiement',
+                    :montant,
+                    NOW(),
+                    :motifs,
+                    :id_utilisateur,
+                    :solde,
+                    :numero_cheque
+                )
+            ");
+            
+            $stmt->bindValue(':montant', $montant, PDO::PARAM_STR);
+            $stmt->bindValue(':motifs', $motifs, PDO::PARAM_STR);
+            $stmt->bindValue(':id_utilisateur', $_SESSION['user_id'], PDO::PARAM_INT);
+            $stmt->bindValue(':solde', $nouveau_solde, PDO::PARAM_STR);
+            $stmt->bindValue(':numero_cheque', null, PDO::PARAM_STR);
+            $stmt->execute();
+            $id_transaction = $conn->lastInsertId();
+            writeLog("Transaction de paiement créée #$id_transaction, nouveau solde: $nouveau_solde");
+        } else {
+            // Pour les chèques, on ne crée pas de transaction de caisse
+            writeLog("Paiement par chèque - aucune transaction de caisse créée, solde préservé: $nouveau_solde");
+        }
 
         // Générer un numéro de reçu unique
         $numero_recu = date('Ymd') . sprintf("%04d", rand(1, 9999));
@@ -249,12 +275,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
                 numero_recu, type_document, id_document, numero_document,
                 montant_total, montant_paye, montant_precedent, reste_a_payer,
                 id_agent, nom_agent, contact_agent, nom_usine, matricule_vehicule,
-                id_caissier, nom_caissier, source_paiement, id_transaction
+                id_caissier, nom_caissier, source_paiement, id_transaction, numero_cheque
             ) VALUES (
                 ?, ?, ?, ?, 
                 ?, ?, ?, ?,
                 ?, ?, ?, ?, ?,
-                ?, ?, ?, ?
+                ?, ?, ?, ?, ?
             )
         ");
         
@@ -262,7 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
             $numero_recu, $type_document, $id_document, $numero_document,
             $montant_total, $montant, $montant_precedent, $nouveau_montant_reste,
             $id_agent, $nom_agent, $contact_agent, $nom_usine, $matricule_vehicule,
-            $_SESSION['user_id'], $caissier['nom_caissier'], $source_paiement, $id_transaction
+            $_SESSION['user_id'], $caissier['nom_caissier'], $source_paiement, $id_transaction, $numero_cheque
         ]);
 
         $conn->commit();

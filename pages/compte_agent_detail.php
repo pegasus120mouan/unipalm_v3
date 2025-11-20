@@ -1512,6 +1512,85 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
+    // Créer le loader de paiement
+    function createPaymentLoader() {
+        const loader = document.createElement('div');
+        loader.id = 'paymentLoader';
+        loader.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        `;
+        
+        loader.innerHTML = `
+            <div style="
+                width: 80px;
+                height: 80px;
+                border: 4px solid rgba(0,123,255,0.2);
+                border-top: 4px solid #007bff;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 20px;
+            "></div>
+            <div style="
+                color: #007bff;
+                font-size: 18px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                text-align: center;
+                margin-bottom: 10px;
+            ">Traitement du paiement...</div>
+            <div style="
+                color: #6c757d;
+                font-size: 14px;
+                text-align: center;
+            ">Veuillez patienter, ne fermez pas cette page</div>
+        `;
+        
+        // Ajouter l'animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(loader);
+        
+        return loader;
+    }
+
+    // Fonction pour afficher le loader
+    function showPaymentLoader() {
+        let loader = document.getElementById('paymentLoader');
+        if (!loader) {
+            loader = createPaymentLoader();
+        }
+        loader.style.display = 'flex';
+        
+        // Fermer tous les modals ouverts
+        closeAllModals();
+    }
+
+    // Fonction pour masquer le loader
+    function hidePaymentLoader() {
+        const loader = document.getElementById('paymentLoader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    }
+
     // Validation avant soumission du formulaire
     document.querySelectorAll('form[action="save_paiement_agent.php"]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
@@ -1560,7 +1639,217 @@ document.addEventListener('DOMContentLoaded', function () {
                     return false;
                 }
             }
+            
+            // Afficher le loader de paiement
+            showPaymentLoader();
+            
+            // Désactiver le bouton de soumission pour éviter les doubles clics
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Traitement...';
+            }
+            
+            // Sécurité : masquer le loader après 30 secondes maximum
+            setTimeout(function() {
+                hidePaymentLoader();
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-money-bill-wave me-2"></i>Effectuer le paiement';
+                }
+            }, 30000);
         });
+    });
+
+    // Masquer le loader si on revient sur la page après un paiement
+    hidePaymentLoader();
+    
+    // Gestion de l'actualisation automatique après paiement
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPaymentSuccess = urlParams.has('paiement_success');
+    const isPaymentError = urlParams.has('paiement_error');
+    const hasRefreshParam = urlParams.has('refresh');
+    
+    if (isPaymentSuccess || isPaymentError) {
+        // Si c'est un retour de paiement avec le paramètre refresh, actualiser les données
+        if (hasRefreshParam) {
+            // Afficher un message de chargement discret
+            const refreshMessage = document.createElement('div');
+            refreshMessage.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${isPaymentSuccess ? '#d4edda' : '#f8d7da'};
+                color: ${isPaymentSuccess ? '#155724' : '#721c24'};
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1050;
+                font-weight: 500;
+                border: 1px solid ${isPaymentSuccess ? '#c3e6cb' : '#f5c6cb'};
+            `;
+            refreshMessage.innerHTML = `
+                <i class="fas ${isPaymentSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                ${isPaymentSuccess ? 'Paiement effectué avec succès!' : 'Erreur lors du paiement'}
+                <div style="font-size: 12px; margin-top: 4px; opacity: 0.8;">
+                    Actualisation des données en cours...
+                </div>
+            `;
+            document.body.appendChild(refreshMessage);
+            
+            // Actualiser les données via AJAX ou recharger la page
+            setTimeout(function() {
+                // Essayer d'actualiser via AJAX d'abord
+                refreshAgentDataAjax().then(function(success) {
+                    if (!success) {
+                        // Si AJAX échoue, recharger la page
+                        const cleanUrl = window.location.pathname + 
+                            (window.location.search.replace(/[?&](paiement_success|paiement_error|refresh)=[^&]*/g, '').replace(/^&/, '?') || '');
+                        window.location.href = cleanUrl;
+                    } else {
+                        // Nettoyer l'URL sans recharger
+                        const url = new URL(window.location);
+                        url.searchParams.delete('paiement_success');
+                        url.searchParams.delete('paiement_error');
+                        url.searchParams.delete('refresh');
+                        window.history.replaceState({}, '', url.toString());
+                    }
+                });
+            }, 2000);
+            
+            // Supprimer le message après 1.5 secondes
+            setTimeout(function() {
+                if (refreshMessage.parentNode) {
+                    refreshMessage.style.opacity = '0';
+                    refreshMessage.style.transform = 'translateX(100%)';
+                    refreshMessage.style.transition = 'all 0.3s ease';
+                    setTimeout(() => refreshMessage.remove(), 300);
+                }
+            }, 1500);
+        } else {
+            // Nettoyer l'URL des paramètres de succès/erreur après affichage (ancien comportement)
+            setTimeout(function() {
+                const url = new URL(window.location);
+                url.searchParams.delete('paiement_success');
+                url.searchParams.delete('paiement_error');
+                url.searchParams.delete('refresh');
+                window.history.replaceState({}, '', url.toString());
+            }, 3000);
+        }
+    }
+
+    // Fonction pour actualiser les données de l'agent via AJAX
+    function refreshAgentDataAjax() {
+        return new Promise(function(resolve) {
+            const agentId = <?= $id_agent ?>;
+            
+            fetch('refresh_agent_data.php?id_agent=' + agentId, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour les éléments de la page
+                    updatePageElements(data.data);
+                    resolve(true);
+                } else {
+                    console.error('Erreur lors de l\'actualisation:', data.error);
+                    resolve(false);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur AJAX:', error);
+                resolve(false);
+            });
+        });
+    }
+    
+    // Fonction pour mettre à jour les éléments de la page avec les nouvelles données
+    function updatePageElements(data) {
+        // Mettre à jour les montants dans les cartes de synthèse
+        const totalMontantElement = document.querySelector('[data-total-montant]');
+        if (totalMontantElement) {
+            totalMontantElement.textContent = data.formatted.total_montant;
+        }
+        
+        const montantPayeElement = document.querySelector('[data-montant-paye]');
+        if (montantPayeElement) {
+            montantPayeElement.textContent = data.formatted.montant_paye;
+        }
+        
+        const resteAPayerElement = document.querySelector('[data-reste-payer]');
+        if (resteAPayerElement) {
+            resteAPayerElement.textContent = data.formatted.reste_a_payer;
+        }
+        
+        // Mettre à jour les soldes dans les alertes
+        const soldeCaisseElements = document.querySelectorAll('[data-solde-caisse]');
+        soldeCaisseElements.forEach(element => {
+            element.textContent = data.formatted.solde_caisse;
+        });
+        
+        const soldeFinancementElements = document.querySelectorAll('[data-solde-financement]');
+        soldeFinancementElements.forEach(element => {
+            element.textContent = data.formatted.solde_financement;
+        });
+        
+        // Ajouter un effet visuel pour indiquer la mise à jour
+        const updatedElements = document.querySelectorAll('[data-total-montant], [data-montant-paye], [data-reste-payer]');
+        updatedElements.forEach(element => {
+            element.style.transition = 'all 0.3s ease';
+            element.style.backgroundColor = '#d4edda';
+            element.style.transform = 'scale(1.05)';
+            
+            setTimeout(() => {
+                element.style.backgroundColor = '';
+                element.style.transform = '';
+            }, 1000);
+        });
+    }
+
+    // Fonction utilitaire pour fermer tous les modals
+    function closeAllModals() {
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(function(modal) {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        });
+        
+        // Nettoyer les backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(function(backdrop) {
+            backdrop.remove();
+        });
+        
+        // Restaurer l'état normal du body
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+
+    // Gestion de l'historique du navigateur pour fermer les modals
+    window.addEventListener('pageshow', function(event) {
+        // Fermer tous les modals quand on revient sur la page
+        closeAllModals();
+        // Masquer le loader au cas où il serait encore affiché
+        hidePaymentLoader();
+    });
+
+    // Gestion du bouton retour du navigateur
+    window.addEventListener('popstate', function(event) {
+        // Fermer tous les modals ouverts
+        closeAllModals();
+    });
+
+    // Fermer les modals avec la touche Échap
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeAllModals();
+        }
     });
 });
 </script>

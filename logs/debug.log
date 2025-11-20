@@ -4585,3 +4585,90 @@
 [2025-11-20 15:44:29] Nouveau solde caisse calculé (save_paiement_agent): 100018000
 [2025-11-20 15:44:29] Paiement par chèque #gggcdvcd-0001 - Aucune transaction créée dans la caisse
 [2025-11-20 15:44:29] Paiement enregistré avec succès
+[2025-11-20 19:21:12] Début de l'enregistrement du paiement
+[2025-11-20 19:21:12] Bordereau #126 mis à jour avec montant_payer=350000, montant_reste=1038240, statut=non soldé
+[2025-11-20 19:21:12] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 19:21:12] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 19:21:12] Nouveau solde caisse calculé (save_paiement_agent): 99668000
+[2025-11-20 19:21:12] Transaction de paiement (save_paiement_agent) créée #165, nouveau solde caisse: 99668000
+[2025-11-20 19:21:12] Paiement enregistré avec succès
+[2025-11-20 19:27:43] Début de l'enregistrement du paiement
+[2025-11-20 19:27:43] Bordereau #126 mis à jour avec montant_payer=700000, montant_reste=688240, statut=non soldé
+[2025-11-20 19:27:43] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 19:27:43] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 19:27:43] Nouveau solde caisse calculé (save_paiement_agent): 99668000
+[2025-11-20 19:27:43] Transaction de paiement (save_paiement_agent) créée #166, nouveau solde caisse: 99668000
+[2025-11-20 19:27:43] Paiement enregistré avec succès
+[2025-11-20 19:28:07] Début de l'enregistrement du paiement
+[2025-11-20 19:28:07] Bordereau #126 mis à jour avec montant_payer=770000, montant_reste=618240, statut=non soldé
+[2025-11-20 19:28:07] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 19:28:07] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 19:28:07] Nouveau solde caisse calculé (save_paiement_agent): 99948000
+[2025-11-20 19:28:07] Transaction de paiement (save_paiement_agent) créée #167, nouveau solde caisse: 99948000
+[2025-11-20 19:28:07] Paiement enregistré avec succès
+[2025-11-20 19:28:22] Début de l'enregistrement du paiement
+[2025-11-20 19:28:22] Bordereau #126 mis à jour avec montant_payer=840000, montant_reste=548240, statut=non soldé
+[2025-11-20 19:28:22] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 19:28:22] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 19:28:22] Nouveau solde caisse calculé (save_paiement_agent): 99948000
+[2025-11-20 19:28:22] Transaction de paiement (save_paiement_agent) créée #168, nouveau solde caisse: 99948000
+[2025-11-20 19:28:22] Paiement enregistré avec succès
+[2025-11-20 19:28:55] Début de l'enregistrement du paiement
+[2025-11-20 19:28:55] Bordereau #126 mis à jour avec montant_payer=888240, montant_reste=500000, statut=non soldé
+[2025-11-20 19:28:55] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 19:28:55] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 19:28:55] Nouveau solde caisse calculé (save_paiement_agent): 99969760
+[2025-11-20 19:28:55] Transaction de paiement (save_paiement_agent) créée #169, nouveau solde caisse: 99969760
+[2025-11-20 19:28:55] Paiement enregistré avec succès
+[2025-11-20 19:53:02] Début de l'enregistrement du paiement
+[2025-11-20 19:53:02] Bordereau #125 mis à jour avec montant_payer=100000, montant_reste=485480, statut=non soldé
+[2025-11-20 19:53:02] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 19:53:02] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 19:53:02] Nouveau solde caisse calculé (save_paiement_agent): 99918000
+[2025-11-20 19:53:02] Transaction de paiement (save_paiement_agent) créée #170, nouveau solde caisse: 99918000
+[2025-11-20 19:53:02] Paiement enregistré avec succès
+[2025-11-20 19:53:30] Début de l'enregistrement du paiement
+[2025-11-20 19:53:30] Bordereau #125 mis à jour avec montant_payer=150000, montant_reste=435480, statut=non soldé
+[2025-11-20 19:53:30] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 19:53:30] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 19:53:30] Nouveau solde caisse calculé (save_paiement_agent): 99968000
+[2025-11-20 19:53:30] Transaction de paiement (save_paiement_agent) créée #171, nouveau solde caisse: 99968000
+[2025-11-20 19:53:30] Paiement enregistré avec succès
+[2025-11-20 20:01:41] Début de l'enregistrement du paiement
+[2025-11-20 20:01:41] Bordereau #125 mis à jour avec montant_payer=200000, montant_reste=385480, statut=non soldé
+[2025-11-20 20:01:41] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 20:01:41] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 20:01:41] Nouveau solde caisse calculé (save_paiement_agent): 99968000
+[2025-11-20 20:01:41] Transaction de paiement (save_paiement_agent) créée #172, nouveau solde caisse: 99968000
+[2025-11-20 20:01:41] Paiement enregistré avec succès
+[2025-11-20 20:02:14] Début de l'enregistrement du paiement
+[2025-11-20 20:02:14] Bordereau #125 mis à jour avec montant_payer=585480, montant_reste=0, statut=soldé
+[2025-11-20 20:02:14] [save_paiement_agent] Financement agent #185 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-11-20 20:02:14] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-11-20 20:02:14] Nouveau solde caisse calculé (save_paiement_agent): 99632520
+[2025-11-20 20:02:14] Transaction de paiement (save_paiement_agent) créée #173, nouveau solde caisse: 99632520
+[2025-11-20 20:02:14] Paiement enregistré avec succès
+[2025-11-20 20:26:40] Début de l'enregistrement du paiement
+[2025-11-20 20:26:40] Solde actuel avant paiement: 100018000
+[2025-11-20 20:26:40] Nouveau solde calculé: 100018000
+[2025-11-20 20:26:40] Bordereau #232 mis à jour avec montant_payer=2400000, montant_reste=300000
+[2025-11-20 20:26:40] Transaction de paiement créée #174, nouveau solde: 100018000
+[2025-11-20 20:26:40] Paiement enregistré avec succès
+[2025-11-20 20:27:04] Début de l'enregistrement du paiement
+[2025-11-20 20:27:04] Solde actuel avant paiement: 100018000
+[2025-11-20 20:27:04] Nouveau solde calculé: 100018000
+[2025-11-20 20:27:04] Bordereau #232 mis à jour avec montant_payer=2600000, montant_reste=100000
+[2025-11-20 20:27:04] Transaction de paiement créée #175, nouveau solde: 100018000
+[2025-11-20 20:27:04] Paiement enregistré avec succès
+[2025-11-20 20:29:24] Début de l'enregistrement du paiement
+[2025-11-20 20:29:24] Solde actuel avant paiement: 100018000
+[2025-11-20 20:29:24] Nouveau solde calculé: 100018000
+[2025-11-20 20:29:24] Bordereau #232 mis à jour avec montant_payer=2650000, montant_reste=50000
+[2025-11-20 20:29:24] Transaction de paiement créée #176, nouveau solde: 100018000
+[2025-11-20 20:29:24] Paiement enregistré avec succès
+[2025-11-20 20:31:54] Début de l'enregistrement du paiement
+[2025-11-20 20:31:54] Solde actuel avant paiement: 100018000
+[2025-11-20 20:31:54] Nouveau solde calculé: 100018000
+[2025-11-20 20:31:54] Bordereau #232 mis à jour avec montant_payer=2660000, montant_reste=40000
+[2025-11-20 20:31:54] Paiement par chèque - aucune transaction de caisse créée, solde préservé: 100018000
+[2025-11-20 20:31:54] Paiement enregistré avec succès

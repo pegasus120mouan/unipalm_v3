@@ -197,9 +197,9 @@ label {
         <i class="fas fa-clock mr-2"></i><?= number_format($montant_total_restant, 0, ',', ' ') ?> FCFA
     </button>
 
-    <button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#printPaiementsModal">
+ <!--   <button type="button" class="btn btn-danger btn-lg" data-toggle="modal" data-target="#printPaiementsModal">
         <i class="fas fa-print mr-2"></i>Imprimer la liste des paiements par Usines
-    </button>
+    </button>-->
 </div>
 
 <!-- Modal d'impression des paiements -->
