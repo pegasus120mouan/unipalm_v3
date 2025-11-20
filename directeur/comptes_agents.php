@@ -4,6 +4,24 @@ require_once '../inc/functions/requete/requete_agents.php';
 require_once '../inc/functions/requete/requete_bordereaux.php';
 include 'header.php';
 
+// Afficher le loader pendant le chargement
+echo '<style>
+#pageLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+.spinner-circle { width: 80px; height: 80px; border: 4px solid rgba(26,188,156,0.2); border-top: 4px solid #1abc9c; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+.loading-text { color: #1abc9c; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+<div id="pageLoader" style="display: flex;">
+    <div class="spinner-circle"></div>
+    <div class="loading-text">Chargement des comptes agents...</div>
+</div>';
+
+// Forcer le flush du contenu pour afficher le loader immédiatement
+if (ob_get_level()) {
+    ob_flush();
+}
+flush();
+
 // Récupération de tous les agents
 $agents = getAgents($conn);
 $total_agents = count($agents);
@@ -611,5 +629,37 @@ foreach ($bordereaux_all as $b) {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Masquer le loader une fois que la page est entièrement chargée
+document.addEventListener('DOMContentLoaded', function() {
+    // Attendre un petit délai pour s'assurer que tout est rendu
+    setTimeout(function() {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            loader.style.opacity = '0';
+            loader.style.transition = 'opacity 0.5s ease';
+            setTimeout(function() {
+                loader.style.display = 'none';
+            }, 500);
+        }
+    }, 300); // Délai de 300ms pour laisser le temps à la page de se charger
+});
+
+// Aussi masquer le loader au chargement complet de la fenêtre
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+            loader.style.opacity = '0';
+            loader.style.transition = 'opacity 0.5s ease';
+            setTimeout(function() {
+                loader.style.display = 'none';
+            }, 500);
+        }
+    }, 100);
+});
+</script>
+
 </body>
 </html>

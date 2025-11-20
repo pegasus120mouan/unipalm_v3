@@ -370,7 +370,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
         
         // Redirection vers la page d'origine avec le modal de succès
         $redirect_page = isset($_POST['redirect_page']) ? $_POST['redirect_page'] : 'paiements.php';
-        header("Location: " . $redirect_page . "?paiement_success=1");
+        
+        // Ajouter un timestamp pour forcer l'actualisation
+        $separator = strpos($redirect_page, '?') !== false ? '&' : '?';
+        $redirect_url = $redirect_page . $separator . 'paiement_success=1&refresh=' . time();
+        
+        header("Location: " . $redirect_url);
         exit;
 
     } catch (Exception $e) {

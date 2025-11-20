@@ -208,7 +208,7 @@ try {
             echo "<td>" . htmlspecialchars($agent['nom_chef'] ?? 'Non assigné') . "</td>";
             echo "<td>" . date('d/m/Y', strtotime($agent['date_ajout'])) . "</td>";
             echo "<td>";
-            if ($agent['id_chef'] && !str_contains($numero_propose, 'Erreur')) {
+            if ($agent['id_chef'] && strpos($numero_propose, 'Erreur') === false) {
                 echo "<span class='badge bg-primary'>$numero_propose</span>";
             } else {
                 echo "<span class='badge bg-danger'>$numero_propose</span>";

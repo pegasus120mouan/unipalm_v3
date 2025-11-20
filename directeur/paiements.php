@@ -6,9 +6,9 @@ include('header.php');
 // Récupérer l'ID de l'utilisateur
 $id_user = $_SESSION['user_id'];
 
-// Fonction pour récupérer le solde de financement d'un agent (tous les mouvements, créditeurs et débiteurs)
+// Fonction pour vérifier si un agent a un financement
 function getFinancementAgent($conn, $id_agent) {
-    $stmt = $conn->prepare("SELECT COALESCE(SUM(montant), 0) as montant_total FROM financement WHERE id_agent = ?");
+    $stmt = $conn->prepare("SELECT COALESCE(SUM(montant), 0) as montant_total FROM financement WHERE id_agent = ? AND montant > 0");
     $stmt->execute([$id_agent]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -37,12 +37,6 @@ $stmt_vehicules = $conn->query($sql_vehicules);
 $vehicules = $stmt_vehicules->fetchAll(PDO::FETCH_ASSOC);
 
 $solde_caisse = getSoldeCaisse();
-
-// Affichage d'un éventuel message d'erreur venant de save_paiement.php
-if (isset($_SESSION['error_message']) && !empty($_SESSION['error_message'])) {
-    echo '<div class="alert alert-danger" role="alert">' . htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8') . '</div>';
-    unset($_SESSION['error_message']);
-}
 
 // Construction des conditions WHERE pour les bordereaux
 $where_bordereaux = [];
@@ -602,6 +596,7 @@ label {
                             <input type="hidden" name="type" value="<?= htmlspecialchars($type) ?>">
                             <input type="hidden" name="status" value="<?= htmlspecialchars($status) ?>">
                             <input type="hidden" name="montant_reste" value="<?= $item['montant_reste'] ?>">
+                            <input type="hidden" name="redirect_page" value="paiements.php?type=<?= urlencode($type) ?>&status=<?= urlencode($status) ?>">
                             
                             <div class="form-group">
                                 <label>Montant total à payer</label>
@@ -620,18 +615,32 @@ label {
 
                             <div class="form-group">
                                 <label>Source de paiement</label>
-                                <select class="form-control" name="source_paiement" required>
-                                    <?php if ($financement && $financement['montant_total'] > 0): ?>
-                                        <option value="financement">
-                                            Financement (Solde: <?= number_format($financement['montant_total'], 0, ',', ' ') ?> FCFA)
-                                        </option>
-                                    <?php else: ?>
-                                        <option value="transactions">Sortie de caisse</option>
-                                        <option value="financement" disabled style="color: #999; background-color: #f4f4f4;">
-                                            Financement (Solde: 0 FCFA)
-                                        </option>
-                                    <?php endif; ?>
+                                <select class="form-control" name="source_paiement" required onchange="
+                                    var itemId = '<?= $item['id_bordereau'] ?>';
+                                    var chequeField = document.getElementById('cheque_field_' + itemId);
+                                    var chequeInput = document.getElementById('numero_cheque_' + itemId);
+                                    if (this.value === 'cheque') {
+                                        chequeField.style.display = 'block';
+                                        chequeInput.setAttribute('required', 'required');
+                                    } else {
+                                        chequeField.style.display = 'none';
+                                        chequeInput.removeAttribute('required');
+                                        chequeInput.value = '';
+                                    }
+                                ">
+                                    <option value="transactions">Sortie de caisse</option>
+                                    <option value="financement" <?= (!$financement || $financement['montant_total'] <= 0) ? 'disabled style="color: #999; background-color: #f4f4f4;"' : '' ?>>
+                                        Financement (Solde: <?= number_format(($financement ? $financement['montant_total'] : 0), 0, ',', ' ') ?> FCFA)
+                                    </option>
+                                    <option value="cheque">Paiement par chèque</option>
                                 </select>
+                            </div>
+
+                            <!-- Champ numéro de chèque (masqué par défaut) -->
+                            <div class="form-group" id="cheque_field_<?= $item['id_bordereau'] ?>" style="display: none;">
+                                <label>Numéro de chèque <span style="color: red;">*</span></label>
+                                <input type="text" class="form-control" name="numero_cheque" id="numero_cheque_<?= $item['id_bordereau'] ?>" placeholder="Saisissez le numéro de chèque" maxlength="50">
+                                <small class="form-text text-muted">Le numéro de chèque est obligatoire pour les paiements par chèque</small>
                             </div>
 
                             <div class="form-group">
@@ -693,18 +702,32 @@ label {
 
                             <div class="form-group">
                                 <label>Source de paiement</label>
-                                <select class="form-control" name="source_paiement" required>
-                                    <?php if ($financement && $financement['montant_total'] > 0): ?>
-                                        <option value="financement">
-                                            Financement (Solde: <?= number_format($financement['montant_total'], 0, ',', ' ') ?> FCFA)
-                                        </option>
-                                    <?php else: ?>
-                                        <option value="transactions">Sortie de caisse</option>
-                                        <option value="financement" disabled style="color: #999; background-color: #f4f4f4;">
-                                            Financement (Solde: 0 FCFA)
-                                        </option>
-                                    <?php endif; ?>
+                                <select class="form-control" name="source_paiement" required onchange="
+                                    var itemId = '<?= $item['id_ticket'] ?>';
+                                    var chequeField = document.getElementById('cheque_field_' + itemId);
+                                    var chequeInput = document.getElementById('numero_cheque_' + itemId);
+                                    if (this.value === 'cheque') {
+                                        chequeField.style.display = 'block';
+                                        chequeInput.setAttribute('required', 'required');
+                                    } else {
+                                        chequeField.style.display = 'none';
+                                        chequeInput.removeAttribute('required');
+                                        chequeInput.value = '';
+                                    }
+                                ">
+                                    <option value="transactions">Sortie de caisse</option>
+                                    <option value="financement" <?= (!$financement || $financement['montant_total'] <= 0) ? 'disabled style="color: #999; background-color: #f4f4f4;"' : '' ?>>
+                                        Financement (Solde: <?= number_format(($financement ? $financement['montant_total'] : 0), 0, ',', ' ') ?> FCFA)
+                                    </option>
+                                    <option value="cheque">Paiement par chèque</option>
                                 </select>
+                            </div>
+
+                            <!-- Champ numéro de chèque (masqué par défaut) -->
+                            <div class="form-group" id="cheque_field_<?= $item['id_ticket'] ?>" style="display: none;">
+                                <label>Numéro de chèque <span style="color: red;">*</span></label>
+                                <input type="text" class="form-control" name="numero_cheque" id="numero_cheque_<?= $item['id_ticket'] ?>" placeholder="Saisissez le numéro de chèque" maxlength="50">
+                                <small class="form-text text-muted">Le numéro de chèque est obligatoire pour les paiements par chèque</small>
                             </div>
 
                             <div class="form-group">
@@ -817,24 +840,6 @@ $(document).ready(function() {
         }
     });
 
-    // Sécuriser la valeur envoyée pour le montant au submit
-    // (remplit le champ caché 'montant' si, pour une raison quelconque,
-    //  il est encore vide alors que l'utilisateur a saisi un montant affiché)
-    $('form.forms-sample').on('submit', function() {
-        var $form = $(this);
-        var $inputAffiche = $form.find('.montant-input');
-        var $inputCache = $form.find('input[name="montant"]');
-
-        if ($inputCache.length && $inputAffiche.length) {
-            var valAffiche = $inputAffiche.val();
-            var valCache = $inputCache.val();
-
-            if (valCache === '' && valAffiche !== '') {
-                $inputCache.val(unformatNumber(valAffiche));
-            }
-        }
-    });
-
     // Initialiser les datepickers
     $('#date_debut, #date_fin').datepicker({
         format: 'yyyy-mm-dd',
@@ -871,8 +876,14 @@ $(document).ready(function() {
     }, 3000);
 });
 <?php 
-// Nettoyer uniquement le flag de succès pour ne pas réafficher le modal inutilement
+// Nettoyer les variables de session après affichage
 unset($_SESSION['paiement_success']);
+unset($_SESSION['nouveau_solde']);
+unset($_SESSION['montant_paye']);
+unset($_SESSION['numero_recu']);
+unset($_SESSION['id_recu_pdf']);
+unset($_SESSION['type_document']);
+unset($_SESSION['numero_document']);
 endif; 
 ?>
 </script>
@@ -983,6 +994,187 @@ const countdownInterval = setInterval(function() {
     }
 }, 1000);
 <?php endif; ?>
+
+// Fonction pour afficher/masquer le champ numéro de chèque
+function toggleChequeField(selectElement, itemId) {
+    const sourceValue = selectElement.value;
+    const chequeField = document.getElementById('cheque_field_' + itemId);
+    const chequeInput = document.getElementById('numero_cheque_' + itemId);
+    
+    console.log('toggleChequeField appelée:', {
+        sourceValue: sourceValue,
+        itemId: itemId,
+        chequeField: chequeField,
+        chequeInput: chequeInput
+    });
+    
+    if (chequeField && chequeInput) {
+        if (sourceValue === 'cheque') {
+            chequeField.style.display = 'block';
+            chequeInput.setAttribute('required', 'required');
+            console.log('Champ chèque affiché pour item:', itemId);
+        } else {
+            chequeField.style.display = 'none';
+            chequeInput.removeAttribute('required');
+            chequeInput.value = '';
+            console.log('Champ chèque masqué pour item:', itemId);
+        }
+    } else {
+        console.error('Éléments non trouvés:', {
+            chequeFieldId: 'cheque_field_' + itemId,
+            chequeInputId: 'numero_cheque_' + itemId
+        });
+    }
+}
+
+// Solution robuste qui fonctionne même avec les erreurs jQuery
+(function() {
+    'use strict';
+    
+    console.log('Initialisation du système de chèques...');
+    
+    // Fonction pour attacher les gestionnaires avec une approche différente
+    function attachChequeHandlers() {
+        console.log('Recherche des formulaires de paiement...');
+        
+        // Utiliser une approche plus directe pour trouver les éléments
+        var forms = document.querySelectorAll('form[action="save_paiement.php"]');
+        console.log('Formulaires trouvés:', forms.length);
+        
+        forms.forEach(function(form, formIndex) {
+            console.log('Traitement du formulaire', formIndex);
+            
+            var select = form.querySelector('select[name="source_paiement"]');
+            if (select) {
+                console.log('Select trouvé dans le formulaire', formIndex);
+                
+                // Supprimer tous les anciens gestionnaires
+                var newSelect = select.cloneNode(true);
+                select.parentNode.replaceChild(newSelect, select);
+                
+                // Ajouter le nouveau gestionnaire
+                newSelect.addEventListener('change', function() {
+                    handleChequeFieldToggle(this);
+                });
+                
+                console.log('Gestionnaire attaché au formulaire', formIndex);
+            }
+        });
+    }
+    
+    // Fonction pour gérer l'affichage du champ chèque
+    function handleChequeFieldToggle(selectElement) {
+        console.log('Changement de source:', selectElement.value);
+        
+        var form = selectElement.closest('form');
+        var itemId = null;
+        
+        // Trouver l'ID de l'item
+        var idBordereau = form.querySelector('input[name="id_bordereau"]');
+        var idTicket = form.querySelector('input[name="id_ticket"]');
+        
+        if (idBordereau && idBordereau.value) {
+            itemId = idBordereau.value;
+        } else if (idTicket && idTicket.value) {
+            itemId = idTicket.value;
+        }
+        
+        console.log('ID trouvé:', itemId);
+        
+        if (itemId) {
+            var chequeField = document.getElementById('cheque_field_' + itemId);
+            var chequeInput = document.getElementById('numero_cheque_' + itemId);
+            
+            console.log('Éléments chèque:', {
+                field: chequeField,
+                input: chequeInput,
+                fieldId: 'cheque_field_' + itemId,
+                inputId: 'numero_cheque_' + itemId
+            });
+            
+            if (chequeField && chequeInput) {
+                if (selectElement.value === 'cheque') {
+                    chequeField.style.display = 'block';
+                    chequeInput.setAttribute('required', 'required');
+                    console.log('✅ Champ chèque affiché pour:', itemId);
+                } else {
+                    chequeField.style.display = 'none';
+                    chequeInput.removeAttribute('required');
+                    chequeInput.value = '';
+                    console.log('❌ Champ chèque masqué pour:', itemId);
+                }
+            } else {
+                console.error('❌ Éléments chèque non trouvés pour ID:', itemId);
+            }
+        }
+    }
+    
+    // Initialiser plusieurs fois avec différents délais
+    function initializeWithRetry() {
+        console.log('Tentative d\'initialisation...');
+        attachChequeHandlers();
+        
+        // Réessayer après 500ms
+        setTimeout(function() {
+            console.log('Réessai après 500ms...');
+            attachChequeHandlers();
+        }, 500);
+        
+        // Réessayer après 1s
+        setTimeout(function() {
+            console.log('Réessai après 1s...');
+            attachChequeHandlers();
+        }, 1000);
+        
+        // Réessayer après 2s
+        setTimeout(function() {
+            console.log('Réessai après 2s...');
+            attachChequeHandlers();
+        }, 2000);
+    }
+    
+    // Démarrer dès que possible
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeWithRetry);
+    } else {
+        initializeWithRetry();
+    }
+    
+    // Aussi au chargement complet
+    window.addEventListener('load', initializeWithRetry);
+    
+    // Rendre disponible globalement
+    window.attachChequeHandlers = attachChequeHandlers;
+    
+})();
+    
+    // Ajouter la validation pour tous les formulaires de paiement
+    document.querySelectorAll('form[action="save_paiement.php"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const sourceSelect = form.querySelector('select[name="source_paiement"]');
+            const chequeInput = form.querySelector('input[name="numero_cheque"]');
+            
+            // Validation du numéro de chèque si nécessaire
+            if (sourceSelect && sourceSelect.value === 'cheque') {
+                if (!chequeInput || !chequeInput.value.trim()) {
+                    e.preventDefault();
+                    alert('Veuillez saisir le numéro de chèque.');
+                    if (chequeInput) chequeInput.focus();
+                    return false;
+                }
+                
+                // Validation du format du numéro de chèque
+                const chequeNumber = chequeInput.value.trim();
+                if (chequeNumber.length < 3) {
+                    e.preventDefault();
+                    alert('Le numéro de chèque doit contenir au moins 3 caractères.');
+                    chequeInput.focus();
+                    return false;
+                }
+            }
+        });
+    });
+});
 </script>
 <?php endif; ?>
 
