@@ -959,12 +959,14 @@ function updateTicketsBordereau($conn, $ticket_ids, $numero_bordereau) {
         // Préparer les paramètres pour la requête
         $placeholders = str_repeat('?,', count($ticket_ids) - 1) . '?';
         
-        // Construire la requête SQL
+        // Construire la requête SQL avec vérifications
         $sql = "UPDATE tickets 
                 SET 
                     numero_bordereau = ?,
                     updated_at = NOW()
-                WHERE id_ticket IN ($placeholders)";
+                WHERE id_ticket IN ($placeholders)
+                AND date_validation_boss IS NOT NULL
+                AND prix_unitaire > 0";
         
         file_put_contents($logFile, "Requête SQL: " . $sql . "\n", FILE_APPEND);
         
@@ -1103,6 +1105,7 @@ function getTicketsAssociation($conn, $agent_id, $date_debut, $date_fin) {
  WHERE t.id_agent = :id_agent
     AND t.created_at BETWEEN CONCAT(:date_debut, ' 00:00:00') AND CONCAT(:date_fin, ' 23:59:59')
     AND t.prix_unitaire > 0
+    AND t.date_validation_boss IS NOT NULL
  ORDER BY 
     t.date_ticket ASC,
     t.created_at ASC";

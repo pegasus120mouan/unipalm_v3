@@ -864,6 +864,9 @@ label {
                 <?php if(isset($_GET['numero'])): ?>
                     <input type="hidden" name="numero" value="<?= htmlspecialchars($_GET['numero']) ?>">
                 <?php endif; ?>
+                <?php if(isset($_GET['numero_ticket'])): ?>
+                    <input type="hidden" name="numero_ticket" value="<?= htmlspecialchars($_GET['numero_ticket']) ?>">
+                <?php endif; ?>
                 
                 <label for="limit" class="items-label">
                     <i class="fas fa-list"></i> Afficher :
@@ -881,7 +884,7 @@ label {
         <!-- Navigation de pagination -->
         <div class="pagination-nav">
             <?php if($page > 1): ?>
-                <a href="?page=<?= $page - 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '' ?><?= isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '' ?>&limit=<?= $limit ?>" 
+                <a href="?page=<?= $page - 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '' ?><?= isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '' ?><?= isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '' ?>&limit=<?= $limit ?>" 
                    class="pagination-btn pagination-prev" title="Page précédente">
                     <i class="fas fa-chevron-left"></i>
                 </a>
@@ -904,6 +907,7 @@ label {
                     (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
                     (isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '') . 
                     (isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '') . 
+                    (isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '') . 
                     '&limit=' . $limit . 
                     '" class="pagination-btn">1</a>';
                 if ($start > 2) {
@@ -922,6 +926,7 @@ label {
                         (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
                         (isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '') . 
                         (isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '') . 
+                        (isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '') . 
                         '&limit=' . $limit . 
                         '" class="pagination-btn">' . $i . '</a>';
                 }
@@ -938,13 +943,14 @@ label {
                     (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
                     (isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '') . 
                     (isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '') . 
+                    (isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '') . 
                     '&limit=' . $limit . 
                     '" class="pagination-btn">' . $total_pages . '</a>';
             }
             ?>
             
             <?php if($page < $total_pages): ?>
-                <a href="?page=<?= $page + 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '' ?><?= isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '' ?>&limit=<?= $limit ?>" 
+                <a href="?page=<?= $page + 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '' ?><?= isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '' ?><?= isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '' ?>&limit=<?= $limit ?>" 
                    class="pagination-btn pagination-next" title="Page suivante">
                     <i class="fas fa-chevron-right"></i>
                 </a>
@@ -1463,8 +1469,10 @@ label {
                                 </div>
                             </form>
                             <?php else : ?>
-                                <div class="alert alert-info">
-                                    Aucun ticket disponible pour cette période et cet agent.
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong>Pas de ticket validé disponible</strong><br>
+                                    <small>Aucun ticket validé (avec prix unitaire) n'est disponible pour cette période et cet agent.</small>
                                 </div>
                             <?php endif; ?>
                         </div>

@@ -2,6 +2,7 @@
 
 require_once '../inc/functions/connexion.php';
 require_once '../inc/functions/requete/requete_tickets.php';
+require_once '../inc/functions/requete/requete_prix_unitaires.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -23,9 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
         }
 
+        // Récupérer le prix unitaire
+        $prix_info = getPrixUnitaireByDateAndUsine($conn, $date_ticket, $id_usine);
+        $prix_unitaire = $prix_info['prix'];
+
         // Appel de la fonction pour insérer le ticket
         try {
-            if (insertTicket($conn, $id_usine, $date_ticket, $id_chef_equipe, $numero_ticket, $vehicule_id, $poids, $id_utilisateur)) {
+            if (insertTicket($conn, $id_usine, $date_ticket, $id_chef_equipe, $numero_ticket, $vehicule_id, $poids, $id_utilisateur, $prix_unitaire)) {
                 $_SESSION['popup'] = true; // Message de succès
             } else {
                 $_SESSION['delete_pop'] = true; // Message d'erreur

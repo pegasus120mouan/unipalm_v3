@@ -66,7 +66,7 @@ if (isset($_POST['delete_bordereau'])) {
     exit();
 }
 
-include('header_operateurs.php');
+include('header.php');
 
 //$_SESSION['user_id'] = $user['id'];
  $id_user=$_SESSION['user_id'];
@@ -87,6 +87,8 @@ $search_chauffeur = $_GET['chauffeur'] ?? null;
 $search_agent = $_GET['agent'] ?? null;
 $search_date_debut = $_GET['date_debut'] ?? null;
 $search_date_fin = $_GET['date_fin'] ?? null;
+$search_numero = $_GET['numero'] ?? null;
+$search_numero_ticket = $_GET['numero_ticket'] ?? null;
 
 // Récupérer les données (functions)
 /*if ($search_usine || $search_date || $search_chauffeur || $search_agent) {
@@ -119,7 +121,9 @@ $result = getBordereaux($conn, $page, $limit, [
     'chauffeur' => $search_chauffeur,
     'agent' => $search_agent,
     'date_debut' => $search_date_debut,
-    'date_fin' => $search_date_fin
+    'date_fin' => $search_date_fin,
+    'numero' => $search_numero,
+    'numero_ticket' => $search_numero_ticket
 ]);
 
 $bordereaux = $result['data'];
@@ -218,6 +222,323 @@ label {
       border-radius: 5px;
       width: 100%;
       margin-bottom: 20px;
+    }
+
+    /* Styles pour les filtres de recherche */
+    .search-filters-container {
+        background: white;
+        border: 1px solid #e1e5e9;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: none;
+    }
+
+    .filters-header-static {
+        padding: 15px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .filters-header-static i.fas.fa-filter {
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .filters-header-static span {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .filters-content-static {
+        padding: 25px 30px;
+    }
+
+    .filter-group {
+        margin-bottom: 20px;
+    }
+
+    .filter-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .input-with-icon {
+        position: relative;
+    }
+
+    .input-with-icon i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 2;
+        font-size: 16px;
+        width: 16px;
+        text-align: center;
+    }
+
+    .input-with-icon input {
+        padding-left: 50px !important;
+        padding-right: 15px !important;
+    }
+
+    .filter-group .form-control {
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        padding: 12px 15px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        height: 45px;
+    }
+
+    .filter-group .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        background: white;
+    }
+
+    .input-with-icon:hover i,
+    .input-with-icon input:focus ~ i {
+        color: #667eea;
+    }
+    
+    .input-with-icon input:focus {
+        padding-left: 50px !important;
+    }
+
+    .input-with-icon input::placeholder {
+        color: #adb5bd;
+        font-style: italic;
+    }
+
+    .filters-actions-horizontal {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .btn-filter {
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-filter.btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-filter.btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-filter.btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-filter.btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+
+    /* Styles pour la pagination moderne */
+    .pagination-controls-container {
+        background: white;
+        border: 1px solid #e1e5e9;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 25px 30px;
+        width: 100%;
+        max-width: none;
+    }
+
+    .pagination-info {
+        margin-bottom: 20px;
+        text-align: center;
+        padding: 15px 20px;
+        background: #f8f9ff;
+        border-radius: 8px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .results-info {
+        color: #495057;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .results-info i {
+        color: #667eea;
+        margin-right: 8px;
+    }
+
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 30px;
+        min-height: 50px;
+    }
+
+    .items-per-page {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .items-label {
+        color: #495057;
+        font-weight: 600;
+        font-size: 14px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .items-label i {
+        color: #667eea;
+    }
+
+    .items-select {
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        background: white;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+    }
+
+    .items-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .pagination-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        justify-content: center;
+    }
+
+    .pagination-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        height: 45px;
+        padding: 10px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        background: white;
+        color: #495057;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .pagination-btn:hover:not(.disabled):not(.active) {
+        border-color: #667eea;
+        background: #f8f9ff;
+        color: #667eea;
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f8f9fa;
+        border-color: #e9ecef;
+        color: #6c757d;
+    }
+
+    .pagination-prev,
+    .pagination-next {
+        font-size: 16px;
+    }
+
+    .pagination-dots {
+        padding: 0 8px;
+        color: #6c757d;
+        font-weight: bold;
+    }
+
+    /* Styles pour les boutons d'actions */
+    .d-flex.gap-2 {
+        gap: 0.5rem !important;
+    }
+
+    .d-flex.gap-2 .btn {
+        flex-shrink: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .pagination-wrapper {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .pagination-nav {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            min-width: 35px;
+            height: 35px;
+            font-size: 13px;
+        }
+
+        .d-flex.gap-2 {
+            gap: 0.25rem !important;
+        }
     }
     </style>
 
@@ -319,14 +640,77 @@ label {
 
 </div>
 
-<div class="block-container">
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <div class="input-group">
-                <input type="text" id="search_agent" class="form-control" placeholder="Rechercher un bordereau en saisissant le nom de l'agent...">
-                <input type="hidden" id="selected_agent_id" name="agent_id">
+<!-- Filtres de Recherche -->
+<div class="search-filters-container">
+    <div class="filters-header-static">
+        <i class="fas fa-filter"></i>
+        <span>Filtres de Recherche</span>
+    </div>
+    
+    <div class="filters-content-static">
+        <form method="GET" action="bordereaux.php" id="search-form">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="filter-group">
+                        <label for="numero_search">N° Bordereau</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-search"></i>
+                            <input type="text" 
+                                   id="numero_search" 
+                                   name="numero" 
+                                   class="form-control" 
+                                   placeholder="Ex: BDR-20251002-185-4257"
+                                   value="<?= htmlspecialchars($_GET['numero'] ?? '') ?>">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="filter-group">
+                        <label for="numero_ticket_search">N° Ticket</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-ticket-alt"></i>
+                            <input type="text" 
+                                   id="numero_ticket_search" 
+                                   name="numero_ticket" 
+                                   class="form-control" 
+                                   placeholder="Ex: TK-001, TK-002..."
+                                   value="<?= htmlspecialchars($_GET['numero_ticket'] ?? '') ?>">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="filter-group">
+                        <label for="agent_select">Agent</label>
+                        <select id="agent_select" name="agent" class="form-control">
+                            <option value="">Tous les agents</option>
+                            <?php foreach ($agents as $agent): ?>
+                                <option value="<?= $agent['id_agent'] ?>" 
+                                        <?= (isset($_GET['agent']) && $_GET['agent'] == $agent['id_agent']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($agent['nom_complet_agent']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
             </div>
-        </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="filter-group">
+                        <div class="filters-actions-horizontal">
+                            <button type="submit" class="btn-filter btn-primary">
+                                <i class="fas fa-search"></i> Rechercher
+                            </button>
+                            <button type="button" class="btn-filter btn-secondary ml-2" onclick="clearFilters()">
+                                <i class="fas fa-times"></i> Effacer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -417,15 +801,19 @@ label {
     </form>
    </td>
           <td>
-         
-            <a href="?action=delete&id=<?= $bordereau['id_bordereau'] ?>&numero_bordereau=<?= $bordereau['numero_bordereau'] ?>" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash"></i>
-            </a>
-            <a href="print_visualisation_bordereau.php?id=<?= $bordereau['id_bordereau'] ?>" class="btn btn-sm btn-success" target="_blank">
-              <i class="fas fa-print"></i>
-            </a>
-            <?php if ($bordereau['date_validation_boss'] === null): ?>
-<?php endif; ?>
+            <div class="d-flex gap-2">
+              <a href="?action=delete&id=<?= $bordereau['id_bordereau'] ?>&numero_bordereau=<?= $bordereau['numero_bordereau'] ?>" 
+                 class="btn btn-sm btn-danger" 
+                 title="Supprimer le bordereau"
+                 onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce bordereau ?')">
+                  <i class="fas fa-trash"></i>
+              </a>
+              <button class="btn btn-sm btn-danger disabled" 
+                      disabled
+                      title="Génération PDF temporairement désactivée">
+                <i class="fas fa-file-pdf"></i>
+              </button>
+            </div>
           </td>
           <td>
             <?php if ($bordereau['date_validation_boss'] === null): ?>
@@ -448,82 +836,132 @@ label {
 
 </div>
 
-  <div class="pagination-container bg-secondary d-flex justify-content-center w-100 text-white p-3">
-    <?php if($page > 1): ?>
-        <a href="?page=<?= $page - 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent_id']) ? '&agent_id='.$_GET['agent_id'] : '' ?>" class="btn btn-primary"><</a>
-    <?php endif; ?>
+<!-- Pagination et contrôles -->
+<div class="pagination-controls-container">
+    <div class="pagination-info">
+        <span class="results-info">
+            <i class="fas fa-info-circle"></i>
+            Affichage de <?= (($page - 1) * $limit) + 1 ?> à <?= min($page * $limit, $result['total']) ?> sur <?= $result['total'] ?> bordereaux
+        </span>
+    </div>
     
-    <?php
-    // Afficher les numéros de page
-    $start = max(1, $page - 2);
-    $end = min($total_pages, $page + 2);
-    
-    // Afficher la première page si on n'y est pas
-    if ($start > 1) {
-        echo '<a href="?page=1' . 
-            (isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '') . 
-            (isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '') . 
-            (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
-            (isset($_GET['agent_id']) ? '&agent_id='.$_GET['agent_id'] : '') . 
-            '" class="btn btn-primary">1</a>';
-        if ($start > 2) {
-            echo '<span class="px-2 text-white">...</span>';
-        }
-    }
-    
-    // Afficher les pages autour de la page courante
-    for ($i = $start; $i <= $end; $i++) {
-        if ($i == $page) {
-            echo '<span class="btn btn-secondary active">' . $i . '</span>';
-        } else {
-            echo '<a href="?page=' . $i . 
-                (isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '') . 
-                (isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '') . 
-                (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
-                (isset($_GET['agent_id']) ? '&agent_id='.$_GET['agent_id'] : '') . 
-                '" class="btn btn-primary">' . $i . '</a>';
-        }
-    }
-    
-    // Afficher la dernière page si on n'y est pas
-    if ($end < $total_pages) {
-        if ($end < $total_pages - 1) {
-            echo '<span class="px-2 text-white">...</span>';
-        }
-        echo '<a href="?page=' . $total_pages . 
-            (isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '') . 
-            (isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '') . 
-            (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
-            (isset($_GET['agent_id']) ? '&agent_id='.$_GET['agent_id'] : '') . 
-            '" class="btn btn-primary">' . $total_pages . '</a>';
-    }
-    ?>
-    
-    <?php if($page < $total_pages): ?>
-        <a href="?page=<?= $page + 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent_id']) ? '&agent_id='.$_GET['agent_id'] : '' ?>" class="btn btn-primary">></a>
-    <?php endif; ?>
-  </div>
-  <form action="" method="get" class="items-per-page-form ml-3">
-        <?php if(isset($_GET['usine'])): ?>
-            <input type="hidden" name="usine" value="<?= htmlspecialchars($_GET['usine']) ?>">
-        <?php endif; ?>
-        <?php if(isset($_GET['date_creation'])): ?>
-            <input type="hidden" name="date_creation" value="<?= htmlspecialchars($_GET['date_creation']) ?>">
-        <?php endif; ?>
-        <?php if(isset($_GET['chauffeur'])): ?>
-            <input type="hidden" name="chauffeur" value="<?= htmlspecialchars($_GET['chauffeur']) ?>">
-        <?php endif; ?>
-        <?php if(isset($_GET['agent_id'])): ?>
-            <input type="hidden" name="agent_id" value="<?= htmlspecialchars($_GET['agent_id']) ?>">
-        <?php endif; ?>
-        <label for="limit">Afficher :</label>
-        <select name="limit" id="limit" class="items-per-page-select">
-            <option value="5" <?= $limit == 5 ? 'selected' : '' ?>>5</option>
-            <option value="10" <?= $limit == 10 ? 'selected' : '' ?>>10</option>
-            <option value="15" <?= $limit == 15 ? 'selected' : '' ?>>15</option>
-        </select>
-        <button type="submit" class="submit-button">Valider</button>
-    </form>
+    <div class="pagination-wrapper">
+        <!-- Sélecteur d'éléments par page -->
+        <div class="items-per-page">
+            <form action="" method="get" class="items-per-page-form">
+                <?php if(isset($_GET['usine'])): ?>
+                    <input type="hidden" name="usine" value="<?= htmlspecialchars($_GET['usine']) ?>">
+                <?php endif; ?>
+                <?php if(isset($_GET['date_creation'])): ?>
+                    <input type="hidden" name="date_creation" value="<?= htmlspecialchars($_GET['date_creation']) ?>">
+                <?php endif; ?>
+                <?php if(isset($_GET['chauffeur'])): ?>
+                    <input type="hidden" name="chauffeur" value="<?= htmlspecialchars($_GET['chauffeur']) ?>">
+                <?php endif; ?>
+                <?php if(isset($_GET['agent'])): ?>
+                    <input type="hidden" name="agent" value="<?= htmlspecialchars($_GET['agent']) ?>">
+                <?php endif; ?>
+                <?php if(isset($_GET['numero'])): ?>
+                    <input type="hidden" name="numero" value="<?= htmlspecialchars($_GET['numero']) ?>">
+                <?php endif; ?>
+                <?php if(isset($_GET['numero_ticket'])): ?>
+                    <input type="hidden" name="numero_ticket" value="<?= htmlspecialchars($_GET['numero_ticket']) ?>">
+                <?php endif; ?>
+                
+                <label for="limit" class="items-label">
+                    <i class="fas fa-list"></i> Afficher :
+                </label>
+                <select name="limit" id="limit" class="items-select" onchange="this.form.submit()">
+                    <option value="5" <?= $limit == 5 ? 'selected' : '' ?>>5 éléments</option>
+                    <option value="10" <?= $limit == 10 ? 'selected' : '' ?>>10 éléments</option>
+                    <option value="15" <?= $limit == 15 ? 'selected' : '' ?>>15 éléments</option>
+                    <option value="25" <?= $limit == 25 ? 'selected' : '' ?>>25 éléments</option>
+                    <option value="50" <?= $limit == 50 ? 'selected' : '' ?>>50 éléments</option>
+                </select>
+            </form>
+        </div>
+
+        <!-- Navigation de pagination -->
+        <div class="pagination-nav">
+            <?php if($page > 1): ?>
+                <a href="?page=<?= $page - 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '' ?><?= isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '' ?><?= isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '' ?>&limit=<?= $limit ?>" 
+                   class="pagination-btn pagination-prev" title="Page précédente">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            <?php else: ?>
+                <span class="pagination-btn pagination-prev disabled">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            <?php endif; ?>
+            
+            <?php
+            // Afficher les numéros de page
+            $start = max(1, $page - 2);
+            $end = min($total_pages, $page + 2);
+            
+            // Afficher la première page si on n'y est pas
+            if ($start > 1) {
+                echo '<a href="?page=1' . 
+                    (isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '') . 
+                    (isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '') . 
+                    (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
+                    (isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '') . 
+                    (isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '') . 
+                    (isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '') . 
+                    '&limit=' . $limit . 
+                    '" class="pagination-btn">1</a>';
+                if ($start > 2) {
+                    echo '<span class="pagination-dots">...</span>';
+                }
+            }
+            
+            // Afficher les pages autour de la page courante
+            for ($i = $start; $i <= $end; $i++) {
+                if ($i == $page) {
+                    echo '<span class="pagination-btn active">' . $i . '</span>';
+                } else {
+                    echo '<a href="?page=' . $i . 
+                        (isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '') . 
+                        (isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '') . 
+                        (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
+                        (isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '') . 
+                        (isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '') . 
+                        (isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '') . 
+                        '&limit=' . $limit . 
+                        '" class="pagination-btn">' . $i . '</a>';
+                }
+            }
+            
+            // Afficher la dernière page si on n'y est pas
+            if ($end < $total_pages) {
+                if ($end < $total_pages - 1) {
+                    echo '<span class="pagination-dots">...</span>';
+                }
+                echo '<a href="?page=' . $total_pages . 
+                    (isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '') . 
+                    (isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '') . 
+                    (isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '') . 
+                    (isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '') . 
+                    (isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '') . 
+                    (isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '') . 
+                    '&limit=' . $limit . 
+                    '" class="pagination-btn">' . $total_pages . '</a>';
+            }
+            ?>
+            
+            <?php if($page < $total_pages): ?>
+                <a href="?page=<?= $page + 1 ?><?= isset($_GET['usine']) ? '&usine='.$_GET['usine'] : '' ?><?= isset($_GET['date_creation']) ? '&date_creation='.$_GET['date_creation'] : '' ?><?= isset($_GET['chauffeur']) ? '&chauffeur='.$_GET['chauffeur'] : '' ?><?= isset($_GET['agent']) ? '&agent='.$_GET['agent'] : '' ?><?= isset($_GET['numero']) ? '&numero='.$_GET['numero'] : '' ?><?= isset($_GET['numero_ticket']) ? '&numero_ticket='.$_GET['numero_ticket'] : '' ?>&limit=<?= $limit ?>" 
+                   class="pagination-btn pagination-next" title="Page suivante">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            <?php else: ?>
+                <span class="pagination-btn pagination-next disabled">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
 
   <div class="modal fade" id="add-ticket" tabindex="-1" role="dialog" aria-labelledby="addTicketModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -1031,8 +1469,10 @@ label {
                                 </div>
                             </form>
                             <?php else : ?>
-                                <div class="alert alert-info">
-                                    Aucun ticket disponible pour cette période et cet agent.
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong>Pas de ticket validé disponible</strong><br>
+                                    <small>Aucun ticket validé (avec prix unitaire) n'est disponible pour cette période et cet agent.</small>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -1353,6 +1793,66 @@ $(document).ready(function() {
     // Focus sur le champ quand le modal s'ouvre
     $('#add-bordereau').on('shown.bs.modal', function() {
         $('#agent_search').focus();
+    });
+
+    // Gestion des formulaires de recherche
+    $('#searchByAgentForm').on('submit', function(e) {
+        e.preventDefault();
+        const agentId = $('#agent_id').val();
+        if (agentId) {
+            window.location.href = 'bordereaux.php?agent=' + encodeURIComponent(agentId);
+        }
+    });
+
+    $('#searchByUsineForm').on('submit', function(e) {
+        e.preventDefault();
+        const usineId = $('#usine').val();
+        if (usineId) {
+            window.location.href = 'bordereaux.php?usine=' + encodeURIComponent(usineId);
+        }
+    });
+
+    $('#searchByDateForm').on('submit', function(e) {
+        e.preventDefault();
+        const dateCreation = $('#date_creation').val();
+        if (dateCreation) {
+            window.location.href = 'bordereaux.php?date_creation=' + encodeURIComponent(dateCreation);
+        }
+    });
+
+    $('#searchByBetweendateForm').on('submit', function(e) {
+        e.preventDefault();
+        const dateDebut = $('#date_debut').val();
+        const dateFin = $('#date_fin').val();
+        if (dateDebut && dateFin) {
+            window.location.href = 'bordereaux.php?date_debut=' + encodeURIComponent(dateDebut) + '&date_fin=' + encodeURIComponent(dateFin);
+        }
+    });
+
+    $('#searchByVehiculeForm').on('submit', function(e) {
+        e.preventDefault();
+        const vehiculeId = $('#chauffeur').val();
+        if (vehiculeId) {
+            window.location.href = 'bordereaux.php?chauffeur=' + encodeURIComponent(vehiculeId);
+        }
+    });
+
+    // Fonction pour effacer les filtres
+    window.clearFilters = function() {
+        window.location.href = 'bordereaux.php';
+    };
+
+    // Information sur la recherche flexible
+    $('#numero_search').on('focus', function() {
+        if (!$('#numero-info').length) {
+            $(this).after('<small id="numero-info" class="text-info mt-1 d-block"><i class="fas fa-info-circle"></i> La recherche ignore les espaces et tirets</small>');
+        }
+    }).on('blur', function() {
+        setTimeout(function() {
+            $('#numero-info').fadeOut(function() {
+                $(this).remove();
+            });
+        }, 2000);
     });
 });
 </script>

@@ -189,13 +189,14 @@ function getPrixUnitaireByDateAndUsine($conn, $date_ticket, $id_usine) {
         // Vérifier si la date du ticket correspond à une période de prix unitaire pour cette usine
         $sql = "SELECT prix 
                 FROM prix_unitaires 
-                WHERE id_usine = :id_usine 
-                AND :date_ticket BETWEEN date_debut AND COALESCE(date_fin, :date_ticket)";
+                WHERE id_usine = ? 
+                AND date_debut <= ?
+                AND (date_fin IS NULL OR date_fin >= ?)
+                ORDER BY date_debut DESC
+                LIMIT 1";
         
         $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':id_usine', $id_usine, PDO::PARAM_INT);
-        $stmt->bindParam(':date_ticket', $date_ticket);
-        $stmt->execute();
+        $stmt->execute([$id_usine, $date_ticket, $date_ticket]);
         
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         

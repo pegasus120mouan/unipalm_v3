@@ -1469,8 +1469,10 @@ label {
                                 </div>
                             </form>
                             <?php else : ?>
-                                <div class="alert alert-info">
-                                    Aucun ticket disponible pour cette période et cet agent.
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong>Pas de ticket validé disponible</strong><br>
+                                    <small>Aucun ticket validé (avec prix unitaire) n'est disponible pour cette période et cet agent.</small>
                                 </div>
                             <?php endif; ?>
                         </div>
