@@ -1,10 +1,21 @@
 <?php
 require_once '../inc/functions/connexion.php';
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Inclure le système SMS existant
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+if (file_exists('../envoiSMS/vendor/autoload.php')) {
+    require_once '../envoiSMS/vendor/autoload.php';
+} elseif (file_exists('../../envoiSMS/vendor/autoload.php')) {
+    require_once '../../envoiSMS/vendor/autoload.php';
+}
+
+if (file_exists('../envoiSMS/config.php')) {
+    require_once '../envoiSMS/config.php';
+} elseif (file_exists('../../envoiSMS/config.php')) {
+    require_once '../../envoiSMS/config.php';
+}
 
 /**
  * Génère un code PIN à 6 chiffres aléatoire
