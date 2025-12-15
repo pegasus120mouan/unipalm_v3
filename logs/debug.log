@@ -4677,3 +4677,56 @@
 [2025-11-29 13:46:56] Mise à jour automatique de 5 ticket(s) avec les prix unitaires correspondants à leurs dates
 [2025-11-29 13:55:26] Mise à jour automatique de 6 ticket(s) avec les prix unitaires correspondants à leurs dates
 [2025-11-29 14:37:27] Mise à jour automatique de 5 ticket(s) avec les prix unitaires correspondants à leurs dates
+[2025-12-13 18:21:02] Mise à jour automatique de 5 ticket(s) avec les prix unitaires correspondants à leurs dates
+[2025-12-13 18:57:34] Mise à jour automatique de 5 ticket(s) avec les prix unitaires correspondants à leurs dates
+[2025-12-13 19:46:10] Début de l'enregistrement du paiement
+[2025-12-13 19:46:10] Bordereau #237 mis à jour avec montant_payer=1000000, montant_reste=2080000, statut=non soldé
+[2025-12-13 19:46:10] [save_paiement_agent] Financement agent #266 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-12-13 19:46:10] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-12-13 19:46:10] Nouveau solde caisse calculé (save_paiement_agent): 99018000
+[2025-12-13 19:46:10] Transaction de paiement (save_paiement_agent) créée #177, nouveau solde caisse: 99018000
+[2025-12-13 19:46:10] Paiement enregistré avec succès
+[2025-12-13 19:49:30] Début de l'enregistrement du paiement
+[2025-12-13 19:49:30] Bordereau #237 mis à jour avec montant_payer=1500000, montant_reste=1580000, statut=non soldé
+[2025-12-13 19:49:30] [save_paiement_agent] Financement agent #266 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-12-13 19:49:30] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-12-13 19:49:30] Nouveau solde caisse calculé (save_paiement_agent): 99518000
+[2025-12-13 19:49:30] Transaction de paiement (save_paiement_agent) créée #178, nouveau solde caisse: 99518000
+[2025-12-13 19:49:30] Paiement enregistré avec succès
+[2025-12-13 19:55:54] Début de l'enregistrement du paiement
+[2025-12-13 19:55:54] Bordereau #237 mis à jour avec montant_payer=2080000, montant_reste=1000000, statut=non soldé
+[2025-12-13 19:55:54] [save_paiement_agent] Financement agent #266 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-12-13 19:55:54] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-12-13 19:55:54] Nouveau solde caisse calculé (save_paiement_agent): 99438000
+[2025-12-13 19:55:54] Transaction de paiement (save_paiement_agent) créée #179, nouveau solde caisse: 99438000
+[2025-12-13 19:55:54] Paiement enregistré avec succès
+[2025-12-13 20:58:33] Début de l'enregistrement du paiement
+[2025-12-13 20:58:33] Bordereau #237 mis à jour avec montant_payer=2330000, montant_reste=750000, statut=non soldé
+[2025-12-13 20:58:36] SMS paiement bordereau envoyé avec succès à 0769292989 pour le bordereau BORD-20251213-266-5729
+[2025-12-13 20:58:36] [save_paiement_agent] Financement agent #266 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-12-13 20:58:36] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-12-13 20:58:36] Nouveau solde caisse calculé (save_paiement_agent): 99768000
+[2025-12-13 20:58:36] Transaction de paiement (save_paiement_agent) créée #180, nouveau solde caisse: 99768000
+[2025-12-13 20:58:36] Paiement enregistré avec succès
+[2025-12-13 21:13:17] Début de l'enregistrement du paiement
+[2025-12-13 21:13:17] Bordereau #237 mis à jour avec montant_payer=3080000, montant_reste=0, statut=soldé
+[2025-12-13 21:13:20] SMS paiement bordereau envoyé avec succès à 0769292989 pour le bordereau BORD-20251213-266-5729
+[2025-12-13 21:13:20] [save_paiement_agent] Financement agent #266 => solde=0, nb_lignes=0, source choisie=transactions
+[2025-12-13 21:13:20] Solde caisse actuel avant paiement (save_paiement_agent): 100018000 | source finale=transactions
+[2025-12-13 21:13:20] Nouveau solde caisse calculé (save_paiement_agent): 99268000
+[2025-12-13 21:13:20] Transaction de paiement (save_paiement_agent) créée #181, nouveau solde caisse: 99268000
+[2025-12-13 21:13:20] Paiement enregistré avec succès
+[2025-12-13 22:02:40] Début de l'enregistrement du paiement
+[2025-12-13 22:02:40] Solde actuel avant paiement: 100018000
+[2025-12-13 22:02:40] Nouveau solde calculé: 99018000
+[2025-12-13 22:02:40] Bordereau #236 mis à jour avec montant_payer=1000000, montant_reste=15800000
+[2025-12-13 22:02:43] SMS paiement bordereau envoyé avec succès à 0769292989 pour le bordereau BORD-20251213-266-9402
+[2025-12-13 22:02:43] Transaction de paiement créée #182, nouveau solde: 99018000
+[2025-12-13 22:02:43] Paiement enregistré avec succès
+[2025-12-13 22:05:59] Début de l'enregistrement du paiement
+[2025-12-13 22:05:59] Solde actuel avant paiement: 100018000
+[2025-12-13 22:05:59] Nouveau solde calculé: 99018000
+[2025-12-13 22:05:59] Bordereau #236 mis à jour avec montant_payer=2000000, montant_reste=14800000
+[2025-12-13 22:06:02] SMS paiement bordereau envoyé avec succès à 0769292989 pour le bordereau BORD-20251213-266-9402
+[2025-12-13 22:06:02] Transaction de paiement créée #183, nouveau solde: 99018000
+[2025-12-13 22:06:02] Paiement enregistré avec succès

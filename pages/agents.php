@@ -988,6 +988,9 @@ background: var(--secondary-color);
                                         <button class="action-btn btn-warning" data-bs-toggle="modal" data-bs-target="#changeChef<?= $agent['id_agent'] ?>" title="Changer Chef d'Équipe" style="background: linear-gradient(135deg, #f6d365, #ffa726);">
                                             <i class="fas fa-user-tie"></i>
                                         </button>
+                                        <button class="action-btn" onclick="renvoyerPIN(<?= $agent['id_agent'] ?>, '<?= htmlspecialchars($agent['contact']) ?>', '<?= htmlspecialchars($agent['nom_agent']) ?>', '<?= htmlspecialchars($agent['prenom_agent']) ?>', '<?= htmlspecialchars($agent['numero_agent']) ?>')" title="Renvoyer PIN par SMS" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                                            <i class="fas fa-sms"></i>
+                                        </button>
                                         <button class="action-btn btn-delete" onclick="confirmDelete(<?= $agent['id_agent'] ?>)" title="Supprimer">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -1361,6 +1364,62 @@ background: var(--secondary-color);
                     document.body.appendChild(form);
                     
                     console.log('Soumission du formulaire de suppression');
+                    form.submit();
+                }
+            });
+        }
+
+        // Function to resend PIN via SMS
+        function renvoyerPIN(id_agent, contact, nom, prenom, numero_agent) {
+            Swal.fire({
+                title: 'Renvoyer le code PIN ?',
+                text: `Envoyer le code PIN par SMS au ${contact} ?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4facfe',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-sms me-2"></i>Oui, envoyer',
+                cancelButtonText: '<i class="fas fa-times me-2"></i>Annuler',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdrop: 'rgba(0, 0, 0, 0.8)',
+                customClass: {
+                    popup: 'border-0 shadow-lg',
+                    title: 'text-dark fw-bold',
+                    content: 'text-dark'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Envoi en cours...',
+                        text: 'Envoi du SMS en cours, veuillez patienter',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Créer et soumettre un formulaire caché
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'traitement_agents.php';
+                    
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'resend_pin';
+                    
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'id_agent';
+                    idInput.value = id_agent;
+                    
+                    form.appendChild(actionInput);
+                    form.appendChild(idInput);
+                    document.body.appendChild(form);
+                    
                     form.submit();
                 }
             });

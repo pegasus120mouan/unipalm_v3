@@ -8,6 +8,52 @@ require_once '../inc/functions/requete/requete_chef_equipes.php';
 require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
 
+// Inclure le système SMS HSMS existant
+require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
+require_once 'C:\laragon\www\envoiSMS\config.php';
+
+/**
+ * Envoie un SMS de notification de bordereau à un agent via HSMS
+ * @param string $numero_telephone Numéro de téléphone de l'agent
+ * @param string $nom_agent Nom de l'agent
+ * @param string $prenom_agent Prénom de l'agent
+ * @param string $numero_bordereau Numéro de bordereau généré
+ * @param float $montant_total Montant total du bordereau
+ * @param int $nombre_tickets Nombre de tickets dans le bordereau
+ * @return array Résultat de l'envoi
+ */
+function envoyerSMSBordereau($numero_telephone, $nom_agent, $prenom_agent, $numero_bordereau, $montant_total, $nombre_tickets) {
+    try {
+        // Créer le service SMS HSMS avec vos identifiants
+        $smsService = new \App\OvlSmsService(
+            'UNIPALM_HOvuHXr',
+            'UNIPALM20251129194026.813697uv2rU5edhLWCv5HDLqoA',
+            '0eebac3b6594eb3c37b675f8ab0299629f5d96f9'
+        );
+        
+        // Créer le message de notification de bordereau
+        $message = "UNIPALM - Nouveau Bordereau\n\n";
+        $message .= "Bonjour " . ucfirst(strtolower($prenom_agent)) . " " . strtoupper($nom_agent) . ",\n\n";
+        $message .= "Un nouveau bordereau a été généré pour vous :\n\n";
+        $message .= "📋 Numéro : " . $numero_bordereau . "\n";
+        $message .= "🎫 Tickets : " . $nombre_tickets . "\n";
+        $message .= "💰 Montant : " . number_format($montant_total, 0, ',', ' ') . " FCFA\n\n";
+        $message .= "Consultez votre espace agent pour plus de détails.\n\n";
+        $message .= "Cordialement,\nÉquipe UNIPALM";
+        
+        // Envoyer le SMS
+        $result = $smsService->sendSms($numero_telephone, $message);
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        return [
+            'success' => false,
+            'error' => 'Erreur lors de l\'envoi du SMS: ' . $e->getMessage()
+        ];
+    }
+}
+
 if(isset($_GET['action']) && $_GET['action'] == 'delete') {
     $id_bordereau = $_GET['id'];
     $numero_bordereau = $_GET['numero_bordereau'];  
@@ -28,7 +74,58 @@ if (isset($_POST['saveBordereau'])) {
 
     $result = saveBordereau($conn, $id_agent, $date_debut, $date_fin);
     if ($result['success']) {
-        $_SESSION['success'] = $result['message'];
+        // Récupérer les informations de l'agent pour l'envoi SMS
+        $stmt = $conn->prepare("SELECT nom, prenom, contact FROM agents WHERE id_agent = ?");
+        $stmt->execute([$id_agent]);
+        $agent = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($agent) {
+            // Récupérer les détails du bordereau créé
+            $stmt = $conn->prepare("SELECT numero_bordereau, montant_total FROM bordereau WHERE id_bordereau = ?");
+            $stmt->execute([$result['id_bordereau']]);
+            $bordereau = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Compter les tickets associés
+            $stmt_tickets = $conn->prepare("SELECT COUNT(*) as nombre_tickets FROM tickets WHERE numero_bordereau = ?");
+            $stmt_tickets->execute([$bordereau['numero_bordereau']]);
+            $tickets_count = $stmt_tickets->fetch(PDO::FETCH_ASSOC);
+            $nombre_tickets = $tickets_count['nombre_tickets'] ?? 0;
+            
+            if ($bordereau) {
+                // Envoyer le SMS uniquement si des tickets sont associés au bordereau
+                if ($nombre_tickets > 0) {
+                    $sms_result = envoyerSMSBordereau(
+                        $agent['contact'],
+                        $agent['nom'],
+                        $agent['prenom'],
+                        $bordereau['numero_bordereau'],
+                        $bordereau['montant_total'],
+                        $nombre_tickets
+                    );
+                    
+                    if ($sms_result['success']) {
+                        $_SESSION['success'] = $result['message'] . " - SMS envoyé à l'agent au " . $agent['contact'] . " (" . $nombre_tickets . " ticket(s) associé(s))";
+                        
+                        // Log du succès SMS
+                        error_log("SMS bordereau envoyé avec succès à " . $agent['contact'] . " pour le bordereau " . $bordereau['numero_bordereau'] . " avec " . $nombre_tickets . " ticket(s)");
+                    } else {
+                        $_SESSION['success'] = $result['message'] . " (SMS non envoyé: " . ($sms_result['error'] ?? 'Erreur inconnue') . ")";
+                        
+                        // Log de l'échec SMS
+                        error_log("Échec envoi SMS bordereau à " . $agent['contact'] . ": " . ($sms_result['error'] ?? 'Erreur inconnue'));
+                    }
+                } else {
+                    $_SESSION['success'] = $result['message'] . " (Aucun ticket associé - SMS non envoyé)";
+                    
+                    // Log de l'absence de tickets
+                    error_log("SMS bordereau non envoyé - aucun ticket associé au bordereau " . $bordereau['numero_bordereau']);
+                }
+            } else {
+                $_SESSION['success'] = $result['message'] . " (Impossible de récupérer les détails du bordereau pour SMS)";
+            }
+        } else {
+            $_SESSION['success'] = $result['message'] . " (Agent non trouvé pour envoi SMS)";
+        }
     } else {
         $_SESSION['error'] = $result['message'];
     }

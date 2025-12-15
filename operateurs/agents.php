@@ -5,7 +5,7 @@ require_once '../inc/functions/requete/requete_usines.php';
 require_once '../inc/functions/requete/requete_chef_equipes.php';
 require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
-include('header_operateurs.php');
+include('header.php');
 
 $id_user = $_SESSION['user_id'];
 
@@ -20,9 +20,9 @@ $vehicules = getVehicules($conn);
 $agents = getAgents($conn);
 
 
-// Récupérer la liste des chefs d'équipe
+// Récupérer la liste des chefs d'équipe (pour compatibilité avec le modal)
 $stmt = $conn->prepare(
-    "SELECT id_chef, CONCAT(nom, ' ', prenoms) as nom_complet 
+    "SELECT id_chef, CONCAT(nom, ' ', prenoms) as chef_nom_complet 
      FROM chef_equipe 
      ORDER BY nom"
 );
@@ -68,7 +68,7 @@ $total_agents_filtered = count($agents_filtered);
 
 // Calculer les statistiques
 $total_agents = count($agents);
-$total_chefs = count($chefs_equipes);
+$total_chefs = count($chefs);
 
 // Fonction pour générer les paramètres URL avec filtres
 function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_contact, $search_chef) {
@@ -216,6 +216,20 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             text-align: center;
         }
 
+        .agent-count {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            border-radius: 25px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.7em;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
         .page-subtitle {
             text-align: center;
             color: rgba(255, 255, 255, 0.8);
@@ -244,66 +258,6 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
 
         .breadcrumb-modern a:hover {
             color: white;
-        }
-
-        /* Stats cards */
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: var(--shadow-light);
-            transition: all 0.3s ease;
-            animation: slideInUp 0.6s ease-out;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-dark);
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.5rem;
-            color: white;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #2c3e50;
-            font-size: 0.9rem;
         }
 
         /* Action buttons */
@@ -385,21 +339,43 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-light);
-            animation: slideInRight 0.6s ease-out;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: slideInUp 0.6s ease-out;
+            max-height: 350px; /* Hauteur maximale du conteneur encore réduite */
+            overflow: hidden;
         }
 
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-height: 250px; /* Hauteur maximale du tableau encore réduite */
+            overflow-y: auto; /* Scroll vertical */
+            scrollbar-width: thin; /* Pour Firefox */
+            scrollbar-color: var(--primary-color) rgba(255, 255, 255, 0.1); /* Pour Firefox */
+        }
+        
+        /* Styles pour WebKit (Chrome, Safari, Edge) */
+        .table-responsive::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
         }
 
         .table-modern {
@@ -409,23 +385,20 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             box-shadow: none;
         }
 
-        .table-modern thead th {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 1rem;
-            font-weight: 600;
-            text-align: center;
-            position: relative;
-        }
+.table-responsive::-webkit-scrollbar-track {
+background: rgba(255, 255, 255, 0.1);
+border-radius: 4px;
+}
 
-        .table-modern tbody tr {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: none;
-            transition: all 0.3s ease;
-        }
+.table-responsive::-webkit-scrollbar-thumb {
+background: var(--primary-color);
+border-radius: 4px;
+transition: background 0.3s ease;
+}
 
+.table-responsive::-webkit-scrollbar-thumb:hover {
+background: var(--secondary-color);
+}
         .table-modern tbody tr:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: scale(1.01);
@@ -545,6 +518,13 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             padding: 0.75rem;
         }
 
+        /* Assurer que les selects restent des selects */
+        select.form-control {
+            appearance: auto;
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+        }
+
         .form-control:focus {
             background: rgba(255, 255, 255, 0.95);
             border-color: var(--primary-color);
@@ -575,21 +555,21 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
-            padding: 2rem;
-            margin: 2rem 0;
+            padding: 1.5rem; /* Réduit de 2rem à 1.5rem */
+            margin: 1.5rem 0; /* Réduit de 2rem à 1.5rem */
             box-shadow: var(--shadow-light);
             animation: slideInUp 0.6s ease-out;
         }
 
         .search-form {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem; /* Réduit de 1.5rem à 1rem */
         }
 
         .search-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 1rem; /* Réduit de 1.5rem à 1rem */
+            margin-bottom: 1.5rem; /* Réduit de 2rem à 1.5rem */
         }
 
         .search-field {
@@ -723,9 +703,6 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                 font-size: 2rem;
             }
             
-            .stats-container {
-                grid-template-columns: 1fr;
-            }
             
             .table-responsive {
                 border-radius: 15px;
@@ -822,39 +799,14 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             </div>
             
             <h1 class="page-title">
-                <i class="fas fa-users"></i> Gestion des Agents
+                <i class="fas fa-users"></i> Gestion des Agents 
+                <span class="agent-count">(<?= $total_agents ?>)</span>
             </h1>
             <p class="page-subtitle">
                 Gérez efficacement vos agents et leurs informations
             </p>
         </div>
 
-        <!-- Statistics cards -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-number"><?= $total_agents ?></div>
-                <div class="stat-label">Total Agents</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, var(--success-color), #00d2ff);">
-                    <i class="fas fa-user-tie"></i>
-                </div>
-                <div class="stat-number"><?= $total_chefs ?></div>
-                <div class="stat-label">Chefs d'Équipe</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon" style="background: linear-gradient(135deg, var(--warning-color), #ffa726);">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-number"><?= count($agents_list) ?></div>
-                <div class="stat-label">Agents Affichés</div>
-            </div>
-        </div>
 
         <!-- Action buttons -->
         <div class="actions-container">
@@ -881,7 +833,7 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
 
         <!-- Filtres de recherche -->
         <div class="search-container">
-            <h3 style="color: #2c3e50; margin-bottom: 1.5rem; font-family: 'Poppins', sans-serif;">
+            <h3 style="color: #2c3e50; margin-bottom: 1rem; font-family: 'Poppins', sans-serif;">
                 <i class="fas fa-filter"></i> Filtres de Recherche
             </h3>
             
@@ -986,6 +938,7 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                 <table class="table table-modern">
                     <thead>
                         <tr>
+                            <th><i class="fas fa-id-card"></i> N° Agent</th>
                             <th><i class="fas fa-user"></i> Nom</th>
                             <th><i class="fas fa-user"></i> Prénom</th>
                             <th><i class="fas fa-phone"></i> Contact</th>
@@ -999,6 +952,12 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                         <?php if (!empty($agents_list)): ?>
                             <?php foreach ($agents_list as $agent) : ?>
                                 <tr>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-id-card me-1"></i>
+                                            <?= htmlspecialchars($agent['numero_agent'] ?? 'N/A') ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-circle me-2">
@@ -1029,6 +988,9 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                                         <button class="action-btn btn-warning" data-bs-toggle="modal" data-bs-target="#changeChef<?= $agent['id_agent'] ?>" title="Changer Chef d'Équipe" style="background: linear-gradient(135deg, #f6d365, #ffa726);">
                                             <i class="fas fa-user-tie"></i>
                                         </button>
+                                        <button class="action-btn" onclick="renvoyerPIN(<?= $agent['id_agent'] ?>, '<?= htmlspecialchars($agent['contact']) ?>', '<?= htmlspecialchars($agent['nom_agent']) ?>', '<?= htmlspecialchars($agent['prenom_agent']) ?>', '<?= htmlspecialchars($agent['numero_agent']) ?>')" title="Renvoyer PIN par SMS" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                                            <i class="fas fa-sms"></i>
+                                        </button>
                                         <button class="action-btn btn-delete" onclick="confirmDelete(<?= $agent['id_agent'] ?>)" title="Supprimer">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -1037,7 +999,7 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center">
+                                <td colspan="8" class="text-center">
                                     <div class="py-4">
                                         <i class="fas fa-users fa-3x mb-3" style="color: rgba(255,255,255,0.3);"></i>
                                         <p class="mb-0">Aucun agent trouvé</p>
@@ -1185,8 +1147,8 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                                 </label>
                                 <select id="nouveau_chef<?= $agent['id_agent'] ?>" name="nouveau_chef" class="form-control" required>
                                     <option value="">Sélectionner un nouveau chef d'équipe</option>
-                                    <?php if (!empty($chefs_equipes)): ?>
-                                        <?php foreach ($chefs_equipes as $chef): ?>
+                                    <?php if (!empty($chefs)): ?>
+                                        <?php foreach ($chefs as $chef): ?>
                                             <option value="<?= htmlspecialchars($chef['id_chef']) ?>">
                                                 <?= htmlspecialchars($chef['chef_nom_complet']) ?>
                                             </option>
@@ -1212,7 +1174,7 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
         </div>
     <?php endforeach; ?>
     
-    <!-- Modale d'ajout d'agent -->
+    <!-- Modale d'ajout d'agent - STYLE ORIGINAL UNIPALM -->
     <div class="modal fade" id="add-agent" tabindex="-1" aria-labelledby="addAgentModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1228,33 +1190,37 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                             <label for="nom" class="form-label">
                                 <i class="fas fa-user me-2"></i>Nom
                             </label>
-                            <input type="text" class="form-control" id="nom" name="nom" placeholder="Nom de l'agent" required>
+                            <input type="text" class="form-control" id="nom" name="nom" placeholder="Nom de l'agent" required 
+                                   style="background: rgba(255, 255, 255, 0.9) !important; color: #2c3e50 !important;">
                         </div>
 
                         <div class="mb-3">
                             <label for="prenom" class="form-label">
                                 <i class="fas fa-user me-2"></i>Prénoms
                             </label>
-                            <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Prénoms de l'agent" required>
+                            <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Prénoms de l'agent" required
+                                   style="background: rgba(255, 255, 255, 0.9) !important; color: #2c3e50 !important;">
                         </div>
 
                         <div class="mb-3">
                             <label for="contact" class="form-label">
                                 <i class="fas fa-phone me-2"></i>Contact
                             </label>
-                            <input type="text" class="form-control" id="contact" name="contact" placeholder="Numéro de téléphone" required>
+                            <input type="text" class="form-control" id="contact" name="contact" placeholder="Numéro de téléphone" required
+                                   style="background: rgba(255, 255, 255, 0.9) !important; color: #2c3e50 !important;">
                         </div>
 
                         <div class="mb-3">
                             <label for="id_chef" class="form-label">
                                 <i class="fas fa-user-tie me-2"></i>Chef d'Équipe
                             </label>
-                            <select id="id_chef" name="id_chef" class="form-control" required>
+                            <select id="id_chef" name="id_chef" class="form-control" required 
+                                    style="background: rgba(255, 255, 255, 0.9) !important; color: #2c3e50 !important; appearance: auto !important; -webkit-appearance: menulist !important;">
                                 <option value="">Sélectionner un chef d'équipe</option>
-                                <?php if (!empty($chefs_equipes)): ?>
-                                    <?php foreach ($chefs_equipes as $chefs_equipe): ?>
-                                        <option value="<?= htmlspecialchars($chefs_equipe['id_chef']) ?>">
-                                            <?= htmlspecialchars($chefs_equipe['chef_nom_complet']) ?>
+                                <?php if (!empty($chefs)): ?>
+                                    <?php foreach ($chefs as $chef): ?>
+                                        <option value="<?= htmlspecialchars($chef['id_chef']) ?>">
+                                            <?= htmlspecialchars($chef['chef_nom_complet']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -1263,8 +1229,11 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                             </select>
                         </div>
 
+                        <!-- Champ caché pour s'assurer que add_agent est envoyé -->
+                        <input type="hidden" name="add_agent" value="1">
+
                         <div class="modal-footer border-0">
-                            <button type="submit" class="btn-modern ripple" name="add_agent">
+                            <button type="submit" class="btn-modern ripple" name="add_agent" value="1">
                                 <i class="fas fa-save me-2"></i>Enregistrer
                             </button>
                             <button type="button" class="btn-modern btn-danger-modern ripple" data-bs-dismiss="modal">
@@ -1306,7 +1275,7 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             createParticles();
             
             // Add entrance animations with stagger
-            const elements = document.querySelectorAll('.stat-card, .actions-container, .table-container');
+            const elements = document.querySelectorAll('.actions-container, .table-container');
             elements.forEach((el, index) => {
                 el.style.animationDelay = (index * 0.1) + 's';
             });
@@ -1348,7 +1317,7 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                 });
             }, observerOptions);
 
-            document.querySelectorAll('.stat-card, .table-container').forEach(el => {
+            document.querySelectorAll('.table-container').forEach(el => {
                 observer.observe(el);
             });
         });
@@ -1400,6 +1369,62 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
             });
         }
 
+        // Function to resend PIN via SMS
+        function renvoyerPIN(id_agent, contact, nom, prenom, numero_agent) {
+            Swal.fire({
+                title: 'Renvoyer le code PIN ?',
+                text: `Envoyer le code PIN par SMS au ${contact} ?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4facfe',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-sms me-2"></i>Oui, envoyer',
+                cancelButtonText: '<i class="fas fa-times me-2"></i>Annuler',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdrop: 'rgba(0, 0, 0, 0.8)',
+                customClass: {
+                    popup: 'border-0 shadow-lg',
+                    title: 'text-dark fw-bold',
+                    content: 'text-dark'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Envoi en cours...',
+                        text: 'Envoi du SMS en cours, veuillez patienter',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Créer et soumettre un formulaire caché
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'traitement_agents.php';
+                    
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'resend_pin';
+                    
+                    const idInput = document.createElement('input');
+                    idInput.type = 'hidden';
+                    idInput.name = 'id_agent';
+                    idInput.value = id_agent;
+                    
+                    form.appendChild(actionInput);
+                    form.appendChild(idInput);
+                    document.body.appendChild(form);
+                    
+                    form.submit();
+                }
+            });
+        }
+
         // Form validation enhancement
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -1410,6 +1435,7 @@ function buildUrlParams($page, $limit, $search_nom, $search_prenom, $search_cont
                 }
             });
         });
+
 
         // Add CSS for ripple effect
         const style = document.createElement('style');

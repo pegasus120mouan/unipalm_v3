@@ -1,7 +1,50 @@
 <?php
 require_once '../inc/functions/connexion.php';
 require_once '../inc/functions/log_functions.php';
+require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
+require_once 'C:\laragon\www\envoiSMS\config.php';
+
 session_start();
+
+// Fonction d'envoi SMS pour paiement de bordereau
+function envoyerSMSPaiementBordereau($numero_telephone, $nom_agent, $prenom_agent, $numero_bordereau, $montant_total, $montant_paye, $montant_reste) {
+    try {
+        // Créer le service SMS HSMS avec vos identifiants
+        $smsService = new \App\OvlSmsService(
+            'UNIPALM_HOvuHXr',
+            'UNIPALM20251129194026.813697uv2rU5edhLWCv5HDLqoA',
+            '0eebac3b6594eb3c37b675f8ab0299629f5d96f9'
+        );
+        
+        // Créer le message de notification de paiement
+        $message = "UNIPALM - Paiement Reçu\n\n";
+        $message .= "Bonjour " . ucfirst(strtolower($prenom_agent)) . " " . strtoupper($nom_agent) . ",\n\n";
+        $message .= "Un paiement a été effectué sur votre bordereau :\n\n";
+        $message .= "📋 Numéro : " . $numero_bordereau . "\n";
+        $message .= "💰 Montant total : " . number_format($montant_total, 0, ',', ' ') . " FCFA\n";
+        $message .= "✅ Montant payé : " . number_format($montant_paye, 0, ',', ' ') . " FCFA\n";
+        $message .= "⏳ Reste à payer : " . number_format($montant_reste, 0, ',', ' ') . " FCFA\n\n";
+        
+        if ($montant_reste <= 0) {
+            $message .= "🎉 Félicitations ! Votre bordereau est maintenant entièrement soldé.\n\n";
+        } else {
+            $message .= "ℹ️ Paiement partiel effectué. Solde restant à régler.\n\n";
+        }
+        
+        $message .= "Cordialement,\nÉquipe UNIPALM";
+        
+        // Envoyer le SMS
+        $result = $smsService->sendSms($numero_telephone, $message);
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        return [
+            'success' => false,
+            'error' => 'Erreur lors de l\'envoi du SMS: ' . $e->getMessage()
+        ];
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
     try {
@@ -165,6 +208,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_paiement'])) {
             ");
             $stmt->execute([$nouveau_montant_payer, $nouveau_montant_reste, $id_bordereau]);
             writeLog("Bordereau #$id_bordereau mis à jour avec montant_payer=$nouveau_montant_payer, montant_reste=$nouveau_montant_reste");
+            
+            // Envoyer le SMS de notification de paiement si on a les informations de l'agent
+            if ($contact_agent && $nom_agent) {
+                // Séparer nom et prénom
+                $nom_parts = explode(' ', $nom_agent, 2);
+                $nom = isset($nom_parts[1]) ? $nom_parts[1] : $nom_parts[0];
+                $prenom = isset($nom_parts[1]) ? $nom_parts[0] : '';
+                
+                $sms_result = envoyerSMSPaiementBordereau(
+                    $contact_agent,
+                    $nom,
+                    $prenom,
+                    $numero_bordereau,
+                    $montant_total,
+                    $nouveau_montant_payer,
+                    $nouveau_montant_reste
+                );
+                
+                if ($sms_result['success']) {
+                    writeLog("SMS paiement bordereau envoyé avec succès à " . $contact_agent . " pour le bordereau " . $numero_bordereau);
+                } else {
+                    writeLog("Échec envoi SMS paiement bordereau à " . $contact_agent . ": " . ($sms_result['error'] ?? 'Erreur inconnue'));
+                }
+            }
         } else {
             // C'est une demande
             $id_demande = $_POST['id_demande'];

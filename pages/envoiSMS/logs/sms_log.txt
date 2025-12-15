@@ -1,0 +1,1 @@
+{"timestamp":"2025-12-13 17:55:25","numero":"+225769292989","status":"SUCCESS","message_length":242,"details":{"status":"sent","message_id":"SMS_1765648525_9655","recipient":"+225769292989","timestamp":"2025-12-13 17:55:25","cost":0.05}}

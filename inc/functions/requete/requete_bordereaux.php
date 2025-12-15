@@ -263,7 +263,7 @@ function saveBordereau($conn, $id_agent, $date_debut, $date_fin) {
         $conn->beginTransaction();
 
         // 1. Créer le numéro de bordereau
-        $numero_bordereau = 'BDR-' . date('Ymd-His') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $numero_bordereau = 'BORD-' . date('Ymd-His') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
         // 2. Insérer le bordereau avec les totaux calculés directement
         $sql = "INSERT INTO bordereau (
