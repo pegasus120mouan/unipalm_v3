@@ -14,14 +14,14 @@ echo "<hr>";
 // Test 1: Structure des dossiers
 echo "<h2>📁 1. Structure des dossiers</h2>";
 $required_dirs = [
-    'inc',
-    'inc/functions',
-    'inc/functions/envoiSMS',
-    'inc/functions/envoiSMS/src',
-    'pages',
-    'operateurs',
-    'caisse',
-    'directeur'
+    '../inc',
+    '../inc/functions',
+    '../inc/functions/envoiSMS',
+    '../inc/functions/envoiSMS/src',
+    '.',
+    '../operateurs',
+    '../caisse',
+    '../directeur'
 ];
 
 foreach ($required_dirs as $dir) {
@@ -38,9 +38,9 @@ echo "<hr>";
 // Test 2: Fichiers SMS critiques
 echo "<h2>📄 2. Fichiers SMS critiques</h2>";
 $required_files = [
-    'inc/functions/envoiSMS/config.php',
-    'inc/functions/envoiSMS/src/OvlSmsService.php',
-    'inc/functions/connexion.php'
+    '../inc/functions/envoiSMS/config.php',
+    '../inc/functions/envoiSMS/src/OvlSmsService.php',
+    '../inc/functions/connexion.php'
 ];
 
 foreach ($required_files as $file) {
@@ -56,7 +56,7 @@ echo "<hr>";
 
 // Test 3: Configuration SMS
 echo "<h2>⚙️ 3. Test configuration SMS</h2>";
-$config_path = __DIR__ . '/inc/functions/envoiSMS/config.php';
+$config_path = __DIR__ . '/../inc/functions/envoiSMS/config.php';
 if (file_exists($config_path)) {
     try {
         require_once $config_path;
@@ -96,7 +96,7 @@ echo "<hr>";
 
 // Test 4: Connexion base de données
 echo "<h2>🗄️ 4. Test connexion base de données</h2>";
-$connexion_path = __DIR__ . '/inc/functions/connexion.php';
+$connexion_path = __DIR__ . '/../inc/functions/connexion.php';
 if (file_exists($connexion_path)) {
     try {
         require_once $connexion_path;
@@ -130,7 +130,7 @@ echo "<hr>";
 
 // Test 5: Permissions et droits d'écriture
 echo "<h2>🔐 5. Test permissions</h2>";
-$test_dirs = ['inc', 'pages', 'operateurs'];
+$test_dirs = ['../inc', '.', '../operateurs'];
 foreach ($test_dirs as $dir) {
     $path = __DIR__ . '/' . $dir;
     if (is_dir($path)) {
