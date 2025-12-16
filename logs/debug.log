@@ -4731,3 +4731,18 @@
 [2025-12-13 22:06:02] Transaction de paiement créée #183, nouveau solde: 99018000
 [2025-12-13 22:06:02] Paiement enregistré avec succès
 [2025-12-16 15:56:20] Mise à jour automatique de 5 ticket(s) avec les prix unitaires correspondants à leurs dates
+[2025-12-16 17:37:20] Début de l'enregistrement du paiement
+[2025-12-16 17:37:20] Solde actuel avant paiement: 100018000
+[2025-12-16 17:37:20] Nouveau solde calculé: 99018000
+[2025-12-16 17:37:20] Bordereau #238 mis à jour avec montant_payer=1000000, montant_reste=1880000
+[2025-12-16 17:37:23] SMS paiement bordereau envoyé avec succès à 0787703000 pour le bordereau BORD-20251216-278-6232
+[2025-12-16 17:37:23] Transaction de paiement créée #184, nouveau solde: 99018000
+[2025-12-16 17:37:23] Paiement enregistré avec succès
+[2025-12-16 17:44:29] Mise à jour automatique de 5 ticket(s) avec les prix unitaires correspondants à leurs dates
+[2025-12-16 17:46:12] Début de l'enregistrement du paiement
+[2025-12-16 17:46:12] Solde actuel avant paiement: 100018000
+[2025-12-16 17:46:12] Nouveau solde calculé: 98018000
+[2025-12-16 17:46:12] Bordereau #239 mis à jour avec montant_payer=2000000, montant_reste=880000
+[2025-12-16 17:46:15] SMS paiement bordereau envoyé avec succès à 0584828385 pour le bordereau BORD-20251216-279-8952
+[2025-12-16 17:46:15] Transaction de paiement créée #185, nouveau solde: 98018000
+[2025-12-16 17:46:15] Paiement enregistré avec succès

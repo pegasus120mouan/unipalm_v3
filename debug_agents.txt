@@ -406,3 +406,21 @@ PIN renvoyé avec succès à 0788086888 pour l'agent AGT-25-ZAL-SA03 - ID: 4b7ab
     [id_agent] => 269
 )
 
+2025-12-16 18:42:51 - POST reçu: Array
+(
+    [nom] => Fisher
+    [prenom] => Mouan
+    [contact] => 0584828385
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 29, cree_par: 29
+Nom: 'Fisher', Prenom: 'Mouan', Contact: '0584828385', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-FM01, PIN: 564614
+Parametres: [AGT-25-ZAL-FM01, Fisher, Mouan, 0584828385, 2, 29, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+SMS HSMS envoyé avec succès à 0584828385 pour l'agent AGT-25-ZAL-FM01 - ID: dff327d8-a42c-48da-afaf-704f029c5985

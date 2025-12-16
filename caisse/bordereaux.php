@@ -26,6 +26,9 @@ require_once '../inc/functions/envoiSMS/config.php';
  */
 function envoyerSMSBordereau($numero_telephone, $nom_agent, $prenom_agent, $numero_bordereau, $montant_total, $nombre_tickets) {
     try {
+        // Inclure directement la classe SMS
+        require_once '../inc/functions/envoiSMS/src/OvlSmsService.php';
+        
         // Créer le service SMS HSMS avec vos identifiants
         $smsService = new \App\OvlSmsService(
             'UNIPALM_HOvuHXr',

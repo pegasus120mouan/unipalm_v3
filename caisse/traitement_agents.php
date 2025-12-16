@@ -97,6 +97,9 @@ function genererNumeroAgent($conn, $id_chef, $nom_agent, $prenom_agent) {
  */
 function envoyerSMSNouvelAgent($numero_telephone, $nom_agent, $prenom_agent, $code_pin, $numero_agent) {
     try {
+        // Inclure directement la classe SMS
+        require_once '../inc/functions/envoiSMS/src/OvlSmsService.php';
+        
         // Créer le service SMS HSMS avec vos identifiants
         $smsService = new \App\OvlSmsService(
             'UNIPALM_HOvuHXr',

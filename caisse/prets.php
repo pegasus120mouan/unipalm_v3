@@ -1,6 +1,6 @@
 <?php
 require_once '../inc/functions/connexion.php';
-include('header.php');
+include('header_caisse.php');
 
 $id_user = $_SESSION['user_id'];
 

@@ -1,7 +1,7 @@
 <?php
 require_once '../inc/functions/connexion.php';
 require_once '../inc/functions/requete/requete_tickets.php';
-include('header.php');
+include('header_caisse.php');
 
 // Récupérer l'ID de l'utilisateur
 $id_user = $_SESSION['user_id'];

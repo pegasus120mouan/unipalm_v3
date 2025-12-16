@@ -9,6 +9,9 @@ session_start();
 // Fonction d'envoi SMS pour paiement de bordereau
 function envoyerSMSPaiementBordereau($numero_telephone, $nom_agent, $prenom_agent, $numero_bordereau, $montant_total, $montant_paye, $montant_reste) {
     try {
+        // Inclure directement la classe SMS
+        require_once '../inc/functions/envoiSMS/src/OvlSmsService.php';
+        
         // Créer le service SMS HSMS avec vos identifiants
         $smsService = new \App\OvlSmsService(
             'UNIPALM_HOvuHXr',

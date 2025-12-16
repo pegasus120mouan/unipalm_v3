@@ -6,7 +6,7 @@ require_once '../inc/functions/requete/requete_chef_equipes.php';
 require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
 
-include('header.php');
+include('header_caisse.php');
 
 // Afficher le loader immédiatement avec styles inline de secours
 echo '<style>

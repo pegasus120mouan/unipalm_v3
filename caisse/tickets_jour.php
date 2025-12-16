@@ -5,7 +5,7 @@ require_once '../inc/functions/requete/requete_usines.php';
 require_once '../inc/functions/requete/requete_chef_equipes.php';
 require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
-include('header.php');
+include('header_caisse.php');
 
 // Paramètres de pagination
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 15;

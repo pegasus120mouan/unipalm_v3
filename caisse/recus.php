@@ -1,7 +1,7 @@
 <?php
 require_once '../inc/functions/connexion.php';
 require_once '../inc/functions/requete/requete_agents.php';
-include('header.php');
+include('header_caisse.php');
 
 // Créer une mémoire pour le design UniPalm appliqué
 $page_title = "Gestion des Reçus de Paiement";
