@@ -1,21 +1,8 @@
 <?php
 require_once '../inc/functions/connexion.php';
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// Session déjà démarrée dans connexion.php
 
-// Inclure le système SMS existant
-if (file_exists('../envoiSMS/vendor/autoload.php')) {
-    require_once '../envoiSMS/vendor/autoload.php';
-} elseif (file_exists('../../envoiSMS/vendor/autoload.php')) {
-    require_once '../../envoiSMS/vendor/autoload.php';
-}
-
-if (file_exists('../envoiSMS/config.php')) {
-    require_once '../envoiSMS/config.php';
-} elseif (file_exists('../../envoiSMS/config.php')) {
-    require_once '../../envoiSMS/config.php';
-}
+// Inclure le système SMS existant - supprimé car maintenant géré dans la fonction
 
 /**
  * Génère un code PIN à 6 chiffres aléatoire
@@ -108,15 +95,10 @@ function genererNumeroAgent($conn, $id_chef, $nom_agent, $prenom_agent) {
  */
 function envoyerSMSNouvelAgent($numero_telephone, $nom_agent, $prenom_agent, $code_pin, $numero_agent) {
     try {
-        // Vérifier si la classe SMS existe
-        if (!class_exists('\App\OvlSmsService')) {
-            return [
-                'success' => false,
-                'error' => 'Service SMS non disponible'
-            ];
-        }
+        // Inclure directement la classe SMS
+        require_once '../inc/functions/envoiSMS/src/OvlSmsService.php';
         
-        // Créer le service SMS HSMS avec vos identifiants
+        // Créer le service SMS HSMS directement avec les credentials
         $smsService = new \App\OvlSmsService(
             'UNIPALM_HOvuHXr',
             'UNIPALM20251129194026.813697uv2rU5edhLWCv5HDLqoA',
@@ -145,10 +127,8 @@ function envoyerSMSNouvelAgent($numero_telephone, $nom_agent, $prenom_agent, $co
     }
 }
 
-// Debug - Log des données POST (seulement si le fichier est accessible en écriture)
-if (is_writable('../') || is_writable('../debug_agents.txt')) {
-    @file_put_contents('../debug_agents.txt', date('Y-m-d H:i:s') . " - POST reçu: " . print_r($_POST, true) . "\n", FILE_APPEND);
-}
+// Debug - Log des données POST
+file_put_contents('../debug_agents.txt', date('Y-m-d H:i:s') . " - POST reçu: " . print_r($_POST, true) . "\n", FILE_APPEND);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Ajout d'un agent
@@ -160,20 +140,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cree_par = $_SESSION['user_id'] ?? 4; // ID de l'utilisateur connecté ou 4 par défaut
         
         // Debug - Vérifier la session
-        if (is_writable('../') || is_writable('../debug_agents.txt')) {
-            @file_put_contents('../debug_agents.txt', "Session user_id: " . ($_SESSION['user_id'] ?? 'NULL') . ", cree_par: $cree_par\n", FILE_APPEND);
-        }
+        file_put_contents('../debug_agents.txt', "Session user_id: " . ($_SESSION['user_id'] ?? 'NULL') . ", cree_par: $cree_par\n", FILE_APPEND);
 
         // Debug - Log des valeurs extraites
-        if (is_writable('../') || is_writable('../debug_agents.txt')) {
-            @file_put_contents('../debug_agents.txt', "Nom: '$nom', Prenom: '$prenom', Contact: '$contact', ID_Chef: '$id_chef'\n", FILE_APPEND);
-        }
+        file_put_contents('../debug_agents.txt', "Nom: '$nom', Prenom: '$prenom', Contact: '$contact', ID_Chef: '$id_chef'\n", FILE_APPEND);
         
         // Validation des données
         if (empty($nom) || empty($prenom) || empty($contact) || empty($id_chef)) {
-            if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                @file_put_contents('../debug_agents.txt', "ERREUR: Validation échouée - champs vides\n", FILE_APPEND);
-            }
+            file_put_contents('../debug_agents.txt', "ERREUR: Validation échouée - champs vides\n", FILE_APPEND);
             $_SESSION['popup'] = true;
             $_SESSION['message'] = "Tous les champs sont obligatoires !";
             $_SESSION['status'] = "error";
@@ -200,27 +174,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $code_pin_clair = genererCodePin();
             
             // Debug - Log avant insertion
-            if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                @file_put_contents('../debug_agents.txt', "Tentative insertion - Numero: $numero_agent, PIN: $code_pin_clair\n", FILE_APPEND);
-                @file_put_contents('../debug_agents.txt', "Parametres: [$numero_agent, $nom, $prenom, $contact, $id_chef, $cree_par, pin_length=" . strlen($code_pin_clair) . "]\n", FILE_APPEND);
-            }
+            file_put_contents('../debug_agents.txt', "Tentative insertion - Numero: $numero_agent, PIN: $code_pin_clair\n", FILE_APPEND);
+            file_put_contents('../debug_agents.txt', "Parametres: [$numero_agent, $nom, $prenom, $contact, $id_chef, $cree_par, pin_length=" . strlen($code_pin_clair) . "]\n", FILE_APPEND);
             
             // Insertion de l'agent (sans date_ajout car elle a CURRENT_TIMESTAMP par défaut)
             $stmt = $conn->prepare("INSERT INTO agents (numero_agent, nom, prenom, contact, id_chef, cree_par, code_pin) VALUES (?, ?, ?, ?, ?, ?, ?)");
             
             // Debug - Log de la requête préparée
-            if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                @file_put_contents('../debug_agents.txt', "Requête SQL préparée\n", FILE_APPEND);
-            }
+            file_put_contents('../debug_agents.txt', "Requête SQL préparée\n", FILE_APPEND);
             
             $result = $stmt->execute([$numero_agent, $nom, $prenom, $contact, $id_chef, $cree_par, $code_pin_clair]);
             
             // Debug - Log immédiat après execute
-            if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                @file_put_contents('../debug_agents.txt', "Execute terminé\n", FILE_APPEND);
-                @file_put_contents('../debug_agents.txt', "Résultat insertion: " . ($result ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
-                @file_put_contents('../debug_agents.txt', "Lignes affectées: " . $stmt->rowCount() . "\n", FILE_APPEND);
-            }
+            file_put_contents('../debug_agents.txt', "Execute terminé\n", FILE_APPEND);
+
+            // Debug - Log du résultat
+            file_put_contents('../debug_agents.txt', "Résultat insertion: " . ($result ? 'SUCCESS' : 'FAILED') . "\n", FILE_APPEND);
+            file_put_contents('../debug_agents.txt', "Lignes affectées: " . $stmt->rowCount() . "\n", FILE_APPEND);
 
             if ($result) {
                 // Envoyer le SMS avec le code PIN via HSMS
@@ -232,18 +202,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['status'] = "success";
                     
                     // Log du succès SMS
-                    if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                        @file_put_contents('../debug_agents.txt', "SMS HSMS envoyé avec succès à $contact pour l'agent $numero_agent - ID: " . ($sms_result['message_sid'] ?? 'N/A') . "\n", FILE_APPEND);
-                    }
+                    file_put_contents('../debug_agents.txt', "SMS HSMS envoyé avec succès à $contact pour l'agent $numero_agent - ID: " . ($sms_result['message_sid'] ?? 'N/A') . "\n", FILE_APPEND);
                 } else {
                     $_SESSION['popup'] = true;
                     $_SESSION['message'] = "Agent ajouté avec succès ! Numéro d'agent : " . $numero_agent . " | Code PIN : " . $code_pin_clair . " (SMS non envoyé: " . ($sms_result['error'] ?? 'Erreur inconnue') . ")";
                     $_SESSION['status'] = "warning";
                     
                     // Log de l'échec SMS
-                    if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                        @file_put_contents('../debug_agents.txt', "Échec envoi SMS HSMS à $contact: " . ($sms_result['error'] ?? 'Erreur inconnue') . "\n", FILE_APPEND);
-                    }
+                    file_put_contents('../debug_agents.txt', "Échec envoi SMS HSMS à $contact: " . ($sms_result['error'] ?? 'Erreur inconnue') . "\n", FILE_APPEND);
                 }
             } else {
                 $_SESSION['popup'] = true;
@@ -252,10 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch(PDOException $e) {
             // Debug - Log de l'erreur PDO
-            if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                @file_put_contents('../debug_agents.txt', "ERREUR PDO: " . $e->getMessage() . "\n", FILE_APPEND);
-                @file_put_contents('../debug_agents.txt', "Code erreur: " . $e->getCode() . "\n", FILE_APPEND);
-            }
+            file_put_contents('../debug_agents.txt', "ERREUR PDO: " . $e->getMessage() . "\n", FILE_APPEND);
+            file_put_contents('../debug_agents.txt', "Code erreur: " . $e->getCode() . "\n", FILE_APPEND);
             
             $_SESSION['popup'] = true;
             $_SESSION['message'] = "Erreur base de données : " . $e->getMessage();
@@ -265,9 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("Erreur ajout agent: " . $e->getMessage());
         } catch(Exception $e) {
             // Debug - Log des autres erreurs
-            if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                @file_put_contents('../debug_agents.txt', "ERREUR GENERALE: " . $e->getMessage() . "\n", FILE_APPEND);
-            }
+            file_put_contents('../debug_agents.txt', "ERREUR GENERALE: " . $e->getMessage() . "\n", FILE_APPEND);
             
             $_SESSION['popup'] = true;
             $_SESSION['message'] = "Erreur : " . $e->getMessage();
@@ -341,9 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id_agent = $_POST['id_agent'];
         
         // Debug
-        if (is_writable('../') || is_writable('../debug_delete.txt')) {
-            @file_put_contents('../debug_delete.txt', date('Y-m-d H:i:s') . " - Suppression POST ID: " . $id_agent . "\n", FILE_APPEND);
-        }
+        file_put_contents('../debug_delete.txt', date('Y-m-d H:i:s') . " - Suppression POST ID: " . $id_agent . "\n", FILE_APPEND);
 
         try {
             // Vérifier si l'agent existe
@@ -362,10 +322,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Debug détaillé
                 $affected_rows = $stmt->rowCount();
-                if (is_writable('../') || is_writable('../debug_delete.txt')) {
-                    @file_put_contents('../debug_delete.txt', "  - Résultat requête UPDATE: " . ($result ? 'true' : 'false') . "\n", FILE_APPEND);
-                    @file_put_contents('../debug_delete.txt', "  - Lignes affectées: " . $affected_rows . "\n", FILE_APPEND);
-                }
+                file_put_contents('../debug_delete.txt', "  - Résultat requête UPDATE: " . ($result ? 'true' : 'false') . "\n", FILE_APPEND);
+                file_put_contents('../debug_delete.txt', "  - Lignes affectées: " . $affected_rows . "\n", FILE_APPEND);
 
                 if ($result && $affected_rows > 0) {
                     $_SESSION['popup'] = true;
@@ -417,18 +375,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['status'] = "success";
                     
                     // Log du succès
-                    if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                        @file_put_contents('../debug_agents.txt', "PIN renvoyé avec succès à " . $agent['contact'] . " pour l'agent " . $agent['numero_agent'] . " - ID: " . ($sms_result['message_sid'] ?? 'N/A') . "\n", FILE_APPEND);
-                    }
+                    file_put_contents('../debug_agents.txt', "PIN renvoyé avec succès à " . $agent['contact'] . " pour l'agent " . $agent['numero_agent'] . " - ID: " . ($sms_result['message_sid'] ?? 'N/A') . "\n", FILE_APPEND);
                 } else {
                     $_SESSION['popup'] = true;
                     $_SESSION['message'] = "Erreur lors du renvoi du PIN : " . ($sms_result['error'] ?? 'Erreur inconnue');
                     $_SESSION['status'] = "error";
                     
                     // Log de l'échec
-                    if (is_writable('../') || is_writable('../debug_agents.txt')) {
-                        @file_put_contents('../debug_agents.txt', "Échec renvoi PIN à " . $agent['contact'] . ": " . ($sms_result['error'] ?? 'Erreur inconnue') . "\n", FILE_APPEND);
-                    }
+                    file_put_contents('../debug_agents.txt', "Échec renvoi PIN à " . $agent['contact'] . ": " . ($sms_result['error'] ?? 'Erreur inconnue') . "\n", FILE_APPEND);
                 }
             }
         } catch(PDOException $e) {
@@ -447,9 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     $id_agent = $_GET['id'];
     
     // Debug - créer un fichier temporaire pour voir si on arrive ici
-    if (is_writable('../') || is_writable('../debug_delete.txt')) {
-        @file_put_contents('../debug_delete.txt', date('Y-m-d H:i:s') . " - Tentative suppression ID: " . $id_agent . "\n", FILE_APPEND);
-    }
+    file_put_contents('../debug_delete.txt', date('Y-m-d H:i:s') . " - Tentative suppression ID: " . $id_agent . "\n", FILE_APPEND);
 
     try {
         // Vérifier si l'agent existe

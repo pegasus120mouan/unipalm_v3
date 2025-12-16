@@ -25,3 +25,15 @@
 2025-12-16 14:43:04 - Suppression POST ID: 268
   - Résultat requête UPDATE: true
   - Lignes affectées: 1
+2025-12-16 15:26:08 - Suppression POST ID: 270
+  - Résultat requête UPDATE: true
+  - Lignes affectées: 1
+2025-12-16 15:33:26 - Suppression POST ID: 275
+  - Résultat requête UPDATE: true
+  - Lignes affectées: 1
+2025-12-16 15:36:48 - Suppression POST ID: 278
+  - Résultat requête UPDATE: true
+  - Lignes affectées: 1
+2025-12-16 15:36:52 - Suppression POST ID: 277
+  - Résultat requête UPDATE: true
+  - Lignes affectées: 1

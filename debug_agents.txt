@@ -207,3 +207,165 @@ SMS HSMS envoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-AC01 - ID: e
 )
 
 PIN renvoyé avec succès à 0788086888 pour l'agent AGT-25-ZAL-BA01 - ID: 7acf61f5-8942-44d0-b5b0-0c2634ce3199
+2025-12-16 15:26:08 - POST reçu: Array
+(
+    [action] => delete
+    [id_agent] => 270
+)
+
+2025-12-16 15:26:25 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => coulibaly
+    [contact] => 0769292989
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'coulibaly', Contact: '0769292989', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SC01, PIN: 695680
+Parametres: [AGT-25-ZAL-SC01, Souleymane, coulibaly, 0769292989, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+2025-12-16 15:28:47 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => coulibaly
+    [contact] => 0769292989
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'coulibaly', Contact: '0769292989', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SC02, PIN: 986010
+Parametres: [AGT-25-ZAL-SC02, Souleymane, coulibaly, 0769292989, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+2025-12-16 15:28:50 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => coulibaly
+    [contact] => 0769292989
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'coulibaly', Contact: '0769292989', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SC03, PIN: 938643
+Parametres: [AGT-25-ZAL-SC03, Souleymane, coulibaly, 0769292989, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+2025-12-16 15:33:05 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => coulibaly
+    [contact] => 0769292989
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'coulibaly', Contact: '0769292989', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SC04, PIN: 960274
+Parametres: [AGT-25-ZAL-SC04, Souleymane, coulibaly, 0769292989, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+2025-12-16 15:33:10 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => coulibaly
+    [contact] => 0769292989
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'coulibaly', Contact: '0769292989', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SC05, PIN: 919079
+Parametres: [AGT-25-ZAL-SC05, Souleymane, coulibaly, 0769292989, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+2025-12-16 15:33:26 - POST reçu: Array
+(
+    [action] => delete
+    [id_agent] => 275
+)
+
+2025-12-16 15:33:35 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => Ange
+    [contact] => 0788086888
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'Ange', Contact: '0788086888', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SA03, PIN: 881465
+Parametres: [AGT-25-ZAL-SA03, Souleymane, Ange, 0788086888, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+2025-12-16 15:35:24 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => Ange
+    [contact] => 0788086888
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'Ange', Contact: '0788086888', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SA04, PIN: 685054
+Parametres: [AGT-25-ZAL-SA04, Souleymane, Ange, 0788086888, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+SMS HSMS envoyé avec succès à 0788086888 pour l'agent AGT-25-ZAL-SA04 - ID: 259787bf-cfc0-4a1c-a872-6d5590638b30
+2025-12-16 15:36:29 - POST reçu: Array
+(
+    [nom] => Souleymane
+    [prenom] => coulibaly
+    [contact] => 0787703000
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'Souleymane', Prenom: 'coulibaly', Contact: '0787703000', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-SC06, PIN: 502604
+Parametres: [AGT-25-ZAL-SC06, Souleymane, coulibaly, 0787703000, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+SMS HSMS envoyé avec succès à 0787703000 pour l'agent AGT-25-ZAL-SC06 - ID: 259ffeb5-f171-415f-b926-171486aeed22
+2025-12-16 15:36:48 - POST reçu: Array
+(
+    [action] => delete
+    [id_agent] => 278
+)
+
+2025-12-16 15:36:52 - POST reçu: Array
+(
+    [action] => delete
+    [id_agent] => 277
+)
+
