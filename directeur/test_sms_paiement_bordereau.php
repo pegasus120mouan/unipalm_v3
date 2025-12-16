@@ -4,8 +4,8 @@
  */
 
 require_once '../inc/functions/connexion.php';
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+require_once '../inc/functions/envoiSMS/config.php';
 
 // Inclure la fonction d'envoi SMS pour paiement de bordereau
 function envoyerSMSPaiementBordereau($numero_telephone, $nom_agent, $prenom_agent, $numero_bordereau, $montant_total, $montant_paye, $montant_reste) {

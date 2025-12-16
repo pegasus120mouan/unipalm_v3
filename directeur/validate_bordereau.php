@@ -1,7 +1,7 @@
 <?php
 require_once '../inc/functions/connexion.php';
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+require_once '../inc/functions/envoiSMS/config.php';
 
 session_start();
 

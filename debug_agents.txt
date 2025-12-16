@@ -75,3 +75,35 @@ SMS HSMS envoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-SA01 - ID: 4
 )
 
 PIN renvoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-SA01 - ID: 5ae0d8d8-9cbe-4319-a012-8eaa2cbb55e2
+2025-12-15 19:11:18 - POST reçu: Array
+(
+    [action] => resend_pin
+    [id_agent] => 266
+)
+
+PIN renvoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-SA01 - ID: 85ec95c6-b71c-49ce-8502-3997b63a0478
+2025-12-15 19:12:04 - POST reçu: Array
+(
+    [nom] => angenor
+    [prenom] => Beugré
+    [contact] => 0172910794
+    [id_chef] => 2
+    [add_agent] => 1
+)
+
+Session user_id: 4, cree_par: 4
+Nom: 'angenor', Prenom: 'Beugré', Contact: '0172910794', ID_Chef: '2'
+Tentative insertion - Numero: AGT-25-ZAL-AB01, PIN: 682246
+Parametres: [AGT-25-ZAL-AB01, angenor, Beugré, 0172910794, 2, 4, pin_length=6]
+Requête SQL préparée
+Execute terminé
+Résultat insertion: SUCCESS
+Lignes affectées: 1
+SMS HSMS envoyé avec succès à 0172910794 pour l'agent AGT-25-ZAL-AB01 - ID: ae91de47-9862-43d3-ab2e-8458ab9b9e56
+2025-12-16 13:21:52 - POST reçu: Array
+(
+    [action] => resend_pin
+    [id_agent] => 266
+)
+
+PIN renvoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-SA01 - ID: e67fed5e-e832-4dd2-a445-7a0add665f38

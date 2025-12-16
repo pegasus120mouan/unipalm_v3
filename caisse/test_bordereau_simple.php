@@ -21,10 +21,11 @@ try {
         echo "Date: " . $bordereau['created_at'] . "<br><br>";
         
         // Test simple d'inclusion SMS
-        if (file_exists('C:\laragon\www\envoiSMS\vendor\autoload.php')) {
+        if (file_exists('../inc/functions/envoiSMS/vendor/autoload.php')) {
+
             echo "✅ Autoload SMS trouvé<br>";
-            require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-            require_once 'C:\laragon\www\envoiSMS\config.php';
+           require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+           require_once '../inc/functions/envoiSMS/config.php';
             
             if (class_exists('\App\OvlSmsService')) {
                 echo "✅ Classe SMS disponible<br>";

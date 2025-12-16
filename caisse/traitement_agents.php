@@ -3,8 +3,8 @@ require_once '../inc/functions/connexion.php';
 session_start();
 
 // Inclure le système SMS existant
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+require_once '../inc/functions/envoiSMS/config.php';
 
 /**
  * Génère un code PIN à 6 chiffres aléatoire

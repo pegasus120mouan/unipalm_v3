@@ -7,8 +7,8 @@ DirectoryIndex index.php index.html index.htm
 # Prepend the authentication/DB bootstrap on every PHP request
 # Note: Requires mod_php (Apache PHP module). If you use PHP-FPM, configure this in php.ini or vhost instead.
 <IfModule mod_php7.c>
-    php_value auto_prepend_file "c:/laragon/www/unipalm/inc/functions/connexion.php"
+   #  php_value auto_prepend_file "c:/laragon/www/unipalm/inc/functions/connexion.php"
 </IfModule>
 <IfModule mod_php8.c>
-    php_value auto_prepend_file "c:/laragon/www/unipalm/inc/functions/connexion.php"
+  #  php_value auto_prepend_file "c:/laragon/www/unipalm/inc/functions/connexion.php"
 </IfModule>
