@@ -200,3 +200,10 @@ Execute terminé
 Résultat insertion: SUCCESS
 Lignes affectées: 1
 SMS HSMS envoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-AC01 - ID: ef12da1c-7ad1-4fdf-9957-257edf3b52ad
+2025-12-16 15:01:31 - POST reçu: Array
+(
+    [action] => resend_pin
+    [id_agent] => 269
+)
+
+PIN renvoyé avec succès à 0788086888 pour l'agent AGT-25-ZAL-BA01 - ID: 7acf61f5-8942-44d0-b5b0-0c2634ce3199
