@@ -107,3 +107,10 @@ SMS HSMS envoyé avec succès à 0172910794 pour l'agent AGT-25-ZAL-AB01 - ID: a
 )
 
 PIN renvoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-SA01 - ID: e67fed5e-e832-4dd2-a445-7a0add665f38
+2025-12-16 14:17:51 - POST reçu: Array
+(
+    [action] => resend_pin
+    [id_agent] => 266
+)
+
+PIN renvoyé avec succès à 0769292989 pour l'agent AGT-25-ZAL-SA01 - ID: f9760035-cac2-4299-8942-66e6e6b60471

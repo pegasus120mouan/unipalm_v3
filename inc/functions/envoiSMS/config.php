@@ -9,9 +9,9 @@ if (file_exists(__DIR__ . '/.env')) {
     $_ENV['APP_NAME'] = 'Envoi SMS';
     $_ENV['APP_DEBUG'] = 'true';
     $_ENV['SMS_PROVIDER'] = 'hsms';
-    $_ENV['HSMS_CLIENT_ID'] = '';
-    $_ENV['HSMS_CLIENT_SECRET'] = '';
-    $_ENV['HSMS_TOKEN'] = '';
+    $_ENV['HSMS_CLIENT_ID'] = 'UNIPALM_HOvuHXr';
+    $_ENV['HSMS_CLIENT_SECRET'] = 'UNIPALM20251129194026.813697uv2rU5edhLWCv5HDLqoA';
+    $_ENV['HSMS_TOKEN'] = '0eebac3b6594eb3c37b675f8ab0299629f5d96f9';
     $_ENV['TWILIO_ACCOUNT_SID'] = '';
     $_ENV['TWILIO_AUTH_TOKEN'] = '';
     $_ENV['TWILIO_PHONE_NUMBER'] = '';
