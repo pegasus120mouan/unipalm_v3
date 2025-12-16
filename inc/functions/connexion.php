@@ -7,7 +7,7 @@ $isLocal = (
     $_SERVER['HTTP_HOST'] === '127.0.0.1' || 
     strpos($_SERVER['HTTP_HOST'], 'localhost:') === 0 ||
     strpos($_SERVER['HTTP_HOST'], '.local') !== false ||
-    strpos($_SERVER['HTTP_HOST'], 'unipalm.test') !== false  // Ajout pour Laragon
+    strpos($_SERVER['HTTP_HOST'], 'unipalm.test') !== false  // Ajout pour environnement de test
 );
 
 // FORCER LOCAL pour debug (à supprimer après test)
@@ -50,7 +50,7 @@ if (!in_array($__current_script, $__PUBLIC_SCRIPTS, true)) {
 
 // Configuration Base de Données selon l'environnement
 if ($isLocal) {
-    // Configuration LOCALE (Laragon)
+    // Configuration LOCALE (Développement)
     define('DB_HOST', 'localhost');
     define('DB_USER', 'root');
     define('DB_PASS', '');

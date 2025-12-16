@@ -32,7 +32,7 @@ elseif ($_SERVER['HTTP_HOST'] === 'test.unipalm.ci') {
 // CONFIGURATION DÉVELOPPEMENT LOCAL
 // ===========================================
 else {
-    // Paramètres pour le développement local (Laragon, XAMPP, etc.)
+    // Paramètres pour le développement local (XAMPP, WAMP, etc.)
     $db_config = [
         'host' => 'localhost',
         'dbname' => 'unipalm',

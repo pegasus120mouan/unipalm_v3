@@ -8,9 +8,7 @@ require_once '../inc/functions/requete/requete_chef_equipes.php';
 require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
 
-// Inclure le système SMS HSMS existant
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+// SMS géré via la configuration unifiée dans les fonctions
 
 /**
  * Envoie un SMS de notification de bordereau à un agent via HSMS

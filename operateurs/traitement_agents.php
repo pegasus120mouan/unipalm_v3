@@ -2,9 +2,7 @@
 require_once '../inc/functions/connexion.php';
 session_start();
 
-// Inclure le système SMS existant
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+// Inclure le système SMS existant - supprimé car maintenant géré dans la fonction
 
 /**
  * Génère un code PIN à 6 chiffres aléatoire
@@ -97,12 +95,11 @@ function genererNumeroAgent($conn, $id_chef, $nom_agent, $prenom_agent) {
  */
 function envoyerSMSNouvelAgent($numero_telephone, $nom_agent, $prenom_agent, $code_pin, $numero_agent) {
     try {
-        // Créer le service SMS HSMS avec vos identifiants
-        $smsService = new \App\OvlSmsService(
-            'UNIPALM_HOvuHXr',
-            'UNIPALM20251129194026.813697uv2rU5edhLWCv5HDLqoA',
-            '0eebac3b6594eb3c37b675f8ab0299629f5d96f9'
-        );
+        // Inclure la configuration SMS
+        require_once '../inc/functions/envoiSMS/config.php';
+        
+        // Créer le service SMS HSMS avec la nouvelle configuration
+        $smsService = createSmsService();
         
         // Créer le message de bienvenue
         $message = "Bienvenue chez UNIPALM !\n\n";

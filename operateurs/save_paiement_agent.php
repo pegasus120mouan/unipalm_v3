@@ -1,8 +1,7 @@
 <?php
 require_once '../inc/functions/connexion.php';
 require_once '../inc/functions/log_functions.php';
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+// SMS géré via la configuration unifiée dans les fonctions
 
 session_start();
 

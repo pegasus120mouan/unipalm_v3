@@ -1,20 +1,18 @@
 <?php
 require_once '../inc/functions/connexion.php';
 require_once '../inc/functions/log_functions.php';
-require_once 'C:\laragon\www\envoiSMS\vendor\autoload.php';
-require_once 'C:\laragon\www\envoiSMS\config.php';
+// SMS géré via la configuration unifiée dans les fonctions
 
 session_start();
 
 // Fonction d'envoi SMS pour paiement de bordereau
 function envoyerSMSPaiementBordereau($numero_telephone, $nom_agent, $prenom_agent, $numero_bordereau, $montant_total, $montant_paye, $montant_reste) {
     try {
-        // Créer le service SMS HSMS avec vos identifiants
-        $smsService = new \App\OvlSmsService(
-            'UNIPALM_HOvuHXr',
-            'UNIPALM20251129194026.813697uv2rU5edhLWCv5HDLqoA',
-            '0eebac3b6594eb3c37b675f8ab0299629f5d96f9'
-        );
+        // Inclure la configuration SMS
+        require_once '../inc/functions/envoiSMS/config.php';
+        
+        // Créer le service SMS HSMS avec la nouvelle configuration
+        $smsService = createSmsService();
         
         // Créer le message de notification de paiement
         $message = "UNIPALM - Paiement Reçu\n\n";
