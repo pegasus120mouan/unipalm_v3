@@ -23,8 +23,7 @@ function envoyerSMSBordereau($numero_telephone, $nom_agent, $prenom_agent, $nume
         $message .= "Bonjour " . ucfirst(strtolower($prenom_agent)) . " " . strtoupper($nom_agent) . ",\n\n";
         $message .= "Des tickets ont été associés à votre bordereau :\n\n";
         $message .= "📋 Numéro : " . $numero_bordereau . "\n";
-        $message .= "🎫 Tickets : " . $nombre_tickets . "\n";
-        $message .= "💰 Montant : " . number_format($montant_total, 0, ',', ' ') . " FCFA\n\n";
+        $message .= "🎫 Tickets : " . $nombre_tickets . "\n\n";
         $message .= "Consultez votre espace agent pour plus de détails.\n\n";
         $message .= "Cordialement,\nÉquipe UNIPALM";
         

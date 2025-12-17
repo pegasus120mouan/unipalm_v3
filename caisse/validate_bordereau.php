@@ -23,8 +23,7 @@ function envoyerSMSValidationBordereau($numero_telephone, $nom_agent, $prenom_ag
         $message .= "Bonjour " . ucfirst(strtolower($prenom_agent)) . " " . strtoupper($nom_agent) . ",\n\n";
         $message .= "Votre bordereau a été validé avec succès !\n\n";
         $message .= "📋 Numéro : " . $numero_bordereau . "\n";
-        $message .= "🎫 Tickets : " . $nombre_tickets . "\n";
-        $message .= "💰 Montant : " . number_format($montant_total, 0, ',', ' ') . " FCFA\n\n";
+        $message .= "🎫 Tickets : " . $nombre_tickets . "\n\n";
         $message .= "✅ Vous pouvez maintenant vous présenter à la caisse pour le paiement.\n\n";
         $message .= "Cordialement,\nÉquipe UNIPALM";
         
