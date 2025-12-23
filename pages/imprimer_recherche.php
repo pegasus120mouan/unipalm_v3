@@ -41,7 +41,7 @@ class PDF extends FPDF {
         // Sous-titre en vert clair
         $this->SetTextColor(144, 238, 144);
         $this->SetFont('Arial', '', 11);
-        $this->Cell(0, 5, utf8_decode('Société Coopérative Agricole Unie pour le Palmier'), 0, 1, 'C');
+        $this->Cell(0, 5, mb_convert_encoding('Société Coopérative Agricole Unie pour le Palmier', 'ISO-8859-1', 'UTF-8'), 0, 1, 'C');
         
         $this->Ln(15);
     }
@@ -56,7 +56,7 @@ class PDF extends FPDF {
         // Texte en vert clair
         $this->SetTextColor(144, 238, 144);
         $this->SetFont('Arial', '', 8);
-        $this->Cell(0, 5, utf8_decode('Siège Social : Divo Quartier millionnaire non loin de l\'hôtel Boya'), 0, 1, 'C');
+        $this->Cell(0, 5, mb_convert_encoding('Siège Social : Divo Quartier millionnaire non loin de l\'hôtel Boya', 'ISO-8859-1', 'UTF-8'), 0, 1, 'C');
         $this->Cell(0, 5, 'NCC : 2050R910 / TEL : (00225) 27 34 75 92 36 / 07 49 17 16 32', 0, 1, 'C');
     }
 }
@@ -68,7 +68,7 @@ $pdf->SetAutoPageBreak(true, 35);
 // Titre du document
 $pdf->SetFont('Arial', 'BU', 16);
 $pdf->SetTextColor(0);
-$pdf->Cell(0, 12, utf8_decode('RAPPORT DES TICKETS'), 0, 1, 'C', false);
+$pdf->Cell(0, 12, mb_convert_encoding('RAPPORT DES TICKETS', 'ISO-8859-1', 'UTF-8'), 0, 1, 'C', false);
 $pdf->Ln(5);
 
 // Afficher les filtres appliqués
@@ -80,7 +80,7 @@ if (!empty($filters)) {
         $stmt = $conn->prepare("SELECT CONCAT(nom, ' ', prenom) as nom_complet FROM agents WHERE id_agent = ?");
         $stmt->execute([$filters['agent']]);
         $agent = $stmt->fetch(PDO::FETCH_ASSOC);
-        $pdf->Cell(0, 8, utf8_decode($agent['nom_complet']), 0, 1);
+        $pdf->Cell(0, 8, mb_convert_encoding($agent['nom_complet'], 'ISO-8859-1', 'UTF-8'), 0, 1);
         $pdf->SetFont('Arial', 'B', 11);
     }
     
@@ -90,12 +90,12 @@ if (!empty($filters)) {
         $stmt = $conn->prepare("SELECT nom_usine FROM usines WHERE id_usine = ?");
         $stmt->execute([$filters['usine']]);
         $usine = $stmt->fetch(PDO::FETCH_ASSOC);
-        $pdf->Cell(0, 8, utf8_decode($usine['nom_usine']), 0, 1);
+        $pdf->Cell(0, 8, mb_convert_encoding($usine['nom_usine'], 'ISO-8859-1', 'UTF-8'), 0, 1);
         $pdf->SetFont('Arial', 'B', 11);
     }
 
     if (isset($filters['date_debut']) && isset($filters['date_fin'])) {
-        $pdf->Cell(50, 8, utf8_decode('Période du:'), 0, 0);
+        $pdf->Cell(50, 8, mb_convert_encoding('Période du:', 'ISO-8859-1', 'UTF-8'), 0, 0);
         $pdf->SetFont('Arial', '', 11);
         $pdf->Cell(0, 8, date('d/m/Y', strtotime($filters['date_debut'])) . ' au ' . date('d/m/Y', strtotime($filters['date_fin'])), 0, 1);
     }
@@ -126,7 +126,7 @@ foreach ($tickets_par_usine as $usine => $data) {
     $pdf->SetTextColor(0);
     $pdf->SetFont('Arial', 'B', 11);
     $pdf->Ln(2);
-    $pdf->Cell(0, 8, utf8_decode($usine), 0, 1, 'C');
+    $pdf->Cell(0, 8, mb_convert_encoding($usine, 'ISO-8859-1', 'UTF-8'), 0, 1, 'C');
     $pdf->Ln(2);
 
     // En-têtes du tableau
@@ -134,12 +134,12 @@ foreach ($tickets_par_usine as $usine => $data) {
     $pdf->SetFillColor(230, 230, 230);
     $pdf->SetDrawColor(0);
 
-    $w = array(35, 35, 40, 40, 35, 50, 40);
+    $w = array(35, 25, 55, 30, 20, 25, 65);
     
-    $pdf->Cell($w[0], 8, utf8_decode('Date Réception'), 1, 0, 'C', true);
+    $pdf->Cell($w[0], 8, mb_convert_encoding('Date Réception', 'ISO-8859-1', 'UTF-8'), 1, 0, 'C', true);
     $pdf->Cell($w[1], 8, 'Date Ticket', 1, 0, 'C', true);
-    $pdf->Cell($w[2], 8, utf8_decode('N° Ticket'), 1, 0, 'C', true);
-    $pdf->Cell($w[3], 8, utf8_decode('Véhicule'), 1, 0, 'C', true);
+    $pdf->Cell($w[2], 8, mb_convert_encoding('N° Ticket', 'ISO-8859-1', 'UTF-8'), 1, 0, 'C', true);
+    $pdf->Cell($w[3], 8, mb_convert_encoding('Véhicule', 'ISO-8859-1', 'UTF-8'), 1, 0, 'C', true);
     $pdf->Cell($w[4], 8, 'Poids (kg)', 1, 0, 'C', true);
     $pdf->Cell($w[5], 8, 'Prix Unitaire', 1, 0, 'C', true);
     $pdf->Cell($w[6], 8, 'Agent', 1, 1, 'C', true);
@@ -152,16 +152,16 @@ foreach ($tickets_par_usine as $usine => $data) {
         $pdf->Cell($w[0], 7, date('d/m/Y', strtotime($ticket['created_at'])), 1, 0, 'C', $fill);
         $pdf->Cell($w[1], 7, date('d/m/Y', strtotime($ticket['date_ticket'])), 1, 0, 'C', $fill);
         $pdf->Cell($w[2], 7, $ticket['numero_ticket'], 1, 0, 'C', $fill);
-        $pdf->Cell($w[3], 7, utf8_decode($ticket['matricule_vehicule']), 1, 0, 'C', $fill);
+        $pdf->Cell($w[3], 7, mb_convert_encoding($ticket['matricule_vehicule'], 'ISO-8859-1', 'UTF-8'), 1, 0, 'C', $fill);
         $pdf->Cell($w[4], 7, number_format($ticket['poids'], 0, ',', ' '), 1, 0, 'R', $fill);
         $pdf->Cell($w[5], 7, number_format($ticket['prix_unitaire'], 0, ',', ' '), 1, 0, 'R', $fill);
-        $pdf->Cell($w[6], 7, utf8_decode($ticket['nom_complet_agent']), 1, 1, 'L', $fill);
+        $pdf->Cell($w[6], 7, mb_convert_encoding($ticket['nom_complet_agent'], 'ISO-8859-1', 'UTF-8'), 1, 1, 'L', $fill);
         $fill = !$fill;
     }
 
     // Sous-total pour l'usine
     $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(array_sum($w)-35, 8, 'Sous-total ' . utf8_decode($usine) . ' (' . $data['nombre_tickets'] . ' tickets)', 1, 0, 'R', true);
+    $pdf->Cell(array_sum($w)-35, 8, 'Sous-total ' . mb_convert_encoding($usine, 'ISO-8859-1', 'UTF-8') . ' (' . $data['nombre_tickets'] . ' tickets)', 1, 0, 'R', true);
     $pdf->Cell(35, 8, number_format($data['total_poids'], 0, ',', ' '), 1, 1, 'R', true);
     
     $pdf->Ln(4);
@@ -172,14 +172,14 @@ foreach ($tickets_par_usine as $usine => $data) {
 
 // Total général
 $pdf->SetFont('Arial', 'B', 10);
-$pdf->Cell(array_sum($w)-35, 8, utf8_decode('TOTAL GÉNÉRAL (' . $grand_total_tickets . ' tickets)'), 1, 0, 'R', true);
+$pdf->Cell(array_sum($w)-35, 8, mb_convert_encoding('TOTAL GÉNÉRAL (' . $grand_total_tickets . ' tickets)', 'ISO-8859-1', 'UTF-8'), 1, 0, 'R', true);
 $pdf->Cell(35, 8, number_format($grand_total_poids, 0, ',', ' '), 1, 1, 'R', true);
 
 // Signature
 $pdf->Ln(15);
 $pdf->SetTextColor(0);
 $pdf->SetFont('Arial', 'I', 10);
-$pdf->Cell(0, 10, utf8_decode('Fait à Divo, le ' . date('d/m/Y')), 0, 1, 'R');
+$pdf->Cell(0, 10, mb_convert_encoding('Fait à Divo, le ' . date('d/m/Y'), 'ISO-8859-1', 'UTF-8'), 0, 1, 'R');
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(0, 10, 'UNIPALM COOP-CA', 0, 1, 'R');
 

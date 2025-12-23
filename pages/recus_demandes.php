@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Titre de la page
 $page_title = "Gestion des Reçus de Demande";
-include('header_caisse.php');
+include('header.php');
 
 // Récupération des filtres
 $date_debut = isset($_GET['date_debut']) ? $_GET['date_debut'] : '';
