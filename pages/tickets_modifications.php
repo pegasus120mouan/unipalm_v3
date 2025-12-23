@@ -42,8 +42,8 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 try {
     // Préparation des filtres
     $filters = [];
-    // Filtrage par utilisateur connecté
-    $filters['utilisateur'] = $id_user;
+    // Filtrage par utilisateur connecté - DÉSACTIVÉ pour voir tous les tickets
+    // $filters['utilisateur'] = $id_user;
     
     if (!empty($agent_id)) {
         $filters['agent'] = $agent_id;
@@ -60,7 +60,7 @@ try {
 
     if (!empty($numero_ticket)) {
         // Si un numéro de ticket est spécifié, on ne récupère que ce ticket
-        $tickets = searchTickets($conn, null, null, null, null, $numero_ticket, $id_user);
+        $tickets = searchTickets($conn, null, null, null, null, $numero_ticket, null);
         $tickets_list = $tickets; // Pas besoin de pagination pour une recherche spécifique
         $total_pages = 1;
     } else {
@@ -98,13 +98,20 @@ try {
     $agents = [];
 }
 
-// Pagination sécurisée
-$total_tickets = count($tickets);
-$total_pages = max(1, ceil($total_tickets / $limit));
-$page = min($page, $total_pages);
-$offset = ($page - 1) * $limit;
-
-$tickets_list = !empty($tickets) ? array_slice($tickets, $offset, $limit) : [];
+// Pagination sécurisée - correction pour éviter la double pagination
+if (!empty($numero_ticket)) {
+    // Pour la recherche par numéro, on a déjà les résultats filtrés
+    $total_tickets = count($tickets);
+    $total_pages = 1;
+    $tickets_list = $tickets;
+} else {
+    // Pour les autres filtres, on applique la pagination
+    $total_tickets = count($tickets);
+    $total_pages = max(1, ceil($total_tickets / $limit));
+    $page = min($page, $total_pages);
+    $offset = ($page - 1) * $limit;
+    $tickets_list = !empty($tickets) ? array_slice($tickets, $offset, $limit) : [];
+}
 
 // Préserver les paramètres de filtrage pour la pagination
 $filter_params = [];
@@ -762,29 +769,22 @@ tbody tr:hover {
                                 </span>
                               </td>
                               <td>
-                                <div class="btn-group">
-                                  <button type="button" class="btn btn-info dropdown-toggle modern-btn" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-edit"></i> Modifications
+                                <div class="d-flex flex-wrap gap-1">
+                                  <button type="button" class="btn btn-sm btn-primary <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" data-bs-toggle="modal" data-bs-target="#editModalNumeroTicket<?= $ticket['id_ticket'] ?>" title="Changer N° Ticket">
+                                    <i class="fas fa-hashtag"></i>
                                   </button>
-                                  <div class="dropdown-menu dropdown-menu-end shadow-lg modern-dropdown">
-                                    <a class="dropdown-item <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" href="#" data-bs-toggle="modal" data-bs-target="#editModalNumeroTicket<?= $ticket['id_ticket'] ?>">
-                                        <i class="fas fa-hashtag text-primary me-2"></i> Changer N° Ticket
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" href="#" data-bs-toggle="modal" data-bs-target="#editModalUsine<?= $ticket['id_ticket'] ?>">
-                                        <i class="fas fa-industry text-info me-2"></i> Changer Usine
-                                    </a>
-                                    <a class="dropdown-item <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" href="#" data-bs-toggle="modal" data-bs-target="#editModalChefEquipe<?= $ticket['id_ticket'] ?>">
-                                        <i class="fas fa-user text-success me-2"></i> Changer Chef Mission
-                                    </a>
-                                    <a class="dropdown-item <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" href="#" data-bs-toggle="modal" data-bs-target="#editModalVehicule<?= $ticket['id_ticket'] ?>">
-                                        <i class="fas fa-truck text-warning me-2"></i> Changer Véhicule
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" href="#" data-bs-toggle="modal" data-bs-target="#editModalDateCreation<?= $ticket['id_ticket'] ?>">
-                                        <i class="fas fa-calendar-alt text-danger me-2"></i> Changer Date Création
-                                    </a>
-                                  </div>
+                                  <button type="button" class="btn btn-sm btn-info <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" data-bs-toggle="modal" data-bs-target="#editModalUsine<?= $ticket['id_ticket'] ?>" title="Changer Usine">
+                                    <i class="fas fa-industry"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-success <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" data-bs-toggle="modal" data-bs-target="#editModalChefEquipe<?= $ticket['id_ticket'] ?>" title="Changer Chef Mission">
+                                    <i class="fas fa-user"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-warning <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" data-bs-toggle="modal" data-bs-target="#editModalVehicule<?= $ticket['id_ticket'] ?>" title="Changer Véhicule">
+                                    <i class="fas fa-truck"></i>
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-danger <?= $ticket['date_paie'] !== null ? 'disabled' : '' ?>" data-bs-toggle="modal" data-bs-target="#editModalDateCreation<?= $ticket['id_ticket'] ?>" title="Changer Date Création">
+                                    <i class="fas fa-calendar-alt"></i>
+                                  </button>
                                 </div>
                               </td>
                             </tr>

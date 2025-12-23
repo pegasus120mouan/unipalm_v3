@@ -857,8 +857,8 @@ function searchTickets($conn, $usine = null, $date = null, $chauffeur = null, $a
     }
 
     if ($numero_ticket) {
-        $sql .= " AND t.numero_ticket = :numero_ticket";
-        $params[':numero_ticket'] = $numero_ticket;
+        $sql .= " AND t.numero_ticket LIKE :numero_ticket";
+        $params[':numero_ticket'] = '%' . $numero_ticket . '%';
     }
 
     if ($utilisateur) {

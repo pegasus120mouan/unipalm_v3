@@ -46,7 +46,7 @@ if (isset($_GET['numero'])) {
                 // Sous-titre en vert clair
                 $this->SetTextColor(144, 238, 144);
                 $this->SetFont('Arial', '', 11);
-                $this->Cell(0, 5, iconv('UTF-8', 'windows-1252', 'Société Coopérative Agricole Unie pour le Palmier'), 0, 1, 'C');
+                $this->Cell(0, 5, mb_convert_encoding('Société Coopérative Agricole Unie pour le Palmier', 'ISO-8859-1', 'UTF-8'), 0, 1, 'C');
                 
                 $this->Ln(15);
             }
@@ -58,10 +58,11 @@ if (isset($_GET['numero'])) {
                 $this->SetDrawColor(144, 238, 144);
                 $this->Line(10, $this->GetY(), 200, $this->GetY());
                 
-                // Informations de contact en vert clair
-                $this->SetTextColor(144, 238, 144);
+                // Informations de contact en noir
+                $this->SetTextColor(0, 0, 0);
                 $this->SetFont('Arial', '', 8);
-                $this->Cell(0, 10, iconv('UTF-8', 'windows-1252', 'Contact: +225 XX XX XX XX XX - Email: contact@unipalm.ci'), 0, 0, 'C');
+                $this->Cell(0, 5, mb_convert_encoding('Siège Social : Divo Quartier millionnaire non loin de l\'hôtel Boya', 'ISO-8859-1', 'UTF-8'), 0, 1, 'C');
+                $this->Cell(0, 5, mb_convert_encoding('NCC : 2050R910 / TEL : (00225) 27 34 75 92 36 / 07 49 17 16 32', 'ISO-8859-1', 'UTF-8'), 0, 0, 'C');
             }
         }
 
@@ -72,19 +73,48 @@ if (isset($_GET['numero'])) {
         // Titre du bordereau
         $pdf->SetFont('Arial', 'B', 14);
         $pdf->SetTextColor(0, 0, 0);
-        $pdf->Cell(0, 10, iconv('UTF-8', 'windows-1252', 'BORDEREAU DE DÉCHARGEMENT N° ') . $bordereau['numero_bordereau'], 0, 1, 'C');
+        $pdf->Cell(0, 10, mb_convert_encoding('BORDEREAU DE DÉCHARGEMENT N° ', 'ISO-8859-1', 'UTF-8') . $bordereau['numero_bordereau'], 0, 1, 'C');
         $pdf->Ln(5);
 
-        // Informations du bordereau dans un cadre
+        // Section informations du bordereau - Design professionnel
+        // En-tête avec fond coloré
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->SetFillColor(52, 73, 94); // Bleu foncé professionnel
+        $pdf->SetTextColor(255, 255, 255); // Texte blanc
+        $pdf->Cell(190, 10, mb_convert_encoding('INFORMATIONS DU BORDEREAU', 'ISO-8859-1', 'UTF-8'), 1, 1, 'C', true);
+        
+        // Réinitialiser les couleurs pour le contenu
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFillColor(248, 249, 250); // Gris très clair pour alternance
+        
+        // Informations en deux colonnes pour un look plus professionnel
         $pdf->SetFont('Arial', 'B', 10);
-        $pdf->Cell(190, 7, 'Informations du bordereau', 1, 1, 'L');
+        
+        // Ligne 1: Agent et Période
+        $pdf->Cell(95, 8, mb_convert_encoding('AGENT RESPONSABLE', 'ISO-8859-1', 'UTF-8'), 'LTB', 0, 'L', true);
+        $pdf->Cell(95, 8, mb_convert_encoding('PÉRIODE DE COLLECTE', 'ISO-8859-1', 'UTF-8'), 'RTB', 1, 'L', true);
         
         $pdf->SetFont('Arial', '', 10);
-        $pdf->Cell(190, 7, 'Agent: ' . iconv('UTF-8', 'windows-1252', $bordereau['nom_complet_agent']), 1, 1, 'L');
-        $pdf->Cell(190, 7, iconv('UTF-8', 'windows-1252', 'Période du: ') . date('d/m/Y', strtotime($bordereau['date_debut'])) . ' Au: ' . date('d/m/Y', strtotime($bordereau['date_fin'])), 1, 1, 'L');
-        $pdf->Cell(190, 7, 'Poids total: ' . number_format($bordereau['poids_total'], 0, ',', ' ') . ' Kg', 1, 1, 'L');
-        $pdf->Cell(190, 7, 'Montant total: ' . number_format($montant_total_bordereau, 0, ',', ' ') . ' FCFA', 1, 1, 'L');
-        $pdf->Cell(190, 7, iconv('UTF-8', 'windows-1252', 'Date de création: ') . date('d/m/Y H:i', strtotime($bordereau['created_at'])), 1, 1, 'L');
+        $pdf->Cell(95, 8, mb_convert_encoding($bordereau['nom_complet_agent'], 'ISO-8859-1', 'UTF-8'), 'LB', 0, 'L');
+        $pdf->Cell(95, 8, date('d/m/Y', strtotime($bordereau['date_debut'])) . ' au ' . date('d/m/Y', strtotime($bordereau['date_fin'])), 'RB', 1, 'L');
+        
+        // Ligne 2: Poids et Montant
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(95, 8, mb_convert_encoding('POIDS TOTAL COLLECTÉ', 'ISO-8859-1', 'UTF-8'), 'LTB', 0, 'L', true);
+        $pdf->Cell(95, 8, mb_convert_encoding('MONTANT TOTAL', 'ISO-8859-1', 'UTF-8'), 'RTB', 1, 'L', true);
+        
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->SetTextColor(22, 160, 133); // Vert pour le poids
+        $pdf->Cell(95, 8, number_format($bordereau['poids_total'], 0, ',', ' ') . ' KG', 'LB', 0, 'L');
+        $pdf->SetTextColor(231, 76, 60); // Rouge pour le montant
+        $pdf->Cell(95, 8, number_format($montant_total_bordereau, 0, ',', ' ') . ' FCFA', 'RB', 1, 'L');
+        
+        // Ligne 3: Date de création centrée
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(190, 8, mb_convert_encoding('DATE DE CRÉATION', 'ISO-8859-1', 'UTF-8'), 'LTR', 1, 'C', true);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Cell(190, 8, mb_convert_encoding(date('d/m/Y à H:i', strtotime($bordereau['created_at'])), 'ISO-8859-1', 'UTF-8'), 'LBR', 1, 'C');
         
         $pdf->Ln(10);
 
@@ -92,11 +122,11 @@ if (isset($_GET['numero'])) {
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetFillColor(197, 217, 241); // Bleu clair comme dans l'image
         $pdf->Cell(25, 8, 'Date', 1, 0, 'C', true);
-        $pdf->Cell(30, 8, iconv('UTF-8', 'windows-1252', 'N° Ticket'), 1, 0, 'C', true);
-        $pdf->Cell(35, 8, 'Usine', 1, 0, 'C', true);
-        $pdf->Cell(25, 8, iconv('UTF-8', 'windows-1252', 'Véhicule'), 1, 0, 'C', true);
-        $pdf->Cell(25, 8, 'Poids (Kg)', 1, 0, 'C', true);
-        $pdf->Cell(25, 8, 'Prix Unit.', 1, 0, 'C', true);
+        $pdf->Cell(55, 8, mb_convert_encoding('N° Ticket', 'ISO-8859-1', 'UTF-8'), 1, 0, 'C', true);
+        $pdf->Cell(25, 8, 'Usine', 1, 0, 'C', true);
+        $pdf->Cell(25, 8, mb_convert_encoding('Véhicule', 'ISO-8859-1', 'UTF-8'), 1, 0, 'C', true);
+        $pdf->Cell(15, 8, 'Poids (Kg)', 1, 0, 'C', true);
+        $pdf->Cell(10, 8, 'Prix Unit.', 1, 0, 'C', true);
         $pdf->Cell(25, 8, 'Montant', 1, 1, 'C', true);
 
         // Récupérer les tickets associés au bordereau avec les prix unitaires
@@ -129,9 +159,9 @@ if (isset($_GET['numero'])) {
                 // Sous-total
                 $pdf->SetFont('Arial', 'I', 8);
                 $pdf->SetFillColor(240, 240, 240);
-                $pdf->Cell(115, 8, 'Sous-total ' . iconv('UTF-8', 'windows-1252', $current_usine), 1, 0, 'R', true);
-                $pdf->Cell(25, 8, number_format($sous_total_poids, 0, ',', ' '), 1, 0, 'R', true);
-                $pdf->Cell(25, 8, '', 1, 0, 'C', true); // Colonne prix unitaire vide pour sous-total
+                $pdf->Cell(130, 8, 'Sous-total ' . mb_convert_encoding($current_usine, 'ISO-8859-1', 'UTF-8'), 1, 0, 'R', true);
+                $pdf->Cell(15, 8, number_format($sous_total_poids, 0, ',', ' '), 1, 0, 'R', true);
+                $pdf->Cell(10, 8, '', 1, 0, 'C', true); // Colonne prix unitaire vide pour sous-total
                 $pdf->Cell(25, 8, number_format($sous_total_montant, 0, ',', ' '), 1, 1, 'R', true);
                 $sous_total_poids = 0;
                 $sous_total_montant = 0;
@@ -144,11 +174,11 @@ if (isset($_GET['numero'])) {
             $montant = $ticket['montant_ticket'];
 
             $pdf->Cell(25, 8, date('d/m/Y', strtotime($ticket['date_ticket'])), 1, 0, 'C');
-            $pdf->Cell(30, 8, $ticket['numero_ticket'], 1, 0, 'C');
-            $pdf->Cell(35, 8, iconv('UTF-8', 'windows-1252', $ticket['nom_usine']), 1, 0, 'L');
-            $pdf->Cell(25, 8, iconv('UTF-8', 'windows-1252', $ticket['matricule_vehicule']), 1, 0, 'C');
-            $pdf->Cell(25, 8, number_format($poids, 0, ',', ' '), 1, 0, 'R');
-            $pdf->Cell(25, 8, number_format($prix_unitaire, 0, ',', ' '), 1, 0, 'R');
+            $pdf->Cell(55, 8, mb_convert_encoding($ticket['numero_ticket'], 'ISO-8859-1', 'UTF-8'), 1, 0, 'C');
+            $pdf->Cell(25, 8, mb_convert_encoding($ticket['nom_usine'], 'ISO-8859-1', 'UTF-8'), 1, 0, 'L');
+            $pdf->Cell(25, 8, mb_convert_encoding($ticket['matricule_vehicule'], 'ISO-8859-1', 'UTF-8'), 1, 0, 'C');
+            $pdf->Cell(15, 8, number_format($poids, 0, ',', ' '), 1, 0, 'R');
+            $pdf->Cell(10, 8, number_format($prix_unitaire, 0, ',', ' '), 1, 0, 'R');
             $pdf->Cell(25, 8, number_format($montant, 0, ',', ' '), 1, 1, 'R');
 
             $total_poids += $poids;
@@ -161,9 +191,9 @@ if (isset($_GET['numero'])) {
         if ($current_usine != '') {
             $pdf->SetFont('Arial', 'I', 8);
             $pdf->SetFillColor(240, 240, 240);
-            $pdf->Cell(115, 8, 'Sous-total ' . iconv('UTF-8', 'windows-1252', $current_usine), 1, 0, 'R', true);
-            $pdf->Cell(25, 8, number_format($sous_total_poids, 0, ',', ' '), 1, 0, 'R', true);
-            $pdf->Cell(25, 8, '', 1, 0, 'C', true); // Colonne prix unitaire vide pour sous-total
+            $pdf->Cell(130, 8, 'Sous-total ' . mb_convert_encoding($current_usine, 'ISO-8859-1', 'UTF-8'), 1, 0, 'R', true);
+            $pdf->Cell(15, 8, number_format($sous_total_poids, 0, ',', ' '), 1, 0, 'R', true);
+            $pdf->Cell(10, 8, '', 1, 0, 'C', true); // Colonne prix unitaire vide pour sous-total
             $pdf->Cell(25, 8, number_format($sous_total_montant, 0, ',', ' '), 1, 1, 'R', true);
         }
 
@@ -171,9 +201,9 @@ if (isset($_GET['numero'])) {
         $pdf->Ln(3);
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->SetFillColor(197, 217, 241);
-        $pdf->Cell(115, 10, 'TOTAL GENERAL', 1, 0, 'R', true);
-        $pdf->Cell(25, 10, number_format($total_poids, 0, ',', ' '), 1, 0, 'R', true);
-        $pdf->Cell(25, 10, '', 1, 0, 'C', true); // Colonne prix unitaire vide pour total
+        $pdf->Cell(130, 10, 'TOTAL GENERAL', 1, 0, 'R', true);
+        $pdf->Cell(15, 10, number_format($total_poids, 0, ',', ' '), 1, 0, 'R', true);
+        $pdf->Cell(10, 10, '', 1, 0, 'C', true); // Colonne prix unitaire vide pour total
         $pdf->Cell(25, 10, number_format($total_montant, 0, ',', ' '), 1, 1, 'R', true);
 
         // Zone de signatures
