@@ -166,6 +166,22 @@ if (isset($_POST['delete_bordereau'])) {
 
 include('header.php');
 
+// Afficher le loader immédiatement avec styles inline
+echo '<style>
+#pageLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+.spinner-circle { width: 80px; height: 80px; border: 4px solid rgba(26,188,156,0.2); border-top: 4px solid #1abc9c; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+.loading-text { color: #1abc9c; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+<div id="pageLoader" style="display: flex;">
+    <div class="spinner-circle"></div>
+    <div class="loading-text">Chargement des bordereaux...</div>
+</div>';
+
+// Forcer le flush du contenu pour afficher le loader immédiatement
+if (ob_get_level()) ob_flush();
+flush();
+
 //$_SESSION['user_id'] = $user['id'];
  $id_user=$_SESSION['user_id'];
  //echo $id_user;
@@ -723,13 +739,13 @@ label {
       <i class="fa fa-print"></i> Générer un bordereau
     </button>
 
-    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#search_ticket">
+    <button type="button" class="btn btn-success" disabled>
       <i class="fa fa-search"></i> Rechercher un ticket
     </button>
 
-    <button type="button" class="btn btn-dark" onclick="window.location.href='export_tickets.php'">
-              <i class="fa fa-print"></i> Exporter la liste les tickets
-             </button>
+    <button type="button" class="btn btn-dark" onclick="window.location.href='export_bordereaux.php'">
+        <i class="fa fa-file-excel"></i> Exporter les bordereaux
+    </button>
 
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#add-bordereau">
         <i class="fa fa-plus"></i> Nouveau bordereau
@@ -1159,18 +1175,16 @@ label {
             <div class="card-body">
               <div class="form-group">
                   <label>Chargé de Mission</label>
-                  <select id="select" name="id_agent" class="form-control">
-                      <?php
-                      // Vérifier si des usines existent
-                      if (!empty($agents)) {
-                          foreach ($agents as $agent) {
-                              echo '<option value="' . htmlspecialchars($agent['id_agent']) . '">' . htmlspecialchars($agent['nom_complet_agent']) . '</option>';
-                          }
-                      } else {
-                          echo '<option value="">Aucune chef equipe disponible</option>';
-                      }
-                      ?>
-                  </select>
+                  <div class="autocomplete-container">
+                      <input type="text" 
+                             class="form-control" 
+                             id="agent_search_print_bordereau" 
+                             placeholder="Tapez le nom du chargé de mission..."
+                             autocomplete="off"
+                             required>
+                      <input type="hidden" name="id_agent" id="id_agent_print_bordereau" required>
+                      <div id="agent_suggestions_print_bordereau" class="autocomplete-suggestions"></div>
+                  </div>
               </div>
               <div class="form-group">
                 <label for="exampleInputPassword1">Date de debut</label>
@@ -1648,44 +1662,48 @@ $(document).ready(function() {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Afficher le loader au démarrage
-    document.getElementById('loader').style.display = 'block';
-    document.getElementById('example1').style.display = 'none';
+    // Cacher le loader principal et afficher la table
+    var pageLoader = document.getElementById('pageLoader');
+    if (pageLoader) {
+        pageLoader.style.display = 'none';
+    }
     
-    // Cacher le loader et afficher la table après un court délai
-    setTimeout(function() {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('example1').style.display = 'table';
-        
-        // Initialiser DataTables après avoir affiché la table
-        if($.fn.DataTable.isDataTable('#example1')) {
-            $('#example1').DataTable().destroy();
+    var loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.display = 'none';
+    }
+    
+    document.getElementById('example1').style.display = 'table';
+    
+    // Initialiser DataTables
+    if($.fn.DataTable.isDataTable('#example1')) {
+        $('#example1').DataTable().destroy();
+    }
+    $('#example1').DataTable({
+        "responsive": true,
+        "lengthChange": false,
+        "autoWidth": false,
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
         }
-        $('#example1').DataTable({
-            "responsive": true,
-            "lengthChange": false,
-            "autoWidth": false,
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.21/i18n/French.json"
-            }
-        });
-    }, 1000);
-    
-    // Gestion des soumissions de formulaire
-    $('form').on('submit', function() {
-        document.getElementById('loader').style.display = 'block';
     });
 
     // Gestion des requêtes AJAX
     $(document).ajaxStart(function() {
-        document.getElementById('loader').style.display = 'block';
+        if (document.getElementById('pageLoader')) {
+            document.getElementById('pageLoader').style.display = 'flex';
+        }
     }).ajaxStop(function() {
-        document.getElementById('loader').style.display = 'none';
+        if (document.getElementById('pageLoader')) {
+            document.getElementById('pageLoader').style.display = 'none';
+        }
     });
     
     // Gestion des modals
     $('.modal').on('show.bs.modal', function() {
-        document.getElementById('loader').style.display = 'none';
+        if (document.getElementById('pageLoader')) {
+            document.getElementById('pageLoader').style.display = 'none';
+        }
     });
 });
 </script>
@@ -1891,6 +1909,119 @@ $(document).ready(function() {
     // Focus sur le champ quand le modal s'ouvre
     $('#add-bordereau').on('shown.bs.modal', function() {
         $('#agent_search').focus();
+    });
+
+    // ============================================
+    // Autocomplétion pour le modal Impression bordereau
+    // ============================================
+    var selectedIndexPrint = -1;
+    
+    $('#agent_search_print_bordereau').on('input', function() {
+        const searchTerm = $(this).val().trim();
+        
+        if (searchTerm.length < 2) {
+            $('#agent_suggestions_print_bordereau').hide().empty();
+            return;
+        }
+        
+        $('#agent_suggestions_print_bordereau').show().html('<div class="autocomplete-loading">Recherche en cours...</div>');
+        
+        $.ajax({
+            url: '../api/search_agents.php',
+            method: 'GET',
+            data: { q: searchTerm },
+            dataType: 'json',
+            success: function(data) {
+                displaySuggestionsPrintBordereau(data);
+            },
+            error: function() {
+                $('#agent_suggestions_print_bordereau').html('<div class="autocomplete-no-results">Erreur lors de la recherche</div>');
+            }
+        });
+    });
+    
+    function displaySuggestionsPrintBordereau(agents) {
+        const suggestionsDiv = $('#agent_suggestions_print_bordereau');
+        
+        if (agents.length === 0) {
+            suggestionsDiv.html('<div class="autocomplete-no-results">Aucun résultat trouvé</div>');
+            return;
+        }
+        
+        let html = '';
+        agents.forEach(function(agent, index) {
+            html += `<div class="autocomplete-suggestion suggestion-print-bordereau" data-id="${agent.id}" data-index="${index}">
+                        <div class="agent-name">${agent.text}</div>
+                     </div>`;
+        });
+        
+        suggestionsDiv.html(html);
+        selectedIndexPrint = -1;
+    }
+    
+    // Gestion des touches du clavier pour print-bordereau
+    $('#agent_search_print_bordereau').on('keydown', function(e) {
+        const suggestions = $('.suggestion-print-bordereau');
+        
+        if (suggestions.length === 0) return;
+        
+        switch(e.keyCode) {
+            case 40: // Flèche bas
+                e.preventDefault();
+                selectedIndexPrint = Math.min(selectedIndexPrint + 1, suggestions.length - 1);
+                updateSelectionPrintBordereau();
+                break;
+            case 38: // Flèche haut
+                e.preventDefault();
+                selectedIndexPrint = Math.max(selectedIndexPrint - 1, 0);
+                updateSelectionPrintBordereau();
+                break;
+            case 13: // Entrée
+                e.preventDefault();
+                if (selectedIndexPrint >= 0) {
+                    selectSuggestionPrintBordereau(suggestions.eq(selectedIndexPrint));
+                }
+                break;
+            case 27: // Échap
+                $('#agent_suggestions_print_bordereau').hide();
+                selectedIndexPrint = -1;
+                break;
+        }
+    });
+    
+    function updateSelectionPrintBordereau() {
+        $('.suggestion-print-bordereau').removeClass('selected');
+        if (selectedIndexPrint >= 0) {
+            $('.suggestion-print-bordereau').eq(selectedIndexPrint).addClass('selected');
+        }
+    }
+    
+    // Clic sur une suggestion print-bordereau
+    $(document).on('click', '.suggestion-print-bordereau', function() {
+        selectSuggestionPrintBordereau($(this));
+    });
+    
+    function selectSuggestionPrintBordereau($suggestion) {
+        const agentId = $suggestion.data('id');
+        const agentName = $suggestion.find('.agent-name').text();
+        
+        $('#agent_search_print_bordereau').val(agentName);
+        $('#id_agent_print_bordereau').val(agentId);
+        $('#agent_suggestions_print_bordereau').hide();
+        selectedIndexPrint = -1;
+    }
+    
+    // Réinitialiser le formulaire print-bordereau quand le modal se ferme
+    $('#print-bordereau').on('hidden.bs.modal', function() {
+        $('#agent_search_print_bordereau').val('');
+        $('#id_agent_print_bordereau').val('');
+        $('#agent_suggestions_print_bordereau').hide().empty();
+        selectedIndexPrint = -1;
+    });
+    
+    // Focus sur le champ quand le modal s'ouvre
+    $('#print-bordereau').on('shown.bs.modal', function() {
+        $('#agent_search_print_bordereau').focus();
     });
 
     // Gestion des formulaires de recherche
