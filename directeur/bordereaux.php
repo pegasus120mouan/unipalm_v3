@@ -9,7 +9,9 @@ require_once '../inc/functions/requete/requete_vehicules.php';
 require_once '../inc/functions/requete/requete_agents.php';
 
 // Inclure le système SMS HSMS existant
-require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+if (file_exists('../inc/functions/envoiSMS/vendor/autoload.php')) {
+    require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+}
 require_once '../inc/functions/envoiSMS/config.php';
 
 /**

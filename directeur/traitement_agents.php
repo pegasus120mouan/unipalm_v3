@@ -3,7 +3,9 @@ require_once '../inc/functions/connexion.php';
 session_start();
 
 // Inclure le système SMS existant
-require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+if (file_exists('../inc/functions/envoiSMS/vendor/autoload.php')) {
+    require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+}
 require_once '../inc/functions/envoiSMS/config.php';
 
 /**

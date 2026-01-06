@@ -4,7 +4,9 @@
  */
 
 require_once '../inc/functions/connexion.php';
-require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+if (file_exists('../inc/functions/envoiSMS/vendor/autoload.php')) {
+    require_once '../inc/functions/envoiSMS/vendor/autoload.php';
+}
 require_once '../inc/functions/envoiSMS/config.php';
 
 // Inclure la fonction d'envoi SMS pour paiement de bordereau
