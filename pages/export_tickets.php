@@ -39,7 +39,7 @@ fputcsv($output, [
     'Date validation',
     'Montant',
     'Date Paiement'
-]);
+], ',', '"', '\\');
 
 // Fonction pour formater la date
 function formatDate($date) {
@@ -61,7 +61,7 @@ foreach ($tickets as $ticket) {
         formatDate($ticket['date_validation_boss']),
         $ticket['montant_paie'],
         formatDate($ticket['date_paie'])
-    ]);
+    ], ',', '"', '\\');
 }
 
 fclose($output);
