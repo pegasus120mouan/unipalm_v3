@@ -1,46 +1,5 @@
 <?php
 require_once '../inc/functions/connexion.php';
-require_once '../inc/functions/requete/requete_tickets.php';
-require_once '../inc/functions/requete/requete_usines.php';
-require_once '../inc/functions/requete/requete_chef_equipes.php';
-require_once '../inc/functions/requete/requete_vehicules.php';
-require_once '../inc/functions/requete/requete_agents.php';
-
-// Initialisation des variables de pagination et de recherche
-$limit = $_GET['limit'] ?? 15;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-
-// Récupérer les paramètres de recherche
-$search_usine = $_GET['usine'] ?? null;
-$search_date = $_GET['date_creation'] ?? null;
-$search_chauffeur = $_GET['chauffeur'] ?? null;
-$search_agent = $_GET['agent_id'] ?? null;
-$search_numero_ticket = $_GET['numero_ticket'] ?? null;
-
-// Récupérer les données (functions)
-if ($search_usine || $search_date || $search_chauffeur || $search_agent || $search_numero_ticket) {
-    $tickets = searchTickets($conn, $search_usine, $search_date, $search_chauffeur, $search_agent, $search_numero_ticket);
-} else {
-    $tickets = getTickets($conn);
-}
-
-// Vérifiez si des tickets existent avant de procéder
-if (!empty($tickets)) {
-    $total_tickets = count($tickets);
-    $total_pages = ceil($total_tickets / $limit);
-    $page = max(1, min($page, $total_pages));
-    $offset = ($page - 1) * $limit;
-    $tickets_list = array_slice($tickets, $offset, $limit);
-} else {
-    $tickets_list = [];
-    $total_pages = 1;
-}
-
-// Récupérer les données pour les listes déroulantes
-$usines = getUsines($conn);
-$chefs_equipes = getChefEquipes($conn);
-$vehicules = getVehicules($conn);
-$agents = getAgents($conn);
 
 include('header.php');
 ?>
@@ -440,6 +399,515 @@ include('header.php');
     box-shadow: var(--shadow-md);
 }
 </style>
+
+
+  <section class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1>Liste des planteurs</h1>
+        </div>
+      </div>
+    </div>
+ </section>
+
+
+      <div class="row">
+          <div class="actions-container fade-in-up">
+            <div class="row">
+              <div class="col-12">
+                <div class="d-flex flex-wrap justify-content-between align-items-center">
+                  <div class="d-flex flex-wrap">
+                    <div class="input-group" style="max-width: 420px;">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                      </div>
+                      <input id="planteursSearch" type="text" class="form-control" placeholder="Rechercher (nom, téléphone, numéro fiche, collecteur...)" />
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap mt-2 mt-md-0">
+                    <button id="planteursRefresh" type="button" class="btn btn-primary card-hover">
+                      <i class="fas fa-sync-alt mr-2"></i>Actualiser
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="planteursError" class="alert alert-danger" style="display:none;"></div>
+
+          <div class="table-container fade-in-up">
+            <div id="loader" class="text-center">
+              <div class="loader-spinner"></div>
+              <h5 class="text-muted">Chargement des planteurs...</h5>
+            </div>
+
+            <div class="table-responsive" style="overflow-x: hidden;">
+              <table id="example1" class="table table-hover" style="display: none; width: 100%; table-layout: fixed;">
+                <thead>
+                  <tr>
+                    <th>Photo du planteur</th>  
+                    <th>Numéro fiche</th>
+                    <th>Nom & prénoms</th>
+                    <th>Téléphone</th>
+                    <th>Collecteur</th>
+                    <th>Région</th>
+                    <th>Village</th>
+                    <th>Créé le</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="planteursTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal fade" id="parcellesMapModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cartographie des parcelles</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="parcellesMapHint" class="alert alert-info" style="margin-bottom: 10px; display:none;"></div>
+        <div id="parcellesMap" style="height: 70vh; width: 100%; background:#ffffff;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const apiBaseUrl = '../inc/functions/requete/api_requete_planteurs.php';
+    const minioBaseUrl = <?php echo json_encode(getenv('AWS_URL') ?: 'http://51.178.49.141:9000/planteurs'); ?>;
+    const errorEl = document.getElementById('planteursError');
+    const loaderEl = document.getElementById('loader');
+    const tableEl = document.getElementById('example1');
+    const tbodyEl = document.getElementById('planteursTbody');
+    const searchEl = document.getElementById('planteursSearch');
+    const refreshEl = document.getElementById('planteursRefresh');
+
+    const defaultPhotoSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <rect width="80" height="80" rx="40" fill="#E9ECEF"/>
+  <circle cx="40" cy="32" r="14" fill="#ADB5BD"/>
+  <path d="M16 70c4-14 18-22 24-22s20 8 24 22" fill="#ADB5BD"/>
+</svg>`;
+    const defaultPhoto = `data:image/svg+xml;utf8,${encodeURIComponent(defaultPhotoSvg)}`;
+
+    let allRows = [];
+
+    function buildApiUrl(params) {
+      const qs = new URLSearchParams(params || {}).toString();
+      return qs ? `${apiBaseUrl}?${qs}` : apiBaseUrl;
+    }
+
+    function escapeHtml(v) {
+      return String(v ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function fmtDate(v) {
+      if (!v) return '';
+      const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return v;
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yy = d.getFullYear();
+      return `${dd}/${mm}/${yy}`;
+    }
+
+    function encodePath(path) {
+      return String(path)
+        .split('/')
+        .map((seg) => encodeURIComponent(seg))
+        .join('/');
+    }
+
+    function getPhotoValue(p) {
+      return (
+        p?.photo_url ||
+        p?.image_url ||
+        p?.photo ||
+        p?.photo_planteur ||
+        p?.image ||
+        p?.image_planteur ||
+        p?.avatar ||
+        p?.profil_photo ||
+        ''
+      );
+    }
+
+    function buildPhotoUrl(value) {
+      const v = String(value || '').trim();
+      if (!v) return '';
+      if (/^https?:\/\//i.test(v)) return v;
+      return `${String(minioBaseUrl).replace(/\/$/, '')}/${encodePath(v)}`;
+    }
+
+    function render(rows) {
+      tbodyEl.innerHTML = rows
+        .map((p, idx) => {
+          const collecteur = p.collecteur
+            ? `${p.collecteur.nom ?? ''} ${p.collecteur.prenoms ?? ''}`.trim()
+            : '';
+          const region = p.exploitation?.region ?? '';
+          const village = p.exploitation?.sous_prefecture_village ?? '';
+          const lat = p.exploitation?.latitude;
+          const lng = p.exploitation?.longitude;
+          const hasCoords = lat !== null && lat !== undefined && lat !== '' && lng !== null && lng !== undefined && lng !== '';
+          const photoUrl = buildPhotoUrl(getPhotoValue(p));
+          const photoSrc = photoUrl || defaultPhoto;
+
+          return `
+            <tr>
+              <td>
+                <img
+                  src="${escapeHtml(photoSrc)}"
+                  alt="Photo"
+                  style="width:60px;height:60px;object-fit:cover;border-radius:50%;"
+                  onerror="this.onerror=null;this.src='${escapeHtml(defaultPhoto)}';"
+                />
+              </td>
+              <td>${escapeHtml(p.numero_fiche)}</td>
+              <td>${escapeHtml(p.nom_prenoms)}</td>
+              <td>${escapeHtml(p.telephone)}</td>
+              <td>${escapeHtml(collecteur)}</td>
+              <td>${escapeHtml(region)}</td>
+              <td>${escapeHtml(village)}</td>
+              <td>${escapeHtml(fmtDate(p.created_at))}</td>
+              <td>
+                <div class="action-buttons">
+                  <button type="button" class="action-btn edit" data-action="view" data-id="${escapeHtml(p.id)}" title="Voir">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button type="button" class="action-btn edit" data-action="map" data-id="${escapeHtml(p.id)}" title="Voir sur la carte">
+                    <i class="fas fa-map-marker-alt"></i>
+                  </button>
+                  <button type="button" class="action-btn edit" data-action="edit" data-id="${escapeHtml(p.id)}" title="Modifier">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button type="button" class="action-btn delete" data-action="delete" data-id="${escapeHtml(p.id)}" title="Supprimer">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        })
+        .join('');
+    }
+
+    let pendingMapPlanteur = null;
+
+    function drawParcelles(planteur) {
+      const hintEl = document.getElementById('parcellesMapHint');
+      if (hintEl) {
+        hintEl.style.display = 'none';
+        hintEl.textContent = '';
+      }
+
+      const mapDiv = document.getElementById('parcellesMap');
+      if (!mapDiv) return;
+      mapDiv.innerHTML = '';
+
+      function pickNumber(obj, keys) {
+        if (!obj || typeof obj !== 'object') return NaN;
+        for (const k of keys) {
+          if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {
+            const n = Number(obj[k]);
+            if (Number.isFinite(n)) return n;
+          }
+        }
+        return NaN;
+      }
+
+      const cultures = Array.isArray(planteur?.cultures) ? planteur.cultures : [];
+      const parcellesFromCultures = cultures.flatMap((c) => {
+        const p = c?.parcelles;
+        if (Array.isArray(p)) return p;
+        if (p && typeof p === 'object') return Object.values(p);
+        return [];
+      });
+
+      const parcelles = planteur?.parcelles;
+      const exploitationParcelles = planteur?.exploitation?.parcelles;
+
+      const parcellesList = parcellesFromCultures.length
+        ? parcellesFromCultures
+        : Array.isArray(parcelles)
+          ? parcelles
+          : parcelles && typeof parcelles === 'object'
+            ? Object.values(parcelles)
+            : Array.isArray(exploitationParcelles)
+              ? exploitationParcelles
+              : exploitationParcelles && typeof exploitationParcelles === 'object'
+                ? Object.values(exploitationParcelles)
+                : Array.isArray(planteur?.exploitation?.points)
+                  ? [{ points: planteur.exploitation.points }]
+                  : [];
+
+      const boundsPoints = [];
+      let totalPoints = 0;
+      const paths = [];
+
+      for (const parcelle of parcellesList) {
+        const rawPoints = parcelle?.points;
+        let normalized = rawPoints;
+        if (typeof normalized === 'string') {
+          try {
+            normalized = JSON.parse(normalized);
+          } catch (e) {
+            normalized = null;
+          }
+        }
+
+        const points = Array.isArray(normalized)
+          ? normalized
+          : normalized && typeof normalized === 'object'
+            ? Object.values(normalized)
+            : [];
+        const latlngs = points
+          .map((pt) => {
+            if (Array.isArray(pt) && pt.length >= 2) {
+              const la = Number(pt[0]);
+              const lo = Number(pt[1]);
+              if (Number.isFinite(la) && Number.isFinite(lo)) {
+                boundsPoints.push([la, lo]);
+                return [la, lo];
+              }
+            }
+
+            const la = pickNumber(pt, ['latitude', 'Latitude', 'lat', 'Lat']);
+            const lo = pickNumber(pt, ['longitude', 'Longitude', 'lng', 'Lng', 'lon', 'Lon']);
+            if (!Number.isFinite(la) || !Number.isFinite(lo)) return null;
+            boundsPoints.push([la, lo]);
+            return [la, lo];
+          })
+          .filter(Boolean);
+
+        for (const ll of latlngs) {
+          totalPoints += 1;
+        }
+
+        if (latlngs.length >= 2) {
+          paths.push(latlngs);
+        }
+      }
+
+      if (hintEl) {
+        if (totalPoints > 0) {
+          hintEl.textContent = `ID: ${planteur?.id ?? ''} | Parcelles: ${parcellesList.length} | Points tracés: ${totalPoints}`;
+        } else {
+          const sample = parcellesList?.[0]?.points?.[0] || (parcellesList?.[0]?.points && typeof parcellesList?.[0]?.points === 'object' ? Object.values(parcellesList?.[0]?.points)[0] : null);
+          const keys = sample && typeof sample === 'object' ? Object.keys(sample).slice(0, 6).join(', ') : '';
+          hintEl.textContent = keys
+            ? `ID: ${planteur?.id ?? ''} | Aucun point détecté (parcelles=${parcellesList.length}). Clés exemple: ${keys}`
+            : `ID: ${planteur?.id ?? ''} | Aucun point détecté (parcelles=${parcellesList.length}).`;
+        }
+        hintEl.style.display = 'block';
+      }
+
+      if (!boundsPoints.length) {
+        return;
+      }
+
+      const w = Math.max(300, mapDiv.clientWidth || 800);
+      const h = Math.max(300, mapDiv.clientHeight || 500);
+      const pad = 30;
+
+      const lats = boundsPoints.map((p) => p[0]);
+      const lngs = boundsPoints.map((p) => p[1]);
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+      const dx = Math.max(1e-9, maxLng - minLng);
+      const dy = Math.max(1e-9, maxLat - minLat);
+
+      const project = (lat, lng) => {
+        const x = pad + ((lng - minLng) / dx) * (w - pad * 2);
+        const y = pad + ((maxLat - lat) / dy) * (h - pad * 2);
+        return [x, y];
+      };
+
+      const polyEls = paths
+        .map((latlngs) => {
+          const pts = latlngs.map((ll) => project(ll[0], ll[1]).join(',')).join(' ');
+          return `<polyline points="${pts}" fill="none" stroke="#1f6feb" stroke-width="3" />`;
+        })
+        .join('');
+
+      const pointEls = boundsPoints
+        .map((p) => {
+          const [x, y] = project(p[0], p[1]);
+          return `<circle cx="${x}" cy="${y}" r="3.5" fill="#e74c3c" />`;
+        })
+        .join('');
+
+      mapDiv.innerHTML = `
+        <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#ffffff;">
+          <rect x="0" y="0" width="${w}" height="${h}" fill="#ffffff" />
+          ${polyEls}
+          ${pointEls}
+        </svg>
+      `;
+    }
+
+    $('#parcellesMapModal').on('shown.bs.modal', function () {
+      if (pendingMapPlanteur) {
+        drawParcelles(pendingMapPlanteur);
+        pendingMapPlanteur = null;
+      }
+    });
+
+    async function fetchPlanteurDetails(id) {
+      const res = await fetch(buildApiUrl({ action: 'planteurs', id: String(id) }), { cache: 'no-store' });
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        throw new Error(json?.error || json?.message || 'Erreur API');
+      }
+
+      const planteur = json?.data?.planteurs?.[0] || json?.data;
+
+      if (!planteur || !planteur.id) {
+        throw new Error('Planteur introuvable.');
+      }
+      return planteur;
+    }
+
+    tbodyEl.addEventListener('click', async (e) => {
+      const btn = e.target?.closest?.('button[data-action]');
+      if (!btn) return;
+
+      const action = btn.getAttribute('data-action');
+
+      if (action === 'map') {
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+        try {
+          $('#parcellesMapModal').modal('show');
+
+          const hintEl = document.getElementById('parcellesMapHint');
+          if (hintEl) {
+            hintEl.textContent = 'Chargement de la cartographie...';
+            hintEl.style.display = 'block';
+          }
+          const mapDiv = document.getElementById('parcellesMap');
+          if (mapDiv) {
+            mapDiv.innerHTML = '';
+          }
+
+          const planteur = await fetchPlanteurDetails(id);
+          const modalEl = document.getElementById('parcellesMapModal');
+          if (modalEl && modalEl.classList.contains('show')) {
+            setTimeout(() => {
+              drawParcelles(planteur);
+            }, 0);
+            pendingMapPlanteur = null;
+          } else {
+            pendingMapPlanteur = planteur;
+          }
+        } catch (e) {
+          alert(e?.message || String(e));
+        }
+
+        return;
+      }
+
+      const id = btn.getAttribute('data-id');
+      if (!id) return;
+
+      if (action === 'view') {
+        window.location.href = `planteur_details.php?id=${encodeURIComponent(id)}`;
+        return;
+      }
+
+      if (action === 'edit') {
+        alert(`Modifier planteur ID: ${id}`);
+        return;
+      }
+
+      if (action === 'delete') {
+        if (!confirm('Supprimer ce planteur ?')) return;
+        alert(`Suppression planteur ID: ${id}`);
+      }
+    });
+
+    function applyFilter() {
+      const q = (searchEl.value || '').toLowerCase().trim();
+      if (!q) {
+        render(allRows);
+        return;
+      }
+
+      const filtered = allRows.filter((p) => {
+        const collecteur = p.collecteur
+          ? `${p.collecteur.nom ?? ''} ${p.collecteur.prenoms ?? ''}`.trim()
+          : '';
+        const blob = [
+          p.numero_fiche,
+          p.nom_prenoms,
+          p.telephone,
+          collecteur,
+          p.exploitation?.region,
+          p.exploitation?.sous_prefecture_village,
+        ]
+          .join(' ')
+          .toLowerCase();
+        return blob.includes(q);
+      });
+
+      render(filtered);
+    }
+
+    async function load() {
+      errorEl.style.display = 'none';
+      loaderEl.style.display = 'block';
+      tableEl.style.display = 'none';
+      tbodyEl.innerHTML = '';
+
+      try {
+        const res = await fetch(buildApiUrl({ action: 'planteurs' }), { cache: 'no-store' });
+        const json = await res.json();
+        if (!res.ok || !json?.success) {
+          throw new Error(json?.error || json?.message || 'Erreur API');
+        }
+
+        allRows = json.data?.planteurs || [];
+        render(allRows);
+        loaderEl.style.display = 'none';
+        tableEl.style.display = 'table';
+      } catch (e) {
+        errorEl.textContent = e?.message || String(e);
+        errorEl.style.display = 'block';
+      } finally {
+        loaderEl.style.display = 'none';
+      }
+    }
+
+    searchEl.addEventListener('input', applyFilter);
+    refreshEl.addEventListener('click', load);
+    load();
+  })();
+</script>
+
+<?php
+include('footer.php');
+__halt_compiler();
+?>
 
   <style>
         @media only screen and (max-width: 767px) {
