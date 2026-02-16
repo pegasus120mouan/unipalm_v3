@@ -323,7 +323,8 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
         const mime = ext === 'webm' ? 'video/webm' : ext === 'ogg' || ext === 'ogv' ? 'video/ogg' : 'video/mp4';
 
         videoEl.removeAttribute('src');
-        videoEl.innerHTML = `<source src="${escapeHtml(url)}" type="${escapeHtml(mime)}" />`;
+        const streamUrl = '../inc/functions/requete/stream_video.php?url=' + encodeURIComponent(url);
+        videoEl.innerHTML = `<source src="${escapeHtml(streamUrl)}" type="${escapeHtml(mime)}" />`;
         videoEl.load();
 
         linkEl.href = url;
