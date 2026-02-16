@@ -25,7 +25,28 @@ jobs:
             APP_DIR="${{ secrets.APP_DIR }}"
             BRANCH="main"
 
+            echo "User: $(whoami)"
+            echo "Host: $(hostname)"
+            echo "APP_DIR: $APP_DIR"
+
+            if [ -z "$APP_DIR" ]; then
+              echo "ERROR: secret APP_DIR is empty. Set it in GitHub Actions secrets."
+              exit 1
+            fi
+
+            if [ ! -d "$APP_DIR" ]; then
+              echo "ERROR: APP_DIR does not exist on server: $APP_DIR"
+              exit 1
+            fi
+
             cd "$APP_DIR"
+
+            echo "PWD: $(pwd)"
+
+            if [ ! -d .git ]; then
+              echo "ERROR: APP_DIR is not a git repository (missing .git). Clone the repo into $APP_DIR first."
+              exit 1
+            fi
 
             git config --global --add safe.directory "$APP_DIR"
 
@@ -34,11 +55,19 @@ jobs:
             git clean -fd
 
             if [ -f composer.json ]; then
-              composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+              if command -v composer >/dev/null 2>&1; then
+                composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+              else
+                echo "WARNING: composer not found, skipping composer install in $APP_DIR"
+              fi
             fi
 
             if [ -f inc/functions/envoiSMS/composer.json ]; then
-              ( cd inc/functions/envoiSMS && composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader )
+              if command -v composer >/dev/null 2>&1; then
+                ( cd inc/functions/envoiSMS && composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader )
+              else
+                echo "WARNING: composer not found, skipping composer install in inc/functions/envoiSMS"
+              fi
             fi
 
             php -r 'if (function_exists("opcache_reset")) { opcache_reset(); }'
