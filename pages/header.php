@@ -966,6 +966,13 @@ if (!isset($_SESSION['user_id'])) {
                     <p>Gestion des véhicules</p>
                   </a>
                 </li>
+
+                <li class="nav-item">
+                  <a href="plantations.php" class="nav-link">
+                    <i class="fas fa-tree"></i>
+                    <p>Gestion des plantations</p>
+                  </a>
+                </li>
               </ul>
             </li>
 
