@@ -1091,7 +1091,7 @@ if (!isset($_SESSION['user_id'])) {
 
             <li class="nav-item">
               <a href="javascript:void(0)" class="nav-link">
-                <i class="nav-icon fas fa-door-open"></i>
+                <i class="nav-icon fas fa-tree"></i>
                 <p>
                   Gestion des plantations
                   <i class="fas fa-angle-left right"></i>
@@ -1100,14 +1100,20 @@ if (!isset($_SESSION['user_id'])) {
               <ul class="nav nav-treeview">
                 <li class="nav-item">
                   <a href="plantations.php" class="nav-link">
-                    <i class="fas fa-list nav-treeview"></i>
+                    <i class="fas fa-seedling nav-icon"></i>
                     <p>Liste des plantations</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="collecteurs.php" class="nav-link">
-                    <i class="fas fa-list nav-user"></i>
+                    <i class="fas fa-users nav-icon"></i>
                     <p>Liste des collecteurs</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="localisation.php" class="nav-link">
+                    <i class="fas fa-map-marked-alt nav-icon"></i>
+                    <p>Localisation</p>
                   </a>
                 </li>
               </ul>

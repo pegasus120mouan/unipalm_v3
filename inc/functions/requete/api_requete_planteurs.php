@@ -243,4 +243,61 @@ function error($message, $code = 400) {
     exit;
 }
 
+function proxyPost(string $remoteApiUrl, array $data): void {
+    $jsonData = json_encode($data);
+    
+    $ch = curl_init($remoteApiUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $jsonData,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Content-Length: ' . strlen($jsonData)
+        ],
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+    ]);
+    
+    $raw = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+    
+    if ($raw === false || $curlError) {
+        error('Erreur lors de la mise à jour (API distante): ' . $curlError, 502);
+    }
+
+    $json = json_decode($raw, true);
+    if (!is_array($json)) {
+        error('Réponse invalide de l\'API distante: ' . substr($raw, 0, 200), 502);
+    }
+
+    http_response_code($httpCode);
+    echo json_encode($json);
+    exit;
+}
+
+// Gestion des requêtes POST (mise à jour)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
+    
+    if (!is_array($data)) {
+        error('Données JSON invalides.', 400);
+    }
+    
+    $action = $data['action'] ?? '';
+    
+    if ($action === 'update_planteur') {
+        $updateUrl = 'https://api.objetombrepegasus.online/api/planteur/actions/update_planteur.php';
+        proxyPost($updateUrl, $data);
+    } else {
+        error('Action non supportée: ' . $action, 400);
+    }
+}
+
+// Gestion des requêtes GET
 proxyRemote($remoteApiUrl, $_GET);
