@@ -36,65 +36,31 @@ $mimeTypes = [
 ];
 $mime = $mimeTypes[$ext] ?? 'video/mp4';
 
-// Récupérer les headers de la vidéo distante pour connaître la taille
+// Télécharger la vidéo complète et la servir
 $ch = curl_init($url);
 curl_setopt_array($ch, [
-    CURLOPT_NOBODY => true,
-    CURLOPT_HEADER => true,
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_TIMEOUT => 300,
     CURLOPT_SSL_VERIFYPEER => false,
 ]);
-$headResponse = curl_exec($ch);
+
+$content = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$contentLength = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+$error = curl_error($ch);
 curl_close($ch);
 
-if ($httpCode !== 200) {
+if ($httpCode !== 200 || $content === false) {
     http_response_code(502);
-    echo 'Erreur lors de la récupération de la vidéo';
+    echo 'Erreur lors de la récupération de la vidéo: ' . ($error ?: "HTTP $httpCode");
     exit;
-}
-
-// Gérer les requêtes Range pour le seeking vidéo
-$start = 0;
-$end = $contentLength - 1;
-$length = $contentLength;
-
-if (isset($_SERVER['HTTP_RANGE'])) {
-    // Requête partielle (seeking)
-    preg_match('/bytes=(\d+)-(\d*)/', $_SERVER['HTTP_RANGE'], $matches);
-    $start = intval($matches[1]);
-    if (!empty($matches[2])) {
-        $end = intval($matches[2]);
-    }
-    $length = $end - $start + 1;
-    
-    http_response_code(206);
-    header("Content-Range: bytes $start-$end/$contentLength");
-} else {
-    http_response_code(200);
 }
 
 // Headers pour le streaming
 header('Content-Type: ' . $mime);
-header('Content-Length: ' . $length);
+header('Content-Length: ' . strlen($content));
 header('Accept-Ranges: bytes');
 header('Cache-Control: public, max-age=3600');
 
-// Streamer la vidéo
-$ch = curl_init($url);
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => false,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_RANGE => "$start-$end",
-    CURLOPT_WRITEFUNCTION => function($ch, $data) {
-        echo $data;
-        flush();
-        return strlen($data);
-    },
-]);
-curl_exec($ch);
-curl_close($ch);
+echo $content;
 exit;
