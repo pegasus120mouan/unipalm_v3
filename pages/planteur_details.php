@@ -323,11 +323,14 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
         const mime = ext === 'webm' ? 'video/webm' : ext === 'ogg' || ext === 'ogv' ? 'video/ogg' : 'video/mp4';
 
         videoEl.removeAttribute('src');
-        const streamUrl = '../inc/functions/requete/stream_video.php?url=' + encodeURIComponent(url);
-        videoEl.innerHTML = `<source src="${escapeHtml(streamUrl)}" type="${escapeHtml(mime)}" />`;
+        const isHttps = window.location.protocol === 'https:';
+        const videoSrc = isHttps
+          ? '../inc/functions/requete/stream_video.php?url=' + encodeURIComponent(url)
+          : url;
+        videoEl.innerHTML = `<source src="${escapeHtml(videoSrc)}" type="${escapeHtml(mime)}" />`;
         videoEl.load();
 
-        linkEl.href = url;
+        linkEl.href = isHttps ? '../inc/functions/requete/stream_video.php?url=' + encodeURIComponent(url) : url;
         linkEl.style.display = 'inline-block';
 
         downloadEl.href = '../inc/functions/requete/download_video.php?url=' + encodeURIComponent(url);
