@@ -1100,13 +1100,13 @@ if (!isset($_SESSION['user_id'])) {
               <ul class="nav nav-treeview">
                 <li class="nav-item">
                   <a href="plantations.php" class="nav-link">
-                    <i class="fas fa-list nav-icon"></i>
+                    <i class="fas fa-list nav-treeview"></i>
                     <p>Liste des plantations</p>
                   </a>
                 </li>
                 <li class="nav-item">
                   <a href="collecteurs.php" class="nav-link">
-                    <i class="fas fa-list nav-icon"></i>
+                    <i class="fas fa-list nav-user"></i>
                     <p>Liste des collecteurs</p>
                   </a>
                 </li>
