@@ -283,7 +283,15 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
     });
 
     function fill(planteur) {
-      document.getElementById('planteurPhoto').src = planteur?.photo_url || defaultPhoto;
+      const isHttps = window.location.protocol === 'https:';
+      const rawPhotoUrl = planteur?.photo_url;
+      let photoSrc = defaultPhoto;
+      if (rawPhotoUrl) {
+        photoSrc = isHttps
+          ? '../inc/functions/requete/proxy_image.php?url=' + encodeURIComponent(rawPhotoUrl)
+          : rawPhotoUrl;
+      }
+      document.getElementById('planteurPhoto').src = photoSrc;
       document.getElementById('planteurPhoto').onerror = function () {
         this.onerror = null;
         this.src = defaultPhoto;

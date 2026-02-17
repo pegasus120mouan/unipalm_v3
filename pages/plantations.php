@@ -550,11 +550,21 @@ include('header.php');
       );
     }
 
+    const isHttps = window.location.protocol === 'https:';
+
     function buildPhotoUrl(value) {
       const v = String(value || '').trim();
       if (!v) return '';
-      if (/^https?:\/\//i.test(v)) return v;
-      return `${String(minioBaseUrl).replace(/\/$/, '')}/${encodePath(v)}`;
+      let url;
+      if (/^https?:\/\//i.test(v)) {
+        url = v;
+      } else {
+        url = `${String(minioBaseUrl).replace(/\/$/, '')}/${encodePath(v)}`;
+      }
+      if (isHttps && url.startsWith('http://')) {
+        return '../inc/functions/requete/proxy_image.php?url=' + encodeURIComponent(url);
+      }
+      return url;
     }
 
     function render(rows) {
