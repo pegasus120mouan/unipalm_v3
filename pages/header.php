@@ -1111,9 +1111,15 @@ if (!isset($_SESSION['user_id'])) {
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a href="localisation.php" class="nav-link">
+                  <a href="regions.php" class="nav-link">
                     <i class="fas fa-map-marked-alt nav-icon"></i>
-                    <p>Localisation</p>
+                    <p>Régions</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="zones_collecteurs.php" class="nav-link">
+                    <i class="fas fa-map-marked-alt nav-icon"></i>
+                    <p>Zones</p>
                   </a>
                 </li>
               </ul>

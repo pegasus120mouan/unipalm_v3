@@ -71,6 +71,24 @@ include('header.php');
 }
 .status-actif { background: #d4edda; color: #155724; }
 .status-inactif { background: #f8d7da; color: #721c24; }
+.zone-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #667eea;
+    color: white;
+}
+.no-zone-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #95a5a6;
+    color: white;
+}
 .action-btn {
     width: 32px;
     height: 32px;
@@ -182,6 +200,7 @@ include('header.php');
                             <th><i class="fas fa-id-card mr-1"></i>Prénoms</th>
                             <th><i class="fas fa-phone mr-1"></i>Contact</th>
                             <th><i class="fas fa-tag mr-1"></i>Rôle</th>
+                            <th><i class="fas fa-map-marker-alt mr-1"></i>Zone</th>
                             <th><i class="fas fa-sign-in-alt mr-1"></i>Login</th>
                             <th><i class="fas fa-image mr-1"></i>Avatar</th>
                             <th><i class="fas fa-cogs mr-1"></i>Actions</th>
@@ -256,7 +275,7 @@ include('header.php');
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label><i class="fas fa-users mr-1"></i>Rôle</label>
                                 <select class="form-control" id="userRole" name="role" required>
@@ -266,6 +285,14 @@ include('header.php');
                                     <option value="caissiere">Caissière</option>
                                     <option value="directeur">Directeur</option>
                                     <option value="admin">Administrateur</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label><i class="fas fa-map-marker-alt mr-1"></i>Zone</label>
+                                <select class="form-control" id="userZone" name="zone_id">
+                                    <option value="">-- Aucune zone --</option>
                                 </select>
                             </div>
                         </div>
@@ -410,6 +437,16 @@ include('header.php');
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label><i class="fas fa-map-marker-alt mr-1"></i>Zone</label>
+                                <select class="form-control" id="editUserZone" name="zone_id">
+                                    <option value="">-- Aucune zone --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <hr>
                     <p class="text-muted small"><i class="fas fa-info-circle mr-1"></i>Laissez vide pour conserver le mot de passe actuel</p>
                     <div class="row">
@@ -447,6 +484,7 @@ include('header.php');
 <script>
 (function() {
     const apiUrl = '../inc/functions/requete/api_requete_utilisateurs.php';
+    const apiZones = '../inc/functions/requete/api_zones.php';
     const isHttps = window.location.protocol === 'https:';
     
     const defaultAvatarSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
@@ -457,6 +495,7 @@ include('header.php');
     const defaultAvatar = `data:image/svg+xml;utf8,${encodeURIComponent(defaultAvatarSvg)}`;
 
     let allUsers = [];
+    let allZones = [];
 
     const loaderEl = document.getElementById('loader');
     const tableContainerEl = document.getElementById('tableContainer');
@@ -501,6 +540,10 @@ include('header.php');
         const roleClass = getRoleClass(user.role);
         const statusClass = user.statut_compte ? 'status-actif' : 'status-inactif';
         const statusText = user.statut_compte ? 'Actif' : 'Inactif';
+        const zoneName = user.zone_nom || user.nom_zone;
+        const zoneBadge = zoneName 
+            ? `<span class="zone-badge">${escapeHtml(zoneName)}</span>`
+            : `<span class="no-zone-badge">Non assigné</span>`;
 
         return `
             <tr>
@@ -508,6 +551,7 @@ include('header.php');
                 <td>${escapeHtml(user.prenoms || '')}</td>
                 <td><i class="fas fa-phone mr-1 text-muted"></i>${escapeHtml(user.contact || '')}</td>
                 <td><span class="role-badge ${roleClass}">${escapeHtml(user.role || 'N/A')}</span></td>
+                <td>${zoneBadge}</td>
                 <td><span class="login-badge">${escapeHtml(user.login || '').toUpperCase()}</span></td>
                 <td>
                     <img src="${escapeHtml(avatarUrl)}" 
@@ -589,6 +633,22 @@ include('header.php');
     roleFilterEl.addEventListener('change', filterUsers);
     statusFilterEl.addEventListener('change', filterUsers);
     refreshBtn.addEventListener('click', loadCollecteurs);
+
+    // Charger les zones pour le formulaire de création
+    async function loadZones() {
+        try {
+            const res = await fetch(`${apiZones}?action=list`, { cache: 'no-store' });
+            const json = await res.json();
+            if (json.success && json.data) {
+                allZones = json.data;
+                const select = document.getElementById('userZone');
+                select.innerHTML = '<option value="">-- Aucune zone --</option>' +
+                    allZones.map(z => `<option value="${z.id}">${escapeHtml(z.nom_zone)}</option>`).join('');
+            }
+        } catch (e) {
+            console.error('Erreur chargement zones:', e);
+        }
+    }
 
     // Gestion du formulaire de création
     const createForm = document.getElementById('createUserForm');
@@ -747,6 +807,12 @@ include('header.php');
         document.getElementById('editUserPassword').value = '';
         document.getElementById('editUserPasswordConfirm').value = '';
 
+        // Remplir le select des zones et sélectionner la zone actuelle
+        const editZoneSelect = document.getElementById('editUserZone');
+        editZoneSelect.innerHTML = '<option value="">-- Aucune zone --</option>' +
+            allZones.map(z => `<option value="${z.id}">${escapeHtml(z.nom_zone)}</option>`).join('');
+        editZoneSelect.value = user.zone_id || '';
+
         // Reset messages
         document.getElementById('editUserError').style.display = 'none';
         document.getElementById('editUserSuccess').style.display = 'none';
@@ -829,5 +895,6 @@ include('header.php');
     });
 
     loadCollecteurs();
+    loadZones();
 })();
 </script>
