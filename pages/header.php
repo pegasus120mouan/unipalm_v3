@@ -966,6 +966,12 @@ if (!isset($_SESSION['user_id'])) {
                     <p>Gestion des véhicules</p>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a href="liste_vehicules_doubles.php" class="nav-link">
+                    <i class="fas fa-car"></i>
+                    <p>Liste des véhicules doubles</p>
+                  </a>
+                </li>
               </ul>
             </li>
 
