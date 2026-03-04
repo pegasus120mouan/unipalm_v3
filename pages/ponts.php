@@ -6,7 +6,7 @@ require_once '../inc/functions/requete/requete_ponts.php';
 if ($_POST) {
     try {
         if (isset($_POST['add_pont'])) {
-            $result = createPontBascule($conn, $_POST['nom_pont'], $_POST['latitude'], $_POST['longitude'], $_POST['gerant'], $_POST['cooperatif'], $_POST['statut']);
+            $result = createPontBascule($conn, $_POST['nom_pont'], null, null, $_POST['gerant'], $_POST['cooperatif'], $_POST['statut']);
             if ($result) {
                 // Redirection avec message de succès pour éviter la double soumission
                 header('Location: ponts.php?success=add&code=' . urlencode($result));
@@ -747,20 +747,6 @@ include('header.php');
                             <div class="form-group">
                                 <label for="gerant">Gérant *</label>
                                 <input type="text" class="form-control" id="gerant" name="gerant" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="latitude">Latitude *</label>
-                                <input type="number" step="any" class="form-control" id="latitude" name="latitude" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="longitude">Longitude *</label>
-                                <input type="number" step="any" class="form-control" id="longitude" name="longitude" required>
                             </div>
                         </div>
                     </div>
