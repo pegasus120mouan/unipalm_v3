@@ -61,6 +61,15 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
                 <div id="planteurCollecteur"></div>
               </div>
             </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Agent enregistreur</h3>
+              </div>
+              <div class="card-body">
+                <div id="planteurAgent"></div>
+              </div>
+            </div>
           </div>
 
           <div class="col-lg-8">
@@ -90,11 +99,15 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6"><strong>Région:</strong> <span id="explRegion"></span></div>
-                  <div class="col-md-6"><strong>Village:</strong> <span id="explVillage"></span></div>
+                  <div class="col-md-6"><strong>Sous-préfecture:</strong> <span id="explSousPrefecture"></span></div>
                 </div>
                 <div class="row mt-2">
+                  <div class="col-md-6"><strong>Village:</strong> <span id="explVillage"></span></div>
                   <div class="col-md-6"><strong>Latitude:</strong> <span id="explLat"></span></div>
+                </div>
+                <div class="row mt-2">
                   <div class="col-md-6"><strong>Longitude:</strong> <span id="explLng"></span></div>
+                  <div class="col-md-6"><strong>Délégué:</strong> <span id="explDelegue"></span></div>
                 </div>
                 <div class="row mt-3">
                   <div class="col-12">
@@ -229,6 +242,14 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
       if (parcellesLayer) parcellesLayer.clearLayers();
     }
 
+    // Icône verte pour les marqueurs
+    const greenIcon = L.divIcon({
+      className: 'green-marker',
+      html: '<div style="background-color: #27ae60; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,0.3);"></div>',
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    });
+
     function drawParcelles(planteur) {
       clearMap();
 
@@ -249,11 +270,19 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
           .filter(Boolean);
 
         if (latlngs.length >= 3) {
-          shapes.push(L.polygon(latlngs, { color: '#3498db', weight: 2, fillOpacity: 0.15 }));
+          // Polygone vert
+          shapes.push(L.polygon(latlngs, { color: '#27ae60', weight: 2, fillOpacity: 0.15 }));
+          // Ajouter des marqueurs verts pour chaque point
+          for (const ll of latlngs) {
+            shapes.push(L.marker(ll, { icon: greenIcon }));
+          }
         } else if (latlngs.length >= 2) {
-          shapes.push(L.polyline(latlngs, { color: '#3498db', weight: 2 }));
+          shapes.push(L.polyline(latlngs, { color: '#27ae60', weight: 2 }));
+          for (const ll of latlngs) {
+            shapes.push(L.marker(ll, { icon: greenIcon }));
+          }
         } else if (latlngs.length === 1) {
-          shapes.push(L.marker(latlngs[0]));
+          shapes.push(L.marker(latlngs[0], { icon: greenIcon }));
         }
       }
 
@@ -261,7 +290,7 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
         const la = Number(planteur?.exploitation?.latitude);
         const lo = Number(planteur?.exploitation?.longitude);
         if (Number.isFinite(la) && Number.isFinite(lo)) {
-          shapes.push(L.marker([la, lo]));
+          shapes.push(L.marker([la, lo], { icon: greenIcon }));
           boundsPoints.push([la, lo]);
         }
       }
@@ -306,7 +335,11 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
       document.getElementById('planteurEnfants').textContent = planteur?.nombre_enfants ?? '';
 
       const collecteur = planteur?.collecteur ? `${planteur.collecteur.nom ?? ''} ${planteur.collecteur.prenoms ?? ''}`.trim() : '';
-      document.getElementById('planteurCollecteur').textContent = collecteur;
+      document.getElementById('planteurCollecteur').textContent = collecteur || 'Non assigné';
+
+      // Agent enregistreur
+      const agent = planteur?.agent ? `${planteur.agent.nom ?? ''} ${planteur.agent.prenoms ?? ''}`.trim() : '';
+      document.getElementById('planteurAgent').textContent = agent || 'Non spécifié';
 
       document.getElementById('planteurDateN').textContent = fmtDate(planteur?.date_naissance);
       document.getElementById('planteurLieuN').textContent = planteur?.lieu_naissance || '';
@@ -314,10 +347,22 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
       document.getElementById('planteurCreatedAt').textContent = planteur?.created_at ? fmtDate(planteur.created_at) : '';
 
       const expl = planteur?.exploitation || {};
-      document.getElementById('explRegion').textContent = expl?.region || '';
+      
+      // Région - utiliser l'objet region si disponible, sinon le champ exploitation.region
+      const regionNom = planteur?.region?.nom || expl?.region || '';
+      document.getElementById('explRegion').textContent = regionNom;
+      
+      // Sous-préfecture - utiliser l'objet sous_prefecture si disponible
+      const sousPrefNom = planteur?.sous_prefecture?.nom || '';
+      document.getElementById('explSousPrefecture').textContent = sousPrefNom;
+      
+      // Village
       document.getElementById('explVillage').textContent = expl?.sous_prefecture_village || '';
       document.getElementById('explLat').textContent = expl?.latitude ?? '';
       document.getElementById('explLng').textContent = expl?.longitude ?? '';
+      
+      // Délégué
+      document.getElementById('explDelegue').textContent = expl?.delegue_nom || 'Non spécifié';
 
       const videoUrl = expl?.video_url;
       if (videoUrl) {

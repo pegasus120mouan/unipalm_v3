@@ -123,6 +123,7 @@ try {
         $allowedExplFields = [
             'region',
             'sous_prefecture_village',
+            'village',
             'latitude',
             'longitude'
         ];

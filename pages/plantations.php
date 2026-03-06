@@ -587,6 +587,7 @@ include('header.php');
                     <th>Téléphone</th>
                     <th>Collecteur</th>
                     <th>Région</th>
+                    <th>Sous-préfecture</th>
                     <th>Village</th>
                     <th>Créé le</th>
                     <th>Actions</th>
@@ -619,9 +620,45 @@ include('header.php');
   </div>
 </div>
 
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+      <div class="modal-header" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border-radius: 15px 15px 0 0; border: none;">
+        <h5 class="modal-title" style="color: white; font-weight: 600;">
+          <i class="fas fa-exclamation-triangle mr-2"></i>Confirmation de suppression
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center" style="padding: 30px;">
+        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-trash-alt" style="font-size: 32px; color: #e74c3c;"></i>
+        </div>
+        <h4 style="color: #2c3e50; font-weight: 600; margin-bottom: 10px;">Supprimer ce planteur ?</h4>
+        <p style="color: #6c757d; margin-bottom: 0;">
+          Êtes-vous sûr de vouloir supprimer <strong id="deleteConfirmName" style="color: #e74c3c;"></strong> ?<br>
+          <small>Cette action est irréversible.</small>
+        </p>
+        <input type="hidden" id="deleteConfirmId" value="">
+      </div>
+      <div class="modal-footer" style="border: none; padding: 20px 30px 30px; justify-content: center; gap: 15px;">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding: 10px 30px; border-radius: 8px; font-weight: 500;">
+          <i class="fas fa-times mr-2"></i>Annuler
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn" style="padding: 10px 30px; border-radius: 8px; font-weight: 500; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none;">
+          <i class="fas fa-trash-alt mr-2"></i>Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   (function () {
     const apiBaseUrl = '../inc/functions/requete/api_requete_planteurs.php';
+    // ... rest of the code remains the same ...
     const minioBaseUrl = <?php echo json_encode(getenv('AWS_URL') ?: 'http://51.178.49.141:9000/planteurs'); ?>;
     const errorEl = document.getElementById('planteursError');
     const loaderEl = document.getElementById('loader');
@@ -708,7 +745,8 @@ include('header.php');
             ? `${p.collecteur.nom ?? ''} ${p.collecteur.prenoms ?? ''}`.trim()
             : '';
           const region = p.exploitation?.region ?? '';
-          const village = p.exploitation?.sous_prefecture_village ?? '';
+          const sousPrefecture = p.exploitation?.sous_prefecture_village ?? '';
+          const village = p.exploitation?.village ?? '';
           const lat = p.exploitation?.latitude;
           const lng = p.exploitation?.longitude;
           const hasCoords = lat !== null && lat !== undefined && lat !== '' && lng !== null && lng !== undefined && lng !== '';
@@ -730,6 +768,7 @@ include('header.php');
               <td>${escapeHtml(p.telephone)}</td>
               <td>${escapeHtml(collecteur)}</td>
               <td>${escapeHtml(region)}</td>
+              <td>${escapeHtml(sousPrefecture)}</td>
               <td>${escapeHtml(village)}</td>
               <td>${escapeHtml(fmtDate(p.created_at))}</td>
               <td>
@@ -906,10 +945,10 @@ include('header.php');
         }
       });
 
-      // Ajouter les marqueurs pour chaque point
+      // Ajouter les marqueurs pour chaque point (vert)
       const pointIcon = L.divIcon({
         className: 'custom-point-marker',
-        html: '<div style="width:10px;height:10px;background:#e74c3c;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>',
+        html: '<div style="width:10px;height:10px;background:#27ae60;border-radius:50%;border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>',
         iconSize: [10, 10],
         iconAnchor: [5, 5]
       });
@@ -1000,8 +1039,94 @@ include('header.php');
       }
 
       if (action === 'delete') {
-        if (!confirm('Supprimer ce planteur ?')) return;
-        alert(`Suppression planteur ID: ${id}`);
+        // Trouver le nom du planteur
+        const planteur = allRows.find(p => String(p.id) === String(id));
+        const nomPlanteur = planteur?.nom_prenoms || `ID ${id}`;
+        
+        // Afficher le modal de confirmation
+        document.getElementById('deleteConfirmId').value = id;
+        document.getElementById('deleteConfirmName').textContent = nomPlanteur;
+        $('#deleteConfirmModal').modal('show');
+        return;
+      }
+    });
+
+    // Gestionnaire du bouton de confirmation de suppression
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+      const id = document.getElementById('deleteConfirmId').value;
+      if (!id) return;
+      
+      const btn = this;
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Suppression...';
+      
+      try {
+        const response = await fetch(apiBaseUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'delete_planteur',
+            id: parseInt(id)
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || result.message || 'Erreur lors de la suppression');
+        }
+        
+        // Fermer le modal
+        $('#deleteConfirmModal').modal('hide');
+        
+        // Supprimer le planteur de la liste locale
+        allRows = allRows.filter(p => String(p.id) !== String(id));
+        render(allRows);
+        
+        // Afficher un message de succès
+        const alertHtml = `
+          <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <i class="fas fa-check-circle mr-2"></i>
+            <strong>Succès !</strong> Le planteur a été supprimé.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        
+        // Supprimer l'alerte après 3 secondes
+        setTimeout(() => {
+          const alerts = document.querySelectorAll('.alert-success');
+          alerts.forEach(a => a.remove());
+        }, 3000);
+        
+      } catch (e) {
+        // Fermer le modal
+        $('#deleteConfirmModal').modal('hide');
+        
+        // Afficher un message d'erreur
+        const alertHtml = `
+          <div class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <strong>Erreur !</strong> ${e.message || 'Impossible de supprimer le planteur.'}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        
+        setTimeout(() => {
+          const alerts = document.querySelectorAll('.alert-danger');
+          alerts.forEach(a => a.remove());
+        }, 5000);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
       }
     });
 

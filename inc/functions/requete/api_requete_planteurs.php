@@ -294,6 +294,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_planteur') {
         $updateUrl = 'https://api.objetombrepegasus.online/api/planteur/actions/update_planteur.php';
         proxyPost($updateUrl, $data);
+    } elseif ($action === 'delete_planteur') {
+        $deleteUrl = 'https://api.objetombrepegasus.online/api/planteur/actions/delete_planteur.php';
+        proxyPost($deleteUrl, $data);
     } else {
         error('Action non supportée: ' . $action, 400);
     }

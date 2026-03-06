@@ -6,122 +6,264 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
 ?>
 
 <style>
-.edit-container {
-    max-width: 1200px;
-    margin: 0 auto;
+/* Variables CSS */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+    --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    --card-hover-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    --border-radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.edit-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+/* Page Header */
+.page-header-edit {
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius);
+    padding: 30px 40px;
+    margin-bottom: 30px;
+    color: white;
+    box-shadow: var(--card-shadow);
+    position: relative;
     overflow: hidden;
 }
 
-.edit-card-header {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+.page-header-edit::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.page-header-edit::after {
+    content: '';
+    position: absolute;
+    bottom: -60%;
+    left: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+}
+
+.page-header-edit h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.page-header-edit h1 i {
+    margin-right: 15px;
+    opacity: 0.9;
+}
+
+.btn-back {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
     color: white;
-    padding: 15px 20px;
+    padding: 12px 25px;
+    border-radius: 50px;
     font-weight: 600;
+    transition: var(--transition);
+    position: relative;
+    z-index: 1;
+}
+
+.btn-back:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateX(-5px);
+}
+
+/* Container */
+.edit-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Cards */
+.edit-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 25px;
+    overflow: hidden;
+    transition: var(--transition);
+    border: none;
+}
+
+.edit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.edit-card-header {
+    padding: 20px 25px;
+    font-weight: 700;
     font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    border-bottom: none;
+}
+
+.edit-card-header.identification {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.edit-card-header.identite {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.edit-card-header.exploitation {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
 }
 
 .edit-card-header i {
-    margin-right: 10px;
+    margin-right: 12px;
+    font-size: 1.2rem;
+    opacity: 0.9;
 }
 
 .edit-card-body {
-    padding: 25px;
+    padding: 30px 25px;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 20px;
 }
 
 .form-group label {
     font-weight: 600;
     color: #2c3e50;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.form-group label i {
+    margin-right: 8px;
+    color: #667eea;
+    font-size: 0.85rem;
 }
 
 .form-control {
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-    padding: 12px 15px;
-    transition: all 0.3s ease;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 14px 18px;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    background: #f8f9fa;
 }
 
 .form-control:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
 }
 
-.photo-preview {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #3498db;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+.form-control:hover:not(:focus) {
+    border-color: #ced4da;
+    background: white;
 }
 
-.photo-container {
-    text-align: center;
-    margin-bottom: 20px;
+.form-control[readonly] {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    padding-right: 40px;
+}
+
+/* Buttons */
+.btn-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 30px 0;
 }
 
 .btn-save {
-    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    background: var(--success-gradient);
     border: none;
     color: white;
-    padding: 12px 30px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    padding: 16px 50px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: var(--transition);
+    box-shadow: 0 10px 30px rgba(17, 153, 142, 0.3);
 }
 
 .btn-save:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(17, 153, 142, 0.4);
     color: white;
+}
+
+.btn-save:active {
+    transform: translateY(-1px);
 }
 
 .btn-cancel {
-    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
     border: none;
     color: white;
-    padding: 12px 30px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
+    padding: 16px 50px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: var(--transition);
+    box-shadow: 0 10px 30px rgba(45, 52, 54, 0.3);
 }
 
 .btn-cancel:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(127, 140, 141, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(45, 52, 54, 0.4);
     color: white;
 }
 
-.section-title {
-    color: #2c3e50;
-    font-weight: 700;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #3498db;
-}
-
+/* Loader */
 .loader-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px;
+    padding: 80px;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
 }
 
 .loader-spinner {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border-top: 4px solid #667eea;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -129,45 +271,99 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
     100% { transform: rotate(360deg); }
 }
 
+.loader-container p {
+    margin-top: 20px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Alerts */
 .alert-floating {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 9999;
-    min-width: 300px;
-    animation: slideIn 0.3s ease;
+    min-width: 350px;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.alert-floating.alert-success {
+    background: var(--success-gradient);
+    color: white;
+}
+
+.alert-floating.alert-danger {
+    background: var(--danger-gradient);
+    color: white;
 }
 
 @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
+    from { transform: translateX(120%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
-</style>
 
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-8">
-                <h1><i class="fas fa-user-edit mr-2"></i>Modifier le planteur</h1>
-            </div>
-            <div class="col-sm-4 text-right">
-                <a href="plantations.php" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header-edit {
+        padding: 20px;
+    }
+    
+    .page-header-edit h1 {
+        font-size: 1.4rem;
+    }
+    
+    .btn-actions {
+        flex-direction: column;
+        padding: 20px;
+    }
+    
+    .btn-save, .btn-cancel {
+        width: 100%;
+    }
+}
+
+/* Animation d'entrée */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.edit-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.edit-card:nth-child(1) { animation-delay: 0.1s; }
+.edit-card:nth-child(2) { animation-delay: 0.2s; }
+.edit-card:nth-child(3) { animation-delay: 0.3s; }
+</style>
 
 <section class="content">
     <div class="container-fluid edit-container">
+        <!-- Page Header -->
+        <div class="page-header-edit d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-user-edit"></i>Modifier le planteur</h1>
+            <a href="plantations.php" class="btn btn-back">
+                <i class="fas fa-arrow-left mr-2"></i>Retour à la liste
+            </a>
+        </div>
+
         <!-- Loader -->
         <div id="editLoader" class="loader-container">
             <div class="loader-spinner"></div>
-            <p class="mt-3 text-muted">Chargement des informations...</p>
+            <p>Chargement des informations...</p>
         </div>
 
         <!-- Error -->
-        <div id="editError" class="alert alert-danger" style="display:none;"></div>
+        <div id="editError" class="alert alert-danger" style="display:none; border-radius: 12px;"></div>
 
         <!-- Form -->
         <form id="editForm" style="display:none;">
@@ -177,17 +373,17 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
                 <!-- Colonne gauche - Identification -->
                 <div class="col-lg-4">
                     <div class="edit-card">
-                        <div class="edit-card-header">
+                        <div class="edit-card-header identification">
                             <i class="fas fa-id-card"></i>Identification
                         </div>
                         <div class="edit-card-body">
                             <div class="form-group">
-                                <label>Numéro de fiche</label>
+                                <label><i class="fas fa-hashtag"></i>Numéro de fiche</label>
                                 <input type="text" class="form-control" id="numero_fiche" name="numero_fiche" readonly>
                             </div>
                             <div class="form-group">
-                                <label>Pièce d'identité</label>
-                                <input type="text" class="form-control" id="piece_identite" name="piece_identite">
+                                <label><i class="fas fa-id-badge"></i>Pièce d'identité</label>
+                                <input type="text" class="form-control" id="piece_identite" name="piece_identite" placeholder="Numéro de la pièce">
                             </div>
                         </div>
                     </div>
@@ -196,28 +392,28 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
                 <!-- Colonne centrale - Identité -->
                 <div class="col-lg-4">
                     <div class="edit-card">
-                        <div class="edit-card-header">
+                        <div class="edit-card-header identite">
                             <i class="fas fa-user"></i>Identité
                         </div>
                         <div class="edit-card-body">
                             <div class="form-group">
-                                <label>Nom et prénoms <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nom_prenoms" name="nom_prenoms" required>
+                                <label><i class="fas fa-user-circle"></i>Nom et prénoms <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nom_prenoms" name="nom_prenoms" required placeholder="Nom complet du planteur">
                             </div>
                             <div class="form-group">
-                                <label>Téléphone</label>
-                                <input type="tel" class="form-control" id="telephone" name="telephone">
+                                <label><i class="fas fa-phone"></i>Téléphone</label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone" placeholder="Numéro de téléphone">
                             </div>
                             <div class="form-group">
-                                <label>Date de naissance</label>
+                                <label><i class="fas fa-calendar-alt"></i>Date de naissance</label>
                                 <input type="date" class="form-control" id="date_naissance" name="date_naissance">
                             </div>
                             <div class="form-group">
-                                <label>Lieu de naissance</label>
-                                <input type="text" class="form-control" id="lieu_naissance" name="lieu_naissance">
+                                <label><i class="fas fa-map-pin"></i>Lieu de naissance</label>
+                                <input type="text" class="form-control" id="lieu_naissance" name="lieu_naissance" placeholder="Ville ou village de naissance">
                             </div>
                             <div class="form-group">
-                                <label>Situation matrimoniale</label>
+                                <label><i class="fas fa-heart"></i>Situation matrimoniale</label>
                                 <select class="form-control" id="situation_matrimoniale" name="situation_matrimoniale">
                                     <option value="">-- Sélectionner --</option>
                                     <option value="Célibataire">Célibataire</option>
@@ -227,8 +423,8 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Nombre d'enfants</label>
-                                <input type="number" class="form-control" id="nombre_enfants" name="nombre_enfants" min="0">
+                                <label><i class="fas fa-child"></i>Nombre d'enfants</label>
+                                <input type="number" class="form-control" id="nombre_enfants" name="nombre_enfants" min="0" placeholder="0">
                             </div>
                         </div>
                     </div>
@@ -237,42 +433,43 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
                 <!-- Colonne droite - Exploitation -->
                 <div class="col-lg-4">
                     <div class="edit-card">
-                        <div class="edit-card-header">
+                        <div class="edit-card-header exploitation">
                             <i class="fas fa-map-marked-alt"></i>Exploitation
                         </div>
                         <div class="edit-card-body">
                             <div class="form-group">
-                                <label>Région</label>
-                                <input type="text" class="form-control" id="region" name="region">
+                                <label><i class="fas fa-globe-africa"></i>Région</label>
+                                <input type="text" class="form-control" id="region" name="region" placeholder="Région d'exploitation">
                             </div>
                             <div class="form-group">
-                                <label>Sous-préfecture / Village</label>
-                                <input type="text" class="form-control" id="sous_prefecture_village" name="sous_prefecture_village">
+                                <label><i class="fas fa-city"></i>Sous-préfecture</label>
+                                <input type="text" class="form-control" id="sous_prefecture_village" name="sous_prefecture_village" placeholder="Sous-préfecture">
                             </div>
                             <div class="form-group">
-                                <label>Latitude</label>
+                                <label><i class="fas fa-home"></i>Village</label>
+                                <input type="text" class="form-control" id="village" name="village" placeholder="Village d'exploitation">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-location-arrow"></i>Latitude</label>
                                 <input type="text" class="form-control" id="latitude" name="latitude" placeholder="Ex: 5.345678">
                             </div>
                             <div class="form-group">
-                                <label>Longitude</label>
+                                <label><i class="fas fa-location-arrow"></i>Longitude</label>
                                 <input type="text" class="form-control" id="longitude" name="longitude" placeholder="Ex: -4.012345">
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
             <!-- Boutons d'action -->
-            <div class="row mt-4 mb-4">
-                <div class="col-12 text-center">
-                    <button type="button" class="btn btn-cancel mr-3" onclick="window.location.href='plantations.php'">
-                        <i class="fas fa-times mr-2"></i>Annuler
-                    </button>
-                    <button type="submit" class="btn btn-save">
-                        <i class="fas fa-save mr-2"></i>Enregistrer les modifications
-                    </button>
-                </div>
+            <div class="btn-actions">
+                <button type="button" class="btn btn-cancel" onclick="window.location.href='plantations.php'">
+                    <i class="fas fa-times mr-2"></i>Annuler
+                </button>
+                <button type="submit" class="btn btn-save">
+                    <i class="fas fa-save mr-2"></i>Enregistrer les modifications
+                </button>
             </div>
         </form>
     </div>
@@ -336,6 +533,7 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
         const expl = planteur.exploitation || {};
         document.getElementById('region').value = expl.region || '';
         document.getElementById('sous_prefecture_village').value = expl.sous_prefecture_village || '';
+        document.getElementById('village').value = expl.village || '';
         document.getElementById('latitude').value = expl.latitude || '';
         document.getElementById('longitude').value = expl.longitude || '';
     }
@@ -391,6 +589,7 @@ $id = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
                 exploitation: {
                     region: formData.get('region'),
                     sous_prefecture_village: formData.get('sous_prefecture_village'),
+                    village: formData.get('village'),
                     latitude: formData.get('latitude'),
                     longitude: formData.get('longitude')
                 }
