@@ -34,11 +34,14 @@ global $pdo;
 $id = $_GET['id'] ?? null;
 $collecteurId = $_GET['collecteur_id'] ?? null;
 $since = $_GET['since'] ?? null;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = isset($_GET['limit']) ? max(1, min(100, (int)$_GET['limit'])) : 15;
+$offset = ($page - 1) * $limit;
 
 try {
     // Construction de la requête de base avec jointures vers regions et sous_prefectures
     $sql = "
-        SELECT 
+        SELECT DISTINCT
             e.id,
             e.numero_fiche,
             e.date_enregistrement,
@@ -67,22 +70,11 @@ try {
             ex.latitude,
             ex.video,
             ex.delegue_id,
-            ex.delegue_nom,
-            
-            -- Région (jointure sur le nom)
-            r.id AS region_id,
-            r.nom AS region_nom,
-            r.district_id,
-            
-            -- Sous-préfecture (jointure sur le nom et la région)
-            sp.id AS sous_prefecture_id,
-            sp.nom AS sous_prefecture_nom
+            ex.delegue_nom
             
         FROM exploitants e
         LEFT JOIN utilisateurs u ON e.collecteur_id = u.id
         LEFT JOIN exploitations ex ON ex.exploitant_id = e.id
-        LEFT JOIN regions r ON r.nom = ex.region
-        LEFT JOIN sous_prefectures sp ON sp.nom = ex.sous_prefecture_village AND sp.region_id = r.id
     ";
     
     $params = [];
@@ -111,7 +103,26 @@ try {
         $sql .= " WHERE " . implode(" AND ", $conditions);
     }
     
+    // Compter le total pour la pagination (seulement si pas de filtre par ID)
+    $totalCount = 0;
+    if (!$id) {
+        $countSql = "SELECT COUNT(DISTINCT e.id) as total FROM exploitants e 
+                     LEFT JOIN utilisateurs u ON e.collecteur_id = u.id
+                     LEFT JOIN exploitations ex ON ex.exploitant_id = e.id";
+        if (!empty($conditions)) {
+            $countSql .= " WHERE " . implode(" AND ", $conditions);
+        }
+        $countStmt = $pdo->prepare($countSql);
+        $countStmt->execute($params);
+        $totalCount = (int)$countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+    
     $sql .= " ORDER BY e.created_at DESC";
+    
+    // Ajouter la pagination (seulement si pas de filtre par ID)
+    if (!$id) {
+        $sql .= " LIMIT $limit OFFSET $offset";
+    }
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -216,20 +227,6 @@ try {
                 'delegue_nom' => $exploitant['delegue_nom'],
             ] : null,
             
-            // Région avec ID (jointure)
-            'region' => $exploitant['region_id'] ? [
-                'id' => (int)$exploitant['region_id'],
-                'nom' => $exploitant['region_nom'],
-                'district_id' => $exploitant['district_id'] ? (int)$exploitant['district_id'] : null,
-            ] : null,
-            
-            // Sous-préfecture/Département avec ID (jointure)
-            'sous_prefecture' => $exploitant['sous_prefecture_id'] ? [
-                'id' => (int)$exploitant['sous_prefecture_id'],
-                'nom' => $exploitant['sous_prefecture_nom'],
-                'region_id' => $exploitant['region_id'] ? (int)$exploitant['region_id'] : null,
-            ] : null,
-            
             // Cultures
             'cultures' => array_map(function($c) {
                 return [
@@ -263,8 +260,14 @@ try {
     if ($id && count($result) === 1) {
         success($result[0], 'Planteur récupéré avec succès');
     } else {
+        $totalPages = ceil($totalCount / $limit);
         success([
-            'total' => count($result),
+            'total' => $totalCount,
+            'page' => $page,
+            'limit' => $limit,
+            'total_pages' => $totalPages,
+            'has_next' => $page < $totalPages,
+            'has_prev' => $page > 1,
             'planteurs' => $result
         ], 'Liste des planteurs récupérée avec succès');
     }

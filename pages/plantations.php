@@ -520,6 +520,79 @@ include('header.php');
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
 }
+
+/* Pagination professionnelle */
+.pagination-container {
+    background: white;
+    border-radius: 12px;
+    padding: 15px 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-top: 20px;
+}
+
+.pagination-info {
+    font-size: 0.95rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.pagination-info strong {
+    color: #667eea;
+    font-weight: 700;
+}
+
+.pagination {
+    margin: 0;
+    gap: 5px;
+}
+
+.pagination .page-item .page-link {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #6c757d;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    margin: 0 2px;
+}
+
+.pagination .page-item .page-link:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.pagination .page-item.disabled .page-link:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.page-link-prev,
+.page-link-next {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.page-link-prev i,
+.page-link-next i {
+    font-size: 0.8rem;
+}
 </style>
 
 <section class="content-header">
@@ -595,6 +668,16 @@ include('header.php');
                 </thead>
                 <tbody id="planteursTbody"></tbody>
               </table>
+              <!-- Pagination -->
+              <div id="paginationContainer" class="pagination-container d-flex justify-content-between align-items-center" style="display: none;">
+                <div class="pagination-info">
+                  <span id="paginationInfo"></span>
+                </div>
+                <nav aria-label="Pagination">
+                  <ul class="pagination mb-0" id="paginationNav">
+                  </ul>
+                </nav>
+              </div>
             </div>
           </div>
         </div>
@@ -675,6 +758,10 @@ include('header.php');
     const defaultPhoto = `data:image/svg+xml;utf8,${encodeURIComponent(defaultPhotoSvg)}`;
 
     let allRows = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let totalCount = 0;
+    const limit = 15;
 
     function buildApiUrl(params) {
       const qs = new URLSearchParams(params || {}).toString();
@@ -1169,21 +1256,88 @@ include('header.php');
       });
     }
 
-    async function load() {
+    function renderPagination() {
+      const paginationContainer = document.getElementById('paginationContainer');
+      const paginationInfo = document.getElementById('paginationInfo');
+      const paginationNav = document.getElementById('paginationNav');
+      
+      if (totalCount === 0) {
+        paginationContainer.style.display = 'none';
+        return;
+      }
+      
+      paginationContainer.style.display = 'flex';
+      
+      const start = (currentPage - 1) * limit + 1;
+      const end = Math.min(currentPage * limit, totalCount);
+      paginationInfo.innerHTML = `Affichage <strong>${start}</strong> - <strong>${end}</strong> sur <strong>${totalCount}</strong> planteurs`;
+      
+      let html = '';
+      
+      // Bouton Previous avec icône
+      html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+        <a class="page-link page-link-prev" href="#" data-page="${currentPage - 1}" ${currentPage === 1 ? 'tabindex="-1"' : ''}>
+          <i class="fas fa-chevron-left"></i> Précédent
+        </a>
+      </li>`;
+      
+      // Numéros de pages (max 5 visibles)
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+          <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>`;
+      }
+      
+      // Bouton Next avec icône
+      html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+        <a class="page-link page-link-next" href="#" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'tabindex="-1"' : ''}>
+          Suivant <i class="fas fa-chevron-right"></i>
+        </a>
+      </li>`;
+      
+      paginationNav.innerHTML = html;
+    }
+    
+    // Gestionnaire de clic sur la pagination
+    document.getElementById('paginationNav').addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = e.target.closest('[data-page]');
+      if (!target) return;
+      
+      const page = parseInt(target.getAttribute('data-page'));
+      if (page < 1 || page > totalPages || page === currentPage) return;
+      
+      currentPage = page;
+      load(page);
+    });
+
+    async function load(page = 1) {
       errorEl.style.display = 'none';
       loaderEl.style.display = 'block';
       tableEl.style.display = 'none';
+      document.getElementById('paginationContainer').style.display = 'none';
       tbodyEl.innerHTML = '';
 
       try {
-        const res = await fetch(buildApiUrl({ action: 'planteurs' }), { cache: 'no-store' });
+        const res = await fetch(buildApiUrl({ action: 'planteurs', page: page, limit: limit }), { cache: 'no-store' });
         const json = await res.json();
         if (!res.ok || !json?.success) {
           throw new Error(json?.error || json?.message || 'Erreur API');
         }
 
         allRows = json.data?.planteurs || [];
+        totalCount = json.data?.total || 0;
+        totalPages = json.data?.total_pages || 1;
+        currentPage = json.data?.page || 1;
+        
         render(allRows);
+        renderPagination();
         loaderEl.style.display = 'none';
         tableEl.style.display = 'table';
       } catch (e) {
@@ -1198,7 +1352,7 @@ include('header.php');
     refreshEl.addEventListener('click', function() {
       applyFilter();
     });
-    load();
+    load(1);
   })();
 </script>
 

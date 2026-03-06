@@ -1128,6 +1128,12 @@ if (!isset($_SESSION['user_id'])) {
                     <p>Zones</p>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a href="gestions_doublons.php" class="nav-link">
+                    <i class="fas fa-map-marked-alt nav-icon"></i>
+                    <p>Gestion des doublons</p>
+                  </a>
+                </li>
               </ul>
             </li>
 

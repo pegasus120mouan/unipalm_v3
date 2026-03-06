@@ -303,4 +303,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Gestion des requêtes GET
-proxyRemote($remoteApiUrl, $_GET);
+$action = $_GET['action'] ?? 'planteurs';
+
+if ($action === 'doublons') {
+    // API pour les doublons - utiliser l'API distante dédiée
+    $doublonsUrl = 'https://api.objetombrepegasus.online/api/planteur/actions/doublons_planteurs.php';
+    proxyRemote($doublonsUrl, $_GET);
+} else {
+    proxyRemote($remoteApiUrl, $_GET);
+}
