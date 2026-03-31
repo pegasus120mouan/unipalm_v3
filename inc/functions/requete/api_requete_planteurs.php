@@ -309,6 +309,48 @@ if ($action === 'doublons') {
     // API pour les doublons - utiliser l'API distante dédiée
     $doublonsUrl = 'https://api.objetombrepegasus.online/api/planteur/actions/doublons_planteurs.php';
     proxyRemote($doublonsUrl, $_GET);
+} elseif ($action === 'regions') {
+    // Récupérer les régions et sous-préfectures distinctes depuis les données
+    $url = $remoteApiUrl . '?action=planteurs&limit=10000';
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 30,
+            'header' => "Accept: application/json\r\n",
+        ],
+    ]);
+    
+    $raw = @file_get_contents($url, false, $context);
+    if ($raw === false) {
+        error('Erreur lors de la récupération des données.', 502);
+    }
+    
+    $json = json_decode($raw, true);
+    $regions = [];
+    
+    if (isset($json['data']['planteurs']) && is_array($json['data']['planteurs'])) {
+        foreach ($json['data']['planteurs'] as $p) {
+            $region = $p['exploitation']['region'] ?? '';
+            $sousPref = $p['exploitation']['sous_prefecture_village'] ?? '';
+            
+            if ($region) {
+                if (!isset($regions[$region])) {
+                    $regions[$region] = [];
+                }
+                if ($sousPref && !in_array($sousPref, $regions[$region])) {
+                    $regions[$region][] = $sousPref;
+                }
+            }
+        }
+    }
+    
+    // Trier les régions et sous-préfectures
+    ksort($regions);
+    foreach ($regions as $r => $sps) {
+        sort($regions[$r]);
+    }
+    
+    success(['regions' => $regions], 'Régions récupérées');
 } else {
     proxyRemote($remoteApiUrl, $_GET);
 }

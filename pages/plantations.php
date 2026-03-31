@@ -593,6 +593,205 @@ include('header.php');
 .page-link-next i {
     font-size: 0.8rem;
 }
+
+/* Boutons d'impression */
+.btn-group-print {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-print-pdf {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-print-pdf:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+.btn-print-excel {
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-print-excel:hover {
+    background: linear-gradient(135deg, #1e8449 0%, #196f3d 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+}
+
+.btn-print {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-print:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #1f6aa5 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+/* Barre d'outils professionnelle */
+.toolbar-card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.toolbar-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+}
+
+.toolbar-title i {
+    color: #667eea;
+}
+
+.toolbar-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.toolbar-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 70px;
+}
+
+.toolbar-btn i {
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.toolbar-btn span {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.toolbar-btn-pdf {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    color: #c53030;
+}
+
+.toolbar-btn-pdf:hover {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.35);
+}
+
+.toolbar-btn-excel {
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+    color: #276749;
+}
+
+.toolbar-btn-excel:hover {
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.35);
+}
+
+.toolbar-btn-print {
+    background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+    color: #2b6cb0;
+}
+
+.toolbar-btn-print:hover {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.35);
+}
+
+.toolbar-right {
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .toolbar-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .toolbar-left {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .toolbar-buttons {
+        justify-content: center;
+    }
+    
+    .toolbar-right {
+        justify-content: center;
+    }
+}
+
+@media print {
+    .filter-card, .toolbar-card, .localisation-btn, .pagination-container, 
+    .action-buttons, .content-header, .main-sidebar, .main-header, .main-footer,
+    #loader, .modal { display: none !important; }
+    .table-container { box-shadow: none !important; padding: 0 !important; }
+    #example1 { display: table !important; }
+    #example1 th:first-child, #example1 td:first-child,
+    #example1 th:last-child, #example1 td:last-child { display: none !important; }
+    body { background: white !important; }
+}
 </style>
 
 <section class="content-header">
@@ -639,17 +838,38 @@ include('header.php');
 
           <div id="planteursError" class="alert alert-danger" style="display:none;"></div>
 
+          <!-- Barre d'outils professionnelle -->
+          <div class="toolbar-card">
+            <div class="toolbar-left">
+              <span class="toolbar-title"><i class="fas fa-download mr-2"></i>Exporter les données</span>
+              <div class="toolbar-buttons">
+                <button type="button" class="toolbar-btn toolbar-btn-pdf" data-toggle="modal" data-target="#exportPdfModal">
+                  <i class="fas fa-file-pdf"></i>
+                  <span>PDF</span>
+                </button>
+                <button type="button" class="toolbar-btn toolbar-btn-excel" onclick="printTableExcel()">
+                  <i class="fas fa-file-excel"></i>
+                  <span>Excel</span>
+                </button>
+                <button type="button" class="toolbar-btn toolbar-btn-print" onclick="printTable()">
+                  <i class="fas fa-print"></i>
+                  <span>Imprimer</span>
+                </button>
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <a href="localisation.php" class="btn localisation-btn">
+                <i class="fas fa-map-marked-alt mr-2"></i>Localisation des plantations
+              </a>
+            </div>
+          </div>
+
           <div class="table-container fade-in-up">
             <div id="loader" class="text-center">
               <div class="loader-spinner"></div>
               <h5 class="text-muted">Chargement des planteurs...</h5>
             </div>
 
-            <div class="d-flex justify-content-end mb-3">
-              <a href="localisation.php" class="btn localisation-btn">
-                <i class="fas fa-map-marked-alt mr-2"></i>Localisation des plantations
-              </a>
-            </div>
             <div class="table-responsive" style="overflow-x: hidden;">
               <table id="example1" class="table table-hover" style="display: none; width: 100%; table-layout: fixed;">
                 <thead>
@@ -732,6 +952,52 @@ include('header.php');
         </button>
         <button type="button" class="btn btn-danger" id="confirmDeleteBtn" style="padding: 10px 30px; border-radius: 8px; font-weight: 500; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none;">
           <i class="fas fa-trash-alt mr-2"></i>Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Export PDF -->
+<div class="modal fade" id="exportPdfModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+      <div class="modal-header" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border-radius: 15px 15px 0 0; border: none;">
+        <h5 class="modal-title" style="color: white; font-weight: 600;">
+          <i class="fas fa-file-pdf mr-2"></i>Exporter en PDF
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 25px;">
+        <p class="text-muted mb-4">Sélectionnez les filtres pour l'export PDF :</p>
+        
+        <div class="form-group">
+          <label class="filter-label"><i class="fas fa-map mr-2"></i>Région</label>
+          <select id="exportRegion" class="form-control filter-input">
+            <option value="">-- Toutes les régions --</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="filter-label"><i class="fas fa-map-marker-alt mr-2"></i>Sous-préfecture</label>
+          <select id="exportSousPrefecture" class="form-control filter-input" disabled>
+            <option value="">-- Toutes les sous-préfectures --</option>
+          </select>
+        </div>
+        
+        <div class="alert alert-info" style="border-radius: 10px; border: none; background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);">
+          <i class="fas fa-info-circle mr-2"></i>
+          <small>L'export inclura tous les planteurs correspondant aux filtres sélectionnés.</small>
+        </div>
+      </div>
+      <div class="modal-footer" style="border: none; padding: 15px 25px 25px; justify-content: center; gap: 15px;">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding: 10px 25px; border-radius: 8px; font-weight: 500;">
+          <i class="fas fa-times mr-2"></i>Annuler
+        </button>
+        <button type="button" class="btn" id="confirmExportPdfBtn" style="padding: 10px 25px; border-radius: 8px; font-weight: 500; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none; color: white;">
+          <i class="fas fa-file-pdf mr-2"></i>Générer PDF
         </button>
       </div>
     </div>
@@ -1354,6 +1620,283 @@ include('header.php');
     });
     load(1);
   })();
+
+  // Fonctions d'impression globales
+  function printTable() {
+    window.print();
+  }
+
+  function printTablePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+    
+    const title = 'Liste des Planteurs - UNIPALM';
+    const date = new Date().toLocaleDateString('fr-FR');
+    
+    doc.setFontSize(18);
+    doc.setTextColor(102, 126, 234);
+    doc.text(title, 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Généré le: ${date}`, 14, 28);
+    
+    const table = document.getElementById('example1');
+    const rows = table.querySelectorAll('tbody tr');
+    
+    const headers = ['N° Fiche', 'Nom & Prénoms', 'Téléphone', 'Collecteur', 'Région', 'Sous-préfecture', 'Village', 'Créé le'];
+    const data = [];
+    
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length > 1) {
+        data.push([
+          cells[1]?.textContent?.trim() || '',
+          cells[2]?.textContent?.trim() || '',
+          cells[3]?.textContent?.trim() || '',
+          cells[4]?.textContent?.trim() || '',
+          cells[5]?.textContent?.trim() || '',
+          cells[6]?.textContent?.trim() || '',
+          cells[7]?.textContent?.trim() || '',
+          cells[8]?.textContent?.trim() || ''
+        ]);
+      }
+    });
+    
+    doc.autoTable({
+      head: [headers],
+      body: data,
+      startY: 35,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      margin: { left: 14, right: 14 }
+    });
+    
+    doc.save(`planteurs_${date.replace(/\//g, '-')}.pdf`);
+  }
+
+  function printTableExcel() {
+    const table = document.getElementById('example1');
+    const rows = table.querySelectorAll('tbody tr');
+    
+    let csv = 'N° Fiche;Nom & Prénoms;Téléphone;Collecteur;Région;Sous-préfecture;Village;Créé le\n';
+    
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length > 1) {
+        const rowData = [
+          cells[1]?.textContent?.trim() || '',
+          cells[2]?.textContent?.trim() || '',
+          cells[3]?.textContent?.trim() || '',
+          cells[4]?.textContent?.trim() || '',
+          cells[5]?.textContent?.trim() || '',
+          cells[6]?.textContent?.trim() || '',
+          cells[7]?.textContent?.trim() || '',
+          cells[8]?.textContent?.trim() || ''
+        ];
+        csv += rowData.join(';') + '\n';
+      }
+    });
+    
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+    link.href = URL.createObjectURL(blob);
+    link.download = `planteurs_${date}.csv`;
+    link.click();
+  }
+
+  // Gestion du modal d'export PDF
+  let regionsData = {};
+  let allPlanteursForExport = [];
+  let regionsLoaded = false;
+
+  // Charger les régions depuis l'API
+  async function loadRegions() {
+    const regionSelect = document.getElementById('exportRegion');
+    
+    if (regionsLoaded && Object.keys(regionsData).length > 0) {
+      return; // Déjà chargé
+    }
+    
+    regionSelect.innerHTML = '<option value="">Chargement des régions...</option>';
+    regionSelect.disabled = true;
+    
+    try {
+      const res = await fetch('../inc/functions/requete/api_requete_planteurs.php?action=regions', { cache: 'no-store' });
+      const json = await res.json();
+      
+      if (res.ok && json?.success && json.data?.regions) {
+        regionsData = json.data.regions;
+        regionsLoaded = true;
+        
+        // Remplir le select des régions
+        regionSelect.innerHTML = '<option value="">-- Toutes les régions --</option>';
+        Object.keys(regionsData).sort().forEach(region => {
+          if (region) {
+            regionSelect.innerHTML += `<option value="${region}">${region}</option>`;
+          }
+        });
+        regionSelect.disabled = false;
+      } else {
+        regionSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+      }
+    } catch (e) {
+      console.error('Erreur chargement régions:', e);
+      regionSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+    }
+  }
+
+  // Charger toutes les données pour l'export (sans pagination)
+  async function loadAllDataForExport() {
+    try {
+      const res = await fetch('../inc/functions/requete/api_requete_planteurs.php?action=planteurs&limit=10000', { cache: 'no-store' });
+      const json = await res.json();
+      if (res.ok && json?.success) {
+        allPlanteursForExport = json.data?.planteurs || [];
+      }
+    } catch (e) {
+      console.error('Erreur chargement données export:', e);
+    }
+  }
+
+  // Événement changement de région
+  document.getElementById('exportRegion').addEventListener('change', function() {
+    const sousPrefectureSelect = document.getElementById('exportSousPrefecture');
+    const selectedRegion = this.value;
+    
+    sousPrefectureSelect.innerHTML = '<option value="">-- Toutes les sous-préfectures --</option>';
+    
+    if (selectedRegion && regionsData[selectedRegion]) {
+      sousPrefectureSelect.disabled = false;
+      const sousPrefectures = Array.isArray(regionsData[selectedRegion]) 
+        ? regionsData[selectedRegion] 
+        : Array.from(regionsData[selectedRegion]);
+      sousPrefectures.sort().forEach(sp => {
+        if (sp) {
+          sousPrefectureSelect.innerHTML += `<option value="${sp}">${sp}</option>`;
+        }
+      });
+    } else {
+      sousPrefectureSelect.disabled = true;
+    }
+  });
+
+  // Événement ouverture du modal
+  $('#exportPdfModal').on('show.bs.modal', function() {
+    loadRegions();
+    loadAllDataForExport();
+  });
+
+  // Événement clic sur Générer PDF
+  document.getElementById('confirmExportPdfBtn').addEventListener('click', function() {
+    const selectedRegion = document.getElementById('exportRegion').value;
+    const selectedSousPref = document.getElementById('exportSousPrefecture').value;
+    
+    // Filtrer les données
+    let filteredData = allPlanteursForExport;
+    
+    if (selectedRegion) {
+      filteredData = filteredData.filter(p => (p.exploitation?.region || '') === selectedRegion);
+    }
+    
+    if (selectedSousPref) {
+      filteredData = filteredData.filter(p => (p.exploitation?.sous_prefecture_village || '') === selectedSousPref);
+    }
+    
+    // Générer le PDF
+    generateFilteredPDF(filteredData, selectedRegion, selectedSousPref);
+    
+    // Fermer le modal
+    $('#exportPdfModal').modal('hide');
+  });
+
+  function generateFilteredPDF(data, region, sousPref) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+    
+    let title = 'Liste des Planteurs - UNIPALM';
+    let subtitle = '';
+    
+    if (region) {
+      subtitle = `Région: ${region}`;
+      if (sousPref) {
+        subtitle += ` | Sous-préfecture: ${sousPref}`;
+      }
+    }
+    
+    const date = new Date().toLocaleDateString('fr-FR');
+    
+    doc.setFontSize(18);
+    doc.setTextColor(102, 126, 234);
+    doc.text(title, 14, 20);
+    
+    if (subtitle) {
+      doc.setFontSize(12);
+      doc.setTextColor(80);
+      doc.text(subtitle, 14, 28);
+    }
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Généré le: ${date} | Total: ${data.length} planteur(s)`, 14, subtitle ? 36 : 28);
+    
+    const headers = ['N° Fiche', 'Nom & Prénoms', 'Téléphone', 'Collecteur', 'Région', 'Sous-préfecture', 'Village', 'Superficie (ha)', 'Créé le'];
+    const tableData = data.map(p => {
+      const collecteur = p.collecteur ? `${p.collecteur.nom || ''} ${p.collecteur.prenoms || ''}`.trim() : '';
+      const createdAt = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '';
+      // Calculer la superficie totale des parcelles
+      let superficie = 0;
+      if (p.cultures && Array.isArray(p.cultures)) {
+        p.cultures.forEach(c => {
+          if (c.parcelles && Array.isArray(c.parcelles)) {
+            c.parcelles.forEach(parc => {
+              superficie += parseFloat(parc.superficie || parc.surface || 0);
+            });
+          }
+        });
+      } else if (p.exploitation?.superficie) {
+        superficie = parseFloat(p.exploitation.superficie);
+      } else if (p.parcelles && Array.isArray(p.parcelles)) {
+        p.parcelles.forEach(parc => {
+          superficie += parseFloat(parc.superficie || parc.surface || 0);
+        });
+      }
+      return [
+        p.numero_fiche || '',
+        p.nom_prenoms || '',
+        p.telephone || '',
+        collecteur,
+        p.exploitation?.region || '',
+        p.exploitation?.sous_prefecture_village || '',
+        p.exploitation?.village || '',
+        superficie > 0 ? superficie.toFixed(2) : '-',
+        createdAt
+      ];
+    });
+    
+    doc.autoTable({
+      head: [headers],
+      body: tableData,
+      startY: subtitle ? 42 : 35,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      margin: { left: 14, right: 14 }
+    });
+    
+    const fileName = region 
+      ? `planteurs_${region.replace(/\s+/g, '_')}${sousPref ? '_' + sousPref.replace(/\s+/g, '_') : ''}_${date.replace(/\//g, '-')}.pdf`
+      : `planteurs_${date.replace(/\//g, '-')}.pdf`;
+    
+    doc.save(fileName);
+  }
 </script>
+
+<!-- jsPDF pour export PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
 <?php include('footer.php'); ?>
