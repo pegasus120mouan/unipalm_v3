@@ -1245,6 +1245,12 @@ include('header.php');
     
     function loadImageAsBase64(url) {
         return new Promise((resolve, reject) => {
+            // Utiliser le proxy pour les images HTTP en production HTTPS
+            let imageUrl = url;
+            if (isHttps && url && url.startsWith('http://')) {
+                imageUrl = '../inc/functions/requete/proxy_image.php?url=' + encodeURIComponent(url);
+            }
+            
             const img = new Image();
             img.crossOrigin = 'Anonymous';
             img.onload = function() {
@@ -1260,7 +1266,7 @@ include('header.php');
                 }
             };
             img.onerror = () => resolve(null);
-            img.src = url;
+            img.src = imageUrl;
         });
     }
 
