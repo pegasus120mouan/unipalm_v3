@@ -39,6 +39,14 @@ include('header.php');
     height: 50px;
     object-fit: cover;
     border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+}
+.avatar-cell:hover {
+    transform: scale(1.1);
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 .role-badge {
     display: inline-block;
@@ -101,6 +109,7 @@ include('header.php');
 .action-btn:hover {
     transform: scale(1.1);
 }
+.action-btn.card { background: #9b59b6; color: white; }
 .action-btn.edit { background: #3498db; color: white; }
 .action-btn.delete { background: #e74c3c; color: white; }
 .search-container {
@@ -479,6 +488,58 @@ include('header.php');
     </div>
 </div>
 
+<!-- Modal Changer la photo -->
+<div class="modal fade" id="changePhotoModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px 15px 0 0; border: none;">
+                <h5 class="modal-title" style="color: white; font-weight: 600;">
+                    <i class="fas fa-camera mr-2"></i>Changer la photo
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="changePhotoForm" enctype="multipart/form-data">
+                <div class="modal-body text-center" style="padding: 30px;">
+                    <input type="hidden" id="photoUserId" name="user_id">
+                    
+                    <div id="currentPhotoContainer" style="margin-bottom: 20px;">
+                        <img id="currentPhoto" src="" alt="Photo actuelle" 
+                             style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 4px solid #667eea; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                    </div>
+                    
+                    <p id="photoUserName" style="font-weight: 600; color: #2c3e50; margin-bottom: 20px;"></p>
+                    
+                    <div class="form-group">
+                        <label for="newPhoto" class="btn btn-outline-primary btn-lg" style="cursor: pointer; border-radius: 10px; padding: 15px 30px;">
+                            <i class="fas fa-upload mr-2"></i>Sélectionner une nouvelle photo
+                        </label>
+                        <input type="file" id="newPhoto" name="photo" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div id="photoPreviewContainer" style="display: none; margin-top: 20px;">
+                        <p class="text-muted mb-2">Aperçu de la nouvelle photo :</p>
+                        <img id="photoPreview" src="" alt="Aperçu" 
+                             style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 4px solid #27ae60; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);">
+                    </div>
+                    
+                    <div id="photoError" class="alert alert-danger mt-3" style="display: none; border-radius: 10px;"></div>
+                    <div id="photoSuccess" class="alert alert-success mt-3" style="display: none; border-radius: 10px;"></div>
+                </div>
+                <div class="modal-footer" style="border: none; padding: 15px 30px 30px; justify-content: center; gap: 15px;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding: 10px 25px; border-radius: 8px; font-weight: 500;">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </button>
+                    <button type="submit" id="savePhotoBtn" class="btn" style="padding: 10px 25px; border-radius: 8px; font-weight: 500; background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%); border: none; color: white;" disabled>
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php include('footer.php'); ?>
 
 <script>
@@ -557,9 +618,15 @@ include('header.php');
                     <img src="${escapeHtml(avatarUrl)}" 
                          alt="Avatar" 
                          class="avatar-cell"
+                         data-id="${escapeHtml(user.id)}"
+                         data-name="${escapeHtml((user.nom || '') + ' ' + (user.prenoms || ''))}"
+                         title="Cliquez pour changer la photo"
                          onerror="this.onerror=null;this.src='${escapeHtml(defaultAvatar)}';">
                 </td>
                 <td>
+                    <button type="button" class="action-btn card" data-user='${JSON.stringify(user).replace(/'/g, "&#39;")}' title="Générer Carte">
+                        <i class="fas fa-id-card"></i>
+                    </button>
                     <button type="button" class="action-btn edit" data-id="${escapeHtml(user.id)}" title="Modifier">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -894,7 +961,315 @@ include('header.php');
         editSuccessEl.style.display = 'none';
     });
 
+    // ========== GESTION DU CHANGEMENT DE PHOTO ==========
+    
+    // Clic sur l'avatar pour ouvrir le modal
+    document.getElementById('collecteursTbody').addEventListener('click', function(e) {
+        const avatar = e.target.closest('.avatar-cell');
+        if (!avatar) return;
+        
+        const userId = avatar.dataset.id;
+        const userName = avatar.dataset.name;
+        const currentSrc = avatar.src;
+        
+        document.getElementById('photoUserId').value = userId;
+        document.getElementById('photoUserName').textContent = userName;
+        document.getElementById('currentPhoto').src = currentSrc;
+        document.getElementById('currentPhoto').onerror = function() {
+            this.src = defaultAvatar;
+        };
+        
+        // Reset le formulaire
+        document.getElementById('newPhoto').value = '';
+        document.getElementById('photoPreviewContainer').style.display = 'none';
+        document.getElementById('photoError').style.display = 'none';
+        document.getElementById('photoSuccess').style.display = 'none';
+        document.getElementById('savePhotoBtn').disabled = true;
+        
+        $('#changePhotoModal').modal('show');
+    });
+    
+    // Prévisualisation de la nouvelle photo
+    document.getElementById('newPhoto').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const previewContainer = document.getElementById('photoPreviewContainer');
+        const preview = document.getElementById('photoPreview');
+        const saveBtn = document.getElementById('savePhotoBtn');
+        const errorEl = document.getElementById('photoError');
+        
+        errorEl.style.display = 'none';
+        
+        if (!file) {
+            previewContainer.style.display = 'none';
+            saveBtn.disabled = true;
+            return;
+        }
+        
+        // Vérifier le type de fichier
+        if (!file.type.startsWith('image/')) {
+            errorEl.textContent = 'Veuillez sélectionner une image valide.';
+            errorEl.style.display = 'block';
+            previewContainer.style.display = 'none';
+            saveBtn.disabled = true;
+            return;
+        }
+        
+        // Vérifier la taille (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            errorEl.textContent = 'L\'image ne doit pas dépasser 5 Mo.';
+            errorEl.style.display = 'block';
+            previewContainer.style.display = 'none';
+            saveBtn.disabled = true;
+            return;
+        }
+        
+        // Afficher l'aperçu
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            previewContainer.style.display = 'block';
+            saveBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Soumettre le formulaire de changement de photo
+    document.getElementById('changePhotoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const errorEl = document.getElementById('photoError');
+        const successEl = document.getElementById('photoSuccess');
+        const saveBtn = document.getElementById('savePhotoBtn');
+        const fileInput = document.getElementById('newPhoto');
+        const userId = document.getElementById('photoUserId').value;
+        
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+        
+        if (!fileInput.files[0]) {
+            errorEl.textContent = 'Veuillez sélectionner une photo.';
+            errorEl.style.display = 'block';
+            return;
+        }
+        
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi...';
+        
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('photo', fileInput.files[0]);
+        formData.append('action', 'update_photo');
+        
+        try {
+            const response = await fetch('../inc/functions/requete/api_update_photo_utilisateur.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.error || 'Erreur lors de la mise à jour de la photo');
+            }
+            
+            successEl.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Photo mise à jour avec succès !';
+            successEl.style.display = 'block';
+            
+            setTimeout(() => {
+                $('#changePhotoModal').modal('hide');
+                loadCollecteurs();
+            }, 1500);
+            
+        } catch (err) {
+            errorEl.textContent = err.message;
+            errorEl.style.display = 'block';
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Enregistrer';
+        }
+    });
+    
+    // Reset le modal de photo à la fermeture
+    $('#changePhotoModal').on('hidden.bs.modal', function() {
+        document.getElementById('changePhotoForm').reset();
+        document.getElementById('photoPreviewContainer').style.display = 'none';
+        document.getElementById('photoError').style.display = 'none';
+        document.getElementById('photoSuccess').style.display = 'none';
+        document.getElementById('savePhotoBtn').disabled = true;
+    });
+
+    // ========== GÉNÉRATION DE CARTE D'IDENTIFICATION ==========
+    
+    document.getElementById('collecteursTbody').addEventListener('click', function(e) {
+        const cardBtn = e.target.closest('.action-btn.card');
+        if (!cardBtn) return;
+        
+        const userData = JSON.parse(cardBtn.dataset.user);
+        generateIdCard(userData);
+    });
+    
+    async function generateIdCard(user) {
+        const { jsPDF } = window.jspdf;
+        
+        // Format carte de crédit: 85.6mm x 53.98mm
+        const cardWidth = 85.6;
+        const cardHeight = 54;
+        
+        const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: [cardHeight, cardWidth]
+        });
+        
+        // Fond dégradé vert clair
+        doc.setFillColor(200, 230, 201);
+        doc.roundedRect(0, 0, cardWidth, cardHeight, 3, 3, 'F');
+        
+        // Bordure intérieure
+        doc.setDrawColor(150, 200, 150);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(2, 2, cardWidth - 4, cardHeight - 4, 2, 2, 'S');
+        
+        // En-tête avec logo UNIPALM
+        doc.setFillColor(39, 174, 96);
+        doc.roundedRect(3, 3, cardWidth - 6, 12, 1, 1, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('UNIPALM', 8, 10);
+        
+        doc.setFontSize(6);
+        doc.setFont('helvetica', 'normal');
+        doc.text("CARTE D'IDENTIFICATION", 8, 13);
+        
+        // Texte "COLLECTEUR" en haut à droite
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(user.role || 'COLLECTEUR').toUpperCase(), cardWidth - 8, 10, { align: 'right' });
+        
+        // Zone photo (placeholder ou vraie photo)
+        const photoX = 6;
+        const photoY = 18;
+        const photoSize = 20;
+        
+        doc.setFillColor(230, 230, 230);
+        doc.roundedRect(photoX, photoY, photoSize, photoSize, 1, 1, 'F');
+        doc.setDrawColor(39, 174, 96);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(photoX, photoY, photoSize, photoSize, 1, 1, 'S');
+        
+        // Essayer de charger la photo
+        const avatarUrl = user.avatar_url;
+        if (avatarUrl && avatarUrl !== defaultAvatar) {
+            try {
+                const img = await loadImageAsBase64(avatarUrl);
+                if (img) {
+                    doc.addImage(img, 'JPEG', photoX + 0.5, photoY + 0.5, photoSize - 1, photoSize - 1);
+                }
+            } catch (e) {
+                console.log('Photo non chargée:', e);
+            }
+        }
+        
+        // Informations utilisateur
+        const infoX = 30;
+        let infoY = 20;
+        
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(user.nom || '').toUpperCase(), infoX, infoY);
+        
+        infoY += 5;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(user.prenoms || ''), infoX, infoY);
+        
+        infoY += 6;
+        doc.setFontSize(7);
+        doc.setTextColor(80, 80, 80);
+        doc.text('Contact:', infoX, infoY);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(user.contact || ''), infoX + 12, infoY);
+        
+        infoY += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.text('Zone:', infoX, infoY);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(user.zone_nom || user.nom_zone || 'Non assigné'), infoX + 12, infoY);
+        
+        // QR Code (URL de vérification)
+        const qrX = cardWidth - 22;
+        const qrY = 18;
+        const qrSize = 18;
+        
+        // URL de vérification avec l'ID de l'utilisateur
+        const qrData = 'https://unipalm.ci/verification.php?id=' + user.id;
+        
+        // Générer le QR code
+        try {
+            const qrCanvas = document.createElement('canvas');
+            QRCode.toCanvas(qrCanvas, qrData, { width: 150, margin: 1 }, function(error) {
+                if (!error) {
+                    const qrDataUrl = qrCanvas.toDataURL('image/png');
+                    doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+                }
+            });
+        } catch (e) {
+            console.log('QR Code error:', e);
+        }
+        
+        // Numéro de carte en bas
+        doc.setFillColor(39, 174, 96);
+        doc.roundedRect(3, cardHeight - 10, cardWidth - 6, 7, 1, 1, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        const cardNumber = 'CARTE N° : UNI-' + String(user.id).padStart(6, '0');
+        doc.text(cardNumber, 8, cardHeight - 5);
+        
+        // Date de création
+        const dateCreation = user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : new Date().toLocaleDateString('fr-FR');
+        doc.setFontSize(6);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Créé le: ' + dateCreation, cardWidth - 8, cardHeight - 5, { align: 'right' });
+        
+        // Attendre un peu pour le QR code puis sauvegarder
+        setTimeout(() => {
+            const fileName = `carte_${user.nom}_${user.prenoms}`.replace(/\s+/g, '_') + '.pdf';
+            doc.save(fileName);
+        }, 500);
+    }
+    
+    function loadImageAsBase64(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                try {
+                    resolve(canvas.toDataURL('image/jpeg'));
+                } catch (e) {
+                    resolve(null);
+                }
+            };
+            img.onerror = () => resolve(null);
+            img.src = url;
+        });
+    }
+
     loadCollecteurs();
     loadZones();
 })();
 </script>
+
+<!-- jsPDF et QRCode pour génération de carte -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
