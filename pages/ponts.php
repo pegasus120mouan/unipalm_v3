@@ -18,7 +18,11 @@ if ($_POST) {
         }
         
         if (isset($_POST['update_pont'])) {
-            $result = updatePontBascule($conn, $_POST['id_pont'], $_POST['code_pont'], $_POST['nom_pont'], $_POST['latitude'], $_POST['longitude'], $_POST['gerant'], $_POST['cooperatif'], $_POST['statut']);
+            // Convertir les valeurs vides en null pour latitude et longitude
+            $latitude = !empty($_POST['latitude']) ? $_POST['latitude'] : null;
+            $longitude = !empty($_POST['longitude']) ? $_POST['longitude'] : null;
+            
+            $result = updatePontBascule($conn, $_POST['id_pont'], $_POST['code_pont'], $_POST['nom_pont'], $latitude, $longitude, $_POST['gerant'], $_POST['cooperatif'], $_POST['statut']);
             if ($result) {
                 header('Location: ponts.php?success=update');
                 exit();
@@ -689,12 +693,12 @@ include('header.php');
                                         <td>
                                             <div class="action-buttons-container">
                                                 <button type="button" class="btn-circle btn-circle-success" 
-                                                        onclick="generateQRCode(<?= $pont['id_pont'] ?>, '<?= htmlspecialchars($pont['code_pont']) ?>', '<?= htmlspecialchars($pont['gerant']) ?>', <?= $pont['latitude'] ?>, <?= $pont['longitude'] ?>, '<?= htmlspecialchars($pont['cooperatif'] ?? '') ?>')" 
+                                                        onclick="generateQRCode(<?= $pont['id_pont'] ?>, '<?= htmlspecialchars($pont['code_pont']) ?>', '<?= htmlspecialchars($pont['gerant']) ?>', <?= $pont['latitude'] ?? 'null' ?>, <?= $pont['longitude'] ?? 'null' ?>, '<?= htmlspecialchars($pont['cooperatif'] ?? '') ?>')" 
                                                         title="Générer QR Code" data-toggle="tooltip">
                                                     <i class="fas fa-qrcode"></i>
                                                 </button>
                                                 <button type="button" class="btn-circle btn-circle-primary" 
-                                                        onclick="editPontDirect(<?= $pont['id_pont'] ?>, '<?= htmlspecialchars($pont['code_pont']) ?>', '<?= htmlspecialchars($pont['nom_pont'] ?? '') ?>', <?= $pont['latitude'] ?>, <?= $pont['longitude'] ?>, '<?= htmlspecialchars($pont['gerant']) ?>', '<?= htmlspecialchars($pont['cooperatif'] ?? '') ?>', '<?= $pont['statut'] ?? 'Inactif' ?>')" 
+                                                        onclick="editPontDirect(<?= $pont['id_pont'] ?>, '<?= htmlspecialchars($pont['code_pont']) ?>', '<?= htmlspecialchars($pont['nom_pont'] ?? '') ?>', <?= $pont['latitude'] ?? 'null' ?>, <?= $pont['longitude'] ?? 'null' ?>, '<?= htmlspecialchars($pont['gerant']) ?>', '<?= htmlspecialchars($pont['cooperatif'] ?? '') ?>', '<?= $pont['statut'] ?? 'Inactif' ?>')" 
                                                         title="Modifier les informations" data-toggle="tooltip">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
@@ -820,14 +824,14 @@ include('header.php');
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="edit_latitude">Latitude *</label>
-                                <input type="number" step="any" class="form-control" id="edit_latitude" name="latitude" required>
+                                <label for="edit_latitude">Latitude</label>
+                                <input type="number" step="any" class="form-control" id="edit_latitude" name="latitude" placeholder="Optionnel">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="edit_longitude">Longitude *</label>
-                                <input type="number" step="any" class="form-control" id="edit_longitude" name="longitude" required>
+                                <label for="edit_longitude">Longitude</label>
+                                <input type="number" step="any" class="form-control" id="edit_longitude" name="longitude" placeholder="Optionnel">
                             </div>
                         </div>
                     </div>
@@ -1043,6 +1047,8 @@ function editPontDirect(id, code_pont, nom_pont, latitude, longitude, gerant, co
     // Nettoyer les données
     if (!nom_pont || nom_pont === 'Non défini') nom_pont = '';
     if (!cooperatif || cooperatif === 'Non spécifiée') cooperatif = '';
+    if (latitude === null || latitude === undefined) latitude = '';
+    if (longitude === null || longitude === undefined) longitude = '';
     
     // Remplir le formulaire de modification
     document.getElementById('edit_id_pont').value = id;
