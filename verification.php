@@ -198,10 +198,6 @@ if ($userId > 0) {
                     <span class="value"><?= htmlspecialchars($user['prenoms']) ?></span>
                 </div>
                 <div class="row">
-                    <span class="label">Contact</span>
-                    <span class="value"><?= htmlspecialchars($user['contact']) ?></span>
-                </div>
-                <div class="row">
                     <span class="label">Zone</span>
                     <span class="value"><?= htmlspecialchars($user['zone_nom'] ?? 'Non assigné') ?></span>
                 </div>

@@ -838,6 +838,30 @@ include('header.php');
 
           <div id="planteursError" class="alert alert-danger" style="display:none;"></div>
 
+          <!-- Statistique Superficie Totale -->
+          <div class="row mb-3">
+            <div class="col-12">
+              <div class="card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border: none; border-radius: 15px;">
+                <div class="card-body d-flex align-items-center justify-content-between py-3 px-4">
+                  <div class="d-flex align-items-center">
+                    <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                      <i class="fas fa-map" style="font-size: 24px; color: white;"></i>
+                    </div>
+                    <div>
+                      <h3 class="mb-0" style="color: white; font-weight: 700;" id="superficieTotale">0,00 ha</h3>
+                      <small style="color: rgba(255,255,255,0.8);">Superficie totale des plantations</small>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="badge" style="background: rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 20px; font-size: 14px;">
+                      <i class="fas fa-users mr-1"></i><span id="nombrePlanteurs">0</span> planteurs
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Barre d'outils professionnelle -->
           <div class="toolbar-card">
             <div class="toolbar-left">
@@ -1522,6 +1546,43 @@ include('header.php');
       });
     }
 
+    function updateSuperficieTotale(data) {
+      const superficieEl = document.getElementById('superficieTotale');
+      const nombreEl = document.getElementById('nombrePlanteurs');
+      
+      // Nombre de planteurs
+      nombreEl.textContent = (data?.total || 0).toLocaleString('fr-FR');
+      
+      // Utiliser les stats de l'API si disponibles
+      if (data?.superficie_totale !== undefined) {
+        const superficie = parseFloat(data.superficie_totale) || 0;
+        superficieEl.textContent = superficie.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ha';
+      } else {
+        // Charger la superficie totale depuis l'API stats
+        loadSuperficieTotale();
+      }
+    }
+    
+    async function loadSuperficieTotale() {
+      const superficieEl = document.getElementById('superficieTotale');
+      superficieEl.textContent = 'Chargement...';
+      
+      try {
+        const res = await fetch('https://api.objetombrepegasus.online/api/planteur/actions/api_stats_global.php', { cache: 'no-store' });
+        const json = await res.json();
+        
+        if (res.ok && json?.success && json.data?.superficie_totale !== undefined) {
+          const superficie = parseFloat(json.data.superficie_totale) || 0;
+          superficieEl.textContent = superficie.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ha';
+        } else {
+          superficieEl.textContent = 'N/A';
+        }
+      } catch (e) {
+        console.error('Erreur chargement superficie:', e);
+        superficieEl.textContent = 'N/A';
+      }
+    }
+
     function renderPagination() {
       const paginationContainer = document.getElementById('paginationContainer');
       const paginationInfo = document.getElementById('paginationInfo');
@@ -1601,6 +1662,9 @@ include('header.php');
         totalCount = json.data?.total || 0;
         totalPages = json.data?.total_pages || 1;
         currentPage = json.data?.page || 1;
+        
+        // Calculer la superficie totale
+        updateSuperficieTotale(json.data);
         
         render(allRows);
         renderPagination();

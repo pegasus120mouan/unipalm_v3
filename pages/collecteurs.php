@@ -112,6 +112,16 @@ include('header.php');
 .action-btn.card { background: #9b59b6; color: white; }
 .action-btn.edit { background: #3498db; color: white; }
 .action-btn.delete { background: #e74c3c; color: white; }
+.collecteur-link {
+    color: #2c3e50;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.collecteur-link:hover {
+    color: #27ae60;
+    text-decoration: underline;
+}
 .search-container {
     background: white;
     border-radius: 12px;
@@ -608,7 +618,7 @@ include('header.php');
 
         return `
             <tr>
-                <td>${escapeHtml(user.nom || '')}</td>
+                <td><a href="collecteur_details.php?id=${escapeHtml(user.id)}" class="collecteur-link" title="Voir les détails">${escapeHtml(user.nom || '')}</a></td>
                 <td>${escapeHtml(user.prenoms || '')}</td>
                 <td><i class="fas fa-phone mr-1 text-muted"></i>${escapeHtml(user.contact || '')}</td>
                 <td><span class="role-badge ${roleClass}">${escapeHtml(user.role || 'N/A')}</span></td>
