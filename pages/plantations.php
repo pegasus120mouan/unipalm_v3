@@ -812,15 +812,19 @@ include('header.php');
                 <i class="fas fa-filter mr-2"></i>Filtres de Recherche
               </h5>
               <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                   <label class="filter-label"><i class="fas fa-user mr-1"></i>Nom/Prénom</label>
                   <input type="text" id="filterNom" class="form-control filter-input" placeholder="Rechercher par nom ou prénom...">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
+                  <label class="filter-label"><i class="fas fa-id-card mr-1"></i>Numéro de fiche</label>
+                  <input type="text" id="filterNumeroFiche" class="form-control filter-input" placeholder="Rechercher par numéro de fiche...">
+                </div>
+                <div class="col-md-3 mb-3">
                   <label class="filter-label"><i class="fas fa-phone mr-1"></i>Téléphone</label>
                   <input type="text" id="filterTelephone" class="form-control filter-input" placeholder="Rechercher par téléphone...">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                   <label class="filter-label"><i class="fas fa-users mr-1"></i>Collecteur</label>
                   <input type="text" id="filterCollecteur" class="form-control filter-input" placeholder="Rechercher par collecteur...">
                 </div>
@@ -1509,10 +1513,11 @@ include('header.php');
 
     function applyFilter() {
       const filterNom = (document.getElementById('filterNom')?.value || '').toLowerCase().trim();
+      const filterNumeroFiche = (document.getElementById('filterNumeroFiche')?.value || '').toLowerCase().trim();
       const filterTel = (document.getElementById('filterTelephone')?.value || '').toLowerCase().trim();
       const filterCollecteur = (document.getElementById('filterCollecteur')?.value || '').toLowerCase().trim();
 
-      if (!filterNom && !filterTel && !filterCollecteur) {
+      if (!filterNom && !filterNumeroFiche && !filterTel && !filterCollecteur) {
         render(allRows);
         return;
       }
@@ -1522,10 +1527,12 @@ include('header.php');
           ? `${p.collecteur.nom ?? ''} ${p.collecteur.prenoms ?? ''}`.trim().toLowerCase()
           : '';
         const nom = (p.nom_prenoms || '').toLowerCase();
+        const numeroFiche = (p.numero_fiche || '').toLowerCase();
         const tel = (p.telephone || '').toLowerCase();
 
         let match = true;
         if (filterNom && !nom.includes(filterNom)) match = false;
+        if (filterNumeroFiche && !numeroFiche.includes(filterNumeroFiche)) match = false;
         if (filterTel && !tel.includes(filterTel)) match = false;
         if (filterCollecteur && !collecteur.includes(filterCollecteur)) match = false;
 
@@ -1540,6 +1547,7 @@ include('header.php');
     if (resetBtn) {
       resetBtn.addEventListener('click', function() {
         document.getElementById('filterNom').value = '';
+        document.getElementById('filterNumeroFiche').value = '';
         document.getElementById('filterTelephone').value = '';
         document.getElementById('filterCollecteur').value = '';
         render(allRows);
@@ -1816,10 +1824,12 @@ include('header.php');
   // Charger toutes les données pour l'export (sans pagination)
   async function loadAllDataForExport() {
     try {
-      const res = await fetch('../inc/functions/requete/api_requete_planteurs.php?action=planteurs&limit=10000', { cache: 'no-store' });
+      // Charger directement depuis l'API distante pour avoir les données complètes
+      const res = await fetch('https://api.objetombrepegasus.online/api/planteur/actions/planteurs.php?limit=10000', { cache: 'no-store' });
       const json = await res.json();
       if (res.ok && json?.success) {
         allPlanteursForExport = json.data?.planteurs || [];
+        console.log('Données chargées pour export:', allPlanteursForExport.length, 'planteurs');
       }
     } catch (e) {
       console.error('Erreur chargement données export:', e);
@@ -1911,23 +1921,62 @@ include('header.php');
     const tableData = data.map(p => {
       const collecteur = p.collecteur ? `${p.collecteur.nom || ''} ${p.collecteur.prenoms || ''}`.trim() : '';
       const createdAt = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR') : '';
-      // Calculer la superficie totale des parcelles
+      
+      // Calculer la superficie totale - essayer plusieurs sources
       let superficie = 0;
-      if (p.cultures && Array.isArray(p.cultures)) {
-        p.cultures.forEach(c => {
-          if (c.parcelles && Array.isArray(c.parcelles)) {
-            c.parcelles.forEach(parc => {
-              superficie += parseFloat(parc.superficie || parc.surface || 0);
-            });
-          }
-        });
-      } else if (p.exploitation?.superficie) {
-        superficie = parseFloat(p.exploitation.superficie);
-      } else if (p.parcelles && Array.isArray(p.parcelles)) {
-        p.parcelles.forEach(parc => {
-          superficie += parseFloat(parc.superficie || parc.surface || 0);
+      
+      // Debug pour la fiche spécifique
+      if (p.numero_fiche === 'FICH-20260428-8986') {
+        console.log('Debug fiche FICH-20260428-8986:', {
+          exploitation: p.exploitation,
+          cultures: p.cultures,
+          parcelles: p.parcelles
         });
       }
+      
+      // 1. Essayer depuis exploitation.superficie
+      if (p.exploitation && p.exploitation.superficie) {
+        superficie = parseFloat(p.exploitation.superficie) || 0;
+      }
+      
+      // 2. Si pas de superficie, calculer depuis les cultures
+      if (superficie === 0 && p.cultures && Array.isArray(p.cultures) && p.cultures.length > 0) {
+        p.cultures.forEach(culture => {
+          if (culture && typeof culture === 'object') {
+            // Essayer superficie_ha (format API distante)
+            if (culture.superficie_ha) {
+              superficie += parseFloat(culture.superficie_ha) || 0;
+            }
+            // Ou superficie directe de la culture
+            else if (culture.superficie) {
+              superficie += parseFloat(culture.superficie) || 0;
+            }
+            // Ou depuis les parcelles de la culture
+            if (culture.parcelles && Array.isArray(culture.parcelles)) {
+              culture.parcelles.forEach(parc => {
+                if (parc && typeof parc === 'object') {
+                  superficie += parseFloat(parc.superficie || parc.surface || 0);
+                }
+              });
+            }
+          }
+        });
+      }
+      
+      // 3. Si toujours pas de superficie, essayer depuis parcelles directes
+      if (superficie === 0 && p.parcelles && Array.isArray(p.parcelles) && p.parcelles.length > 0) {
+        p.parcelles.forEach(parc => {
+          if (parc && typeof parc === 'object') {
+            superficie += parseFloat(parc.superficie || parc.surface || 0);
+          }
+        });
+      }
+      
+      // Debug final
+      if (p.numero_fiche === 'FICH-20260428-8986') {
+        console.log('Superficie calculée pour FICH-20260428-8986:', superficie);
+      }
+      
       return [
         p.numero_fiche || '',
         p.nom_prenoms || '',

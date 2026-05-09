@@ -169,7 +169,7 @@ include('header.php');
         
 
         <div class="search-container">
-            <div class="row">
+            <div class="row mb-2">
                 <div class="col-md-4">
                     <div class="input-group">
                         <div class="input-group-prepend">
@@ -179,6 +179,14 @@ include('header.php');
                     </div>
                 </div>
                 <div class="col-md-3">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                        </div>
+                        <input type="text" id="ficheFilter" class="form-control" placeholder="Numéro de fiche...">
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <select id="roleFilter" class="form-control">
                         <option value="">Tous les rôles</option>
                         <option value="collecteur">Collecteurs</option>
@@ -186,16 +194,16 @@ include('header.php');
                         <option value="superviseur">Superviseurs</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select id="statusFilter" class="form-control">
                         <option value="">Tous les statuts</option>
                         <option value="1">Actifs</option>
                         <option value="0">Inactifs</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <button id="refreshBtn" class="btn btn-primary btn-block">
-                        <i class="fas fa-sync-alt mr-1"></i>Actualiser
+                        <i class="fas fa-sync-alt"></i>
                     </button>
                 </div>
             </div>
