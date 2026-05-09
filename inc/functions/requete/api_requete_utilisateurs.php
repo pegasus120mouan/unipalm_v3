@@ -30,8 +30,10 @@ $ch = curl_init($url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_TIMEOUT => 30,
+    CURLOPT_TIMEOUT => 60,
+    CURLOPT_CONNECTTIMEOUT => 10,
     CURLOPT_SSL_VERIFYPEER => false,
+    CURLOPT_ENCODING => 'gzip',
 ]);
 
 $response = curl_exec($ch);
@@ -60,7 +62,7 @@ if (!$data || !isset($data['success'])) {
 }
 
 // Fonction pour générer une URL presignée AWS SigV4
-function awsGetPresignedUrl(string $bucket, string $objectKey, int $expires = 3600): ?string {
+function awsGetPresignedUrl(string $bucket, string $objectKey, int $expires = 7200): ?string {
     $accessKey = getenv('AWS_ACCESS_KEY_ID');
     $secretKey = getenv('AWS_SECRET_ACCESS_KEY');
     $region = getenv('AWS_DEFAULT_REGION') ?: 'us-east-1';

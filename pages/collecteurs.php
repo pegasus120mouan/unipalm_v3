@@ -689,7 +689,15 @@ include('header.php');
         noResultsEl.style.display = 'none';
 
         try {
-            const response = await fetch(apiUrl);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            const response = await fetch(apiUrl, {
+                signal: controller.signal,
+                cache: 'no-store'
+            });
+            clearTimeout(timeoutId);
+            
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const result = await response.json();
@@ -699,7 +707,11 @@ include('header.php');
             render(allUsers);
 
         } catch (err) {
-            errorEl.textContent = 'Erreur: ' + err.message;
+            if (err.name === 'AbortError') {
+                errorEl.textContent = 'Erreur: Le chargement a pris trop de temps. Veuillez réessayer.';
+            } else {
+                errorEl.textContent = 'Erreur: ' + err.message;
+            }
             errorEl.style.display = 'block';
         } finally {
             loaderEl.style.display = 'none';
@@ -1153,10 +1165,11 @@ include('header.php');
         doc.setFont('helvetica', 'normal');
         doc.text("CARTE D'IDENTIFICATION", 8, 13);
         
-        // Texte "COLLECTEUR" en haut à droite
+        // Texte du rôle en haut à droite (ENCADREUR si collecteur)
         doc.setFontSize(7);
         doc.setFont('helvetica', 'bold');
-        doc.text(String(user.role || 'COLLECTEUR').toUpperCase(), cardWidth - 8, 10, { align: 'right' });
+        const roleText = (user.role && user.role.toLowerCase() === 'collecteur') ? 'ENCADREUR' : (user.role || 'ENCADREUR');
+        doc.text(String(roleText).toUpperCase(), cardWidth - 8, 10, { align: 'right' });
         
         // Zone photo (placeholder ou vraie photo)
         const photoX = 6;
