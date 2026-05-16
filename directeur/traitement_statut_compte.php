@@ -19,7 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['status'] = "error";
     }
     
-    header('Location: utilisateurs.php');
+    $redirect = $_POST['redirect'] ?? 'utilisateurs.php';
+    header('Location: ' . $redirect);
     exit;
 } else {
     header('Location: utilisateurs.php');

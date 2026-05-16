@@ -938,6 +938,7 @@ background: var(--secondary-color);
                 <table class="table table-modern">
                     <thead>
                         <tr>
+                            <th><i class="fas fa-image"></i> Photo</th>
                             <th><i class="fas fa-id-card"></i> N° Agent</th>
                             <th><i class="fas fa-user"></i> Nom</th>
                             <th><i class="fas fa-user"></i> Prénom</th>
@@ -950,8 +951,19 @@ background: var(--secondary-color);
                     </thead>
                     <tbody>
                         <?php if (!empty($agents_list)): ?>
-                            <?php foreach ($agents_list as $agent) : ?>
+                            <?php foreach ($agents_list as $agent) : 
+                                $avatarFile = !empty($agent['avatar']) ? $agent['avatar'] : 'agents.png';
+                                $photoAgent = '../dossiers_images/' . $avatarFile;
+                            ?>
                                 <tr>
+                                    <td>
+                                        <a href="agent_profil.php?id=<?= $agent['id_agent'] ?>" title="Voir le profil de <?= htmlspecialchars($agent['nom_agent'] . ' ' . $agent['prenom_agent']) ?>">
+                                            <img src="<?= htmlspecialchars($photoAgent) ?>" 
+                                                 alt="Photo" 
+                                                 class="rounded-circle photo-agent-clickable" 
+                                                 style="width: 50px; height: 50px; object-fit: cover; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                                        </a>
+                                    </td>
                                     <td>
                                         <span class="badge bg-primary">
                                             <i class="fas fa-id-card me-1"></i>
@@ -1506,6 +1518,142 @@ background: var(--secondary-color);
     </script>
     <?php $_SESSION['delete_pop'] = false; endif; ?>
 
+<!-- Modal pour modifier la photo de l'agent -->
+<div class="modal fade" id="modalPhotoAgent" tabindex="-1" role="dialog" aria-labelledby="modalPhotoAgentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 20px 25px;">
+                <h5 class="modal-title" id="modalPhotoAgentLabel" style="color: white; font-weight: 600;">
+                    <i class="fas fa-camera mr-2"></i>Modifier la photo
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center" style="padding: 30px;">
+                <div id="photoPreviewContainer" style="margin-bottom: 25px;">
+                    <img id="photoPreview" src="" alt="Photo actuelle" 
+                         style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 4px solid #667eea; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                </div>
+                <h5 id="agentNomModal" style="color: #2c3e50; font-weight: 600; margin-bottom: 20px;"></h5>
+                
+                <form id="formPhotoAgent" enctype="multipart/form-data">
+                    <input type="hidden" id="agentIdPhoto" name="id_agent" value="">
+                    
+                    <div class="form-group">
+                        <label for="nouvellePhoto" class="btn btn-outline-primary btn-lg" style="border-radius: 25px; padding: 12px 30px; cursor: pointer; transition: all 0.3s;">
+                            <i class="fas fa-upload mr-2"></i>Choisir une nouvelle photo
+                        </label>
+                        <input type="file" id="nouvellePhoto" name="photo" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div id="nouvellePhotoPreview" style="display: none; margin-top: 20px;">
+                        <p style="color: #6c757d; margin-bottom: 10px;"><i class="fas fa-image mr-1"></i>Nouvelle photo sélectionnée :</p>
+                        <img id="nouvellePhotoImg" src="" alt="Nouvelle photo" 
+                             style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 3px solid #28a745;">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border: none; padding: 15px 25px 25px; justify-content: center; gap: 15px;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 25px; padding: 10px 25px;">
+                    <i class="fas fa-times mr-2"></i>Annuler
+                </button>
+                <button type="button" id="btnSauvegarderPhoto" class="btn btn-primary" style="border-radius: 25px; padding: 10px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    <i class="fas fa-save mr-2"></i>Sauvegarder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.photo-agent-clickable:hover {
+    transform: scale(1.15);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Quand on clique sur une photo d'agent
+    $('.photo-agent-clickable').on('click', function() {
+        var agentId = $(this).data('agent-id');
+        var agentNom = $(this).data('agent-nom');
+        var agentPhoto = $(this).data('agent-photo');
+        
+        $('#agentIdPhoto').val(agentId);
+        $('#agentNomModal').text(agentNom);
+        $('#photoPreview').attr('src', agentPhoto);
+        $('#nouvellePhotoPreview').hide();
+        $('#nouvellePhoto').val('');
+    });
+    
+    // Prévisualisation de la nouvelle photo
+    $('#nouvellePhoto').on('change', function() {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#nouvellePhotoImg').attr('src', e.target.result);
+                $('#nouvellePhotoPreview').show();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Sauvegarder la photo
+    $('#btnSauvegarderPhoto').on('click', function() {
+        var fileInput = $('#nouvellePhoto')[0];
+        if (!fileInput.files || !fileInput.files[0]) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Aucune photo sélectionnée',
+                text: 'Veuillez choisir une photo avant de sauvegarder.',
+                confirmButtonColor: '#667eea'
+            });
+            return;
+        }
+        
+        var formData = new FormData();
+        formData.append('id_agent', $('#agentIdPhoto').val());
+        formData.append('photo', fileInput.files[0]);
+        formData.append('action', 'update_photo');
+        
+        var btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Sauvegarde...');
+        
+        $.ajax({
+            url: 'traitement_agents.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#modalPhotoAgent').modal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Photo mise à jour !',
+                    text: 'La photo de l\'agent a été modifiée avec succès.',
+                    confirmButtonColor: '#667eea'
+                }).then(function() {
+                    location.reload();
+                });
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Une erreur est survenue lors de la mise à jour de la photo.',
+                    confirmButtonColor: '#667eea'
+                });
+            },
+            complete: function() {
+                btn.prop('disabled', false).html('<i class="fas fa-save mr-2"></i>Sauvegarder');
+            }
+        });
+    });
+});
+</script>
 
 </body>
 </html>

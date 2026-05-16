@@ -43,6 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   case 'directeur':
                     header("location: ../directeur/bordereaux.php");
                       break;
+                  case 'verificateur':
+                    header("location: verification_agent.php");
+                      break;
                   default:
                       header('Location: ../caisse/approvisionnement.php');
                       break;

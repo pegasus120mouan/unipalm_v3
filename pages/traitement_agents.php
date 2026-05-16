@@ -131,6 +131,58 @@ function envoyerSMSNouvelAgent($numero_telephone, $nom_agent, $prenom_agent, $co
 file_put_contents('../debug_agents.txt', date('Y-m-d H:i:s') . " - POST reçu: " . print_r($_POST, true) . "\n", FILE_APPEND);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // Mise à jour de la photo d'un agent (AJAX)
+    if (isset($_POST['action']) && $_POST['action'] === 'update_photo') {
+        header('Content-Type: application/json');
+        
+        $id_agent = intval($_POST['id_agent'] ?? 0);
+        
+        if ($id_agent <= 0) {
+            echo json_encode(['success' => false, 'message' => 'ID agent invalide']);
+            exit;
+        }
+        
+        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            echo json_encode(['success' => false, 'message' => 'Aucune photo uploadée']);
+            exit;
+        }
+        
+        $file = $_FILES['photo'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        
+        if (!in_array($file['type'], $allowedTypes)) {
+            echo json_encode(['success' => false, 'message' => 'Type de fichier non autorisé']);
+            exit;
+        }
+        
+        // Créer le dossier si nécessaire
+        $uploadDir = '../dossiers_images/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        // Générer un nom unique pour le fichier
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $newFileName = 'agent_' . $id_agent . '_' . time() . '.' . $extension;
+        $uploadPath = $uploadDir . $newFileName;
+        
+        if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+            // Mettre à jour la base de données (colonne avatar)
+            try {
+                $stmt = $conn->prepare("UPDATE agents SET avatar = ? WHERE id_agent = ?");
+                $stmt->execute([$newFileName, $id_agent]);
+                
+                echo json_encode(['success' => true, 'message' => 'Photo mise à jour', 'photo' => $newFileName]);
+            } catch (PDOException $e) {
+                echo json_encode(['success' => false, 'message' => 'Erreur base de données: ' . $e->getMessage()]);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Erreur lors de l\'upload']);
+        }
+        exit;
+    }
+    
     // Ajout d'un agent
     if (isset($_POST['add_agent'])) {
         $nom = trim($_POST['nom']);

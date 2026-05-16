@@ -1,6 +1,6 @@
 <?php
 // Configuration et connexion à la base de données
-require_once 'config_verification.php';
+require_once 'pont_verification.php';
 
 // Récupérer le code du pont depuis l'URL
 $code_pont = isset($_GET['code']) ? trim($_GET['code']) : '';
@@ -400,65 +400,8 @@ if ($code_pont) {
                         </div>
                     </div>
 
-                    <div class="info-item">
-                        <div class="info-label">
-                            <i class="fas fa-calendar-plus mr-2"></i>Date de création
-                        </div>
-                        <div class="info-value">
-                            <?= isset($pont['date_creation']) ? date('d/m/Y H:i', strtotime($pont['date_creation'])) : 'Non disponible' ?>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Coordinates Section -->
-                <div class="coordinates-section">
-                    <h3 class="coordinates-title">
-                        <i class="fas fa-map-marker-alt mr-2"></i>Coordonnées GPS
-                    </h3>
-                    
-                    <div class="coordinates-grid">
-                        <div class="coordinate-item">
-                            <div class="coordinate-label">Latitude</div>
-                            <div class="coordinate-value"><?= number_format($pont['latitude'], 6) ?>°</div>
-                        </div>
-                        <div class="coordinate-item">
-                            <div class="coordinate-label">Longitude</div>
-                            <div class="coordinate-value"><?= number_format($pont['longitude'], 6) ?>°</div>
-                        </div>
-                    </div>
-
-                    <div class="text-center">
-                        <a href="https://maps.google.com/?q=<?= $pont['latitude'] ?>,<?= $pont['longitude'] ?>" 
-                           target="_blank" class="map-link">
-                            <i class="fas fa-external-link-alt mr-2"></i>
-                            Ouvrir dans Google Maps
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Additional Info -->
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <div class="info-label">
-                                <i class="fas fa-hashtag mr-2"></i>ID Système
-                            </div>
-                            <div class="info-value">#<?= $pont['id_pont'] ?></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <div class="info-label">
-                                <i class="fas fa-shield-alt mr-2"></i>Vérification
-                            </div>
-                            <div class="info-value">
-                                <span class="status-badge status-actif">
-                                    <i class="fas fa-check-circle mr-2"></i>Authentifié
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
         <?php else: ?>

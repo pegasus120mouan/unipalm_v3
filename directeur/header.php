@@ -919,6 +919,13 @@ if (!isset($_SESSION['user_id'])) {
                 </li>
 
                 <li class="nav-item">
+                  <a href="liste_verificateurs.php" class="nav-link">
+                    <i class="fas fa-user-tie"></i>
+                    <p>Vérificateurs</p>
+                  </a>
+                </li>
+
+                <li class="nav-item">
                   <a href="gestion_access.php" class="nav-link">
                     <i class="fas fa-lock"></i>
                     <p>Gestion des acccès</p>

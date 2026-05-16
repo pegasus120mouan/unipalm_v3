@@ -12,7 +12,8 @@ function getAgents($conn) {
     CONCAT(utilisateurs.nom, ' ', utilisateurs.prenoms) AS utilisateur_createur,
     agents.contact,
     agents.date_ajout,
-    agents.date_modification
+    agents.date_modification,
+    agents.avatar
 FROM 
     agents
 LEFT JOIN 

@@ -448,3 +448,15 @@ SMS HSMS envoyé avec succès à 0787703000 pour l'agent AGT-25-ZAL-PM02 - ID: a
     [id_agent] => 196
 )
 
+2026-05-15 12:35:14 - POST reçu: Array
+(
+    [id_agent] => 120
+    [action] => update_photo
+)
+
+2026-05-15 12:38:52 - POST reçu: Array
+(
+    [id_agent] => 120
+    [action] => update_photo
+)
+
