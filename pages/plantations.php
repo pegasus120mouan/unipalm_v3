@@ -757,6 +757,18 @@ include('header.php');
     box-shadow: 0 6px 20px rgba(52, 152, 219, 0.35);
 }
 
+.toolbar-btn-import {
+    background: linear-gradient(135deg, #faf5ff 0%, #e9d8fd 100%);
+    color: #6b46c1;
+}
+
+.toolbar-btn-import:hover {
+    background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(128, 90, 213, 0.35);
+}
+
 .toolbar-right {
     display: flex;
     align-items: center;
@@ -869,6 +881,15 @@ include('header.php');
           <!-- Barre d'outils professionnelle -->
           <div class="toolbar-card">
             <div class="toolbar-left">
+              <span class="toolbar-title"><i class="fas fa-file-import mr-2"></i>Importer</span>
+              <div class="toolbar-buttons">
+                <button type="button" class="toolbar-btn toolbar-btn-import" data-toggle="modal" data-target="#importPlanteursModal">
+                  <i class="fas fa-file-upload"></i>
+                  <span>CSV</span>
+                </button>
+              </div>
+            </div>
+            <div class="toolbar-left">
               <span class="toolbar-title"><i class="fas fa-download mr-2"></i>Exporter les données</span>
               <div class="toolbar-buttons">
                 <button type="button" class="toolbar-btn toolbar-btn-pdf" data-toggle="modal" data-target="#exportPdfModal">
@@ -932,6 +953,52 @@ include('header.php');
       </div>
     </div>
   </section>
+</div>
+
+<!-- Modal import CSV -->
+<div class="modal fade" id="importPlanteursModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%); color: white;">
+        <h5 class="modal-title"><i class="fas fa-file-import mr-2"></i>Importer des planteurs</h5>
+        <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <form method="post" action="traitement_import_planteurs.php" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Import <strong>payload_json</strong> (format application mobile) ou CSV simple.
+            Fichiers acceptés : <strong>.xlsx</strong> ou <strong>.csv</strong> UTF-8 (séparateur <code>;</code> ou <code>,</code>). Max <strong>500</strong> lignes.
+            Les fiches déjà en base (<code>numero_fiche</code> ou même nom + téléphone) sont <strong>ignorées</strong>.
+          </div>
+          <p class="mb-2"><strong>Format recommandé — colonne <code>payload_json</code> :</strong></p>
+          <ul class="small text-muted mb-2">
+            <li>Une colonne <code>payload_json</code> avec le JSON complet par ligne</li>
+            <li>Insère : <strong>exploitant</strong>, <strong>exploitation</strong>, <strong>cultures</strong>, <strong>parcelles</strong>, <strong>informations</strong></li>
+          </ul>
+          <p class="mb-2"><strong>Format simple (sans JSON) :</strong></p>
+          <ul class="small text-muted mb-3">
+            <li><code>nom_prenoms</code>, <code>telephone</code> (obligatoires)</li>
+            <li><code>region</code>, <code>sous_prefecture</code>, <code>village</code>, coordonnées GPS…</li>
+          </ul>
+          <a href="modele_import_planteurs.csv" class="btn btn-outline-secondary btn-sm mb-3" download>
+            <i class="fas fa-download"></i> Télécharger le modèle CSV
+          </a>
+          <div class="form-group">
+            <label for="fichier_csv"><i class="fas fa-file-excel mr-1"></i>Fichier CSV ou Excel (.xlsx)</label>
+            <input type="file" class="form-control-file" id="fichier_csv" name="fichier_csv"
+                   accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" style="background: #6b46c1; border-color: #6b46c1;">
+            <i class="fas fa-upload mr-1"></i> Lancer l'import
+          </button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="parcellesMapModal" tabindex="-1" role="dialog" aria-hidden="true">
