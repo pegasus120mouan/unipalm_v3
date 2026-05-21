@@ -128,21 +128,8 @@ function readCsvSheet(string $path): array
 /**
  * @return array{header: array<int, string>, dataRows: array<int, array<int, string>>}
  */
-function readXlsxSheet(string $path): array
+function xlsxRowsToSheet(array $all): array
 {
-    $autoload = dirname(__DIR__) . '/vendor/autoload.php';
-    if (!is_file($autoload)) {
-        throw new RuntimeException(
-            'Lecture Excel indisponible : exécutez « composer install » à la racine du projet.'
-        );
-    }
-
-    require_once $autoload;
-
-    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
-    $sheet = $spreadsheet->getActiveSheet();
-    $all = $sheet->toArray(null, true, true, false);
-
     if (empty($all)) {
         throw new RuntimeException('Fichier Excel vide.');
     }
@@ -151,10 +138,47 @@ function readXlsxSheet(string $path): array
     $dataRows = [];
 
     foreach ($all as $line) {
-        $dataRows[] = array_map(fn($v) => (string) $v, $line);
+        $dataRows[] = array_map(fn($v) => (string) $v, is_array($line) ? $line : [$line]);
     }
 
     return ['header' => $header, 'dataRows' => $dataRows];
+}
+
+/**
+ * Lecture .xlsx sans Composer (SimpleXLSX embarqué), repli PhpSpreadsheet si disponible.
+ *
+ * @return array{header: array<int, string>, dataRows: array<int, array<int, string>>}
+ */
+function readXlsxSheet(string $path): array
+{
+    if (!class_exists('ZipArchive')) {
+        throw new RuntimeException('Extension PHP ZipArchive requise pour lire les fichiers Excel.');
+    }
+
+    $simpleXlsxPath = dirname(__DIR__) . '/assets/class/SimpleXLSX.php';
+    if (is_file($simpleXlsxPath)) {
+        require_once $simpleXlsxPath;
+        $xlsx = SimpleXLSX::parse($path);
+        if ($xlsx) {
+            return xlsxRowsToSheet($xlsx->rows());
+        }
+        $parseError = SimpleXLSX::parseError();
+        if ($parseError) {
+            throw new RuntimeException('Fichier Excel illisible : ' . $parseError);
+        }
+    }
+
+    $autoload = dirname(__DIR__) . '/vendor/autoload.php';
+    if (is_file($autoload)) {
+        require_once $autoload;
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+        $all = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+        return xlsxRowsToSheet($all);
+    }
+
+    throw new RuntimeException(
+        'Lecture Excel indisponible : fichier assets/class/SimpleXLSX.php manquant sur le serveur.'
+    );
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
