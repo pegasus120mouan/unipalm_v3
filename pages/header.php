@@ -1022,6 +1022,12 @@ if (!isset($_SESSION['user_id'])) {
                     <p>Comptes agents</p>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a href="compte_chef_equipe.php" class="nav-link">
+                    <i class="fas fa-users-cog"></i>
+                    <p>Compte chef équipe</p>
+                  </a>
+                </li>
                 
                 <li class="nav-item">
                   <a href="recus.php" class="nav-link">
