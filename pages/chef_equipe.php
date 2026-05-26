@@ -99,6 +99,7 @@ $usines = getUsines($conn);
                   <tr>
                     <th>Nom</th>
                     <th>Prenoms</th>
+                    <th>Token</th>
                     <th>Actions</th>
                   </tr>
      </thead>
@@ -109,6 +110,15 @@ $usines = getUsines($conn);
                 <td><?=$chef['nom']?></td>
 
                 <td><?=$chef['prenoms']?></td>
+                <td>
+                    <?php if (!empty($chef['token'])): ?>
+                        <span class="badge badge-success"><?= htmlspecialchars($chef['token']) ?></span>
+                    <?php else: ?>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="genererToken(<?= $chef['id_chef'] ?>)">
+                            <i class="fas fa-key"></i> Générer
+                        </button>
+                    <?php endif; ?>
+                </td>
                     <td class="actions">
                         <a href="#" class="edit" data-toggle="modal" data-target="#modifier<?= $chef['id_chef'] ?>">
                         <i class="fas fa-pen fa-xs" style="font-size:24px;color:blue"></i>
@@ -139,6 +149,11 @@ $usines = getUsines($conn);
                <div class="mb-3">
                   <label for="edit-prenoms" class="form-label">Prénoms</label>
                   <input type="text" class="form-control" id="edit-prenoms" name="prenoms" value="<?= htmlspecialchars($chef['prenoms']) ?>" required>
+               </div>
+
+               <div class="mb-3">
+                  <label for="edit-token" class="form-label">Token</label>
+                  <input type="text" class="form-control" id="edit-token" name="token" value="<?= htmlspecialchars($chef['token'] ?? '') ?>" placeholder="Token (optionnel)">
                </div>
 
                <div class="modal-footer">
@@ -180,6 +195,11 @@ $usines = getUsines($conn);
                     <label for="exampleInputEmail3">Prenoms</label>
                     <input type="text" class="form-control" id="exampleInputEmail3"
                      placeholder="Prenom" name="prenoms">
+                </div>
+
+                  <div class="form-group">
+                    <label for="token">Token</label>
+                    <input type="text" class="form-control" id="token" placeholder="Token (optionnel)" name="token">
                 </div>
 
                                             
@@ -289,6 +309,29 @@ if(isset($_SESSION['delete_pop']) && $_SESSION['delete_pop'] ==  true) {
             window.location.href = 'traitement_chefs_equipe.php?action=delete&id=' + id;
         }
     });
+}
+
+function genererToken(id_chef) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Générer un token ?',
+            text: "Le token sera généré une seule fois et ne pourra plus être modifié.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Oui, générer',
+            cancelButtonText: 'Annuler'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'traitement_chefs_equipe.php?action=generate_token&id=' + id_chef;
+            }
+        });
+    } else {
+        if (confirm('Générer un token pour ce chef d\'équipe ? Cette action ne peut être effectuée qu\'une seule fois.')) {
+            window.location.href = 'traitement_chefs_equipe.php?action=generate_token&id=' + id_chef;
+        }
+    }
 }
 </script>
 <script>
