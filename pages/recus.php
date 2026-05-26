@@ -684,9 +684,9 @@ $(document).ready(function() {
         <div class="stat-card">
             <i class="fas fa-coins stat-icon"></i>
             <div class="stat-number"><?php
-                $stmt = $conn->prepare("SELECT SUM(montant_paye) as total FROM recus_paiements");
+                $stmt = $conn->prepare("SELECT COALESCE(SUM(montant_paye), 0) as total FROM recus_paiements");
                 $stmt->execute();
-                $total_montant = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+                $total_montant = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
                 echo number_format($total_montant, 0, ',', ' ');
             ?></div>
             <div class="stat-label">Total Payé (FCFA)</div>

@@ -91,6 +91,11 @@ if ($ponts === false) {
     $ponts = [];
 }
 
+// Récupérer les agents pour le select des gérants
+$stmt_agents = $conn->prepare("SELECT id_agent, CONCAT(nom, ' ', prenom) as nom_complet FROM agents WHERE date_suppression IS NULL ORDER BY nom, prenom");
+$stmt_agents->execute();
+$agents = $stmt_agents->fetchAll(PDO::FETCH_ASSOC);
+
 // Inclure le header APRÈS le traitement POST
 include('header.php');
 ?>
@@ -750,7 +755,12 @@ include('header.php');
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="gerant">Gérant *</label>
-                                <input type="text" class="form-control" id="gerant" name="gerant" required>
+                                <select class="form-control select2" id="gerant" name="gerant" required>
+                                    <option value="">-- Sélectionner un agent --</option>
+                                    <?php foreach ($agents as $agent): ?>
+                                        <option value="<?= htmlspecialchars($agent['nom_complet']) ?>"><?= htmlspecialchars($agent['nom_complet']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -840,7 +850,12 @@ include('header.php');
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="edit_gerant">Gérant *</label>
-                                <input type="text" class="form-control" id="edit_gerant" name="gerant" required>
+                                <select class="form-control select2" id="edit_gerant" name="gerant" required>
+                                    <option value="">-- Sélectionner un agent --</option>
+                                    <?php foreach ($agents as $agent): ?>
+                                        <option value="<?= htmlspecialchars($agent['nom_complet']) ?>"><?= htmlspecialchars($agent['nom_complet']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -1056,7 +1071,11 @@ function editPontDirect(id, code_pont, nom_pont, latitude, longitude, gerant, co
     document.getElementById('edit_nom_pont').value = nom_pont;
     document.getElementById('edit_latitude').value = latitude;
     document.getElementById('edit_longitude').value = longitude;
-    document.getElementById('edit_gerant').value = gerant;
+    
+    // Sélectionner le gérant dans le select (avec Select2)
+    var selectGerant = $('#edit_gerant');
+    selectGerant.val(gerant).trigger('change');
+    
     document.getElementById('edit_cooperatif').value = cooperatif;
     document.getElementById('edit_statut').value = statut;
     
@@ -1437,6 +1456,36 @@ function handleNoResults(visibleCount, totalCount) {
         noResultsRow.style.display = 'none';
     }
 }
+
+// Initialisation de Select2 pour les champs gérant
+$(document).ready(function() {
+    // Initialiser Select2 sur les selects de gérant
+    $('#gerant, #edit_gerant').select2({
+        placeholder: '-- Sélectionner un agent --',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#add-pont, #edit-pont')
+    });
+    
+    // Réinitialiser Select2 quand les modales s'ouvrent
+    $('#add-pont').on('shown.bs.modal', function() {
+        $('#gerant').select2({
+            placeholder: '-- Sélectionner un agent --',
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#add-pont')
+        });
+    });
+    
+    $('#edit-pont').on('shown.bs.modal', function() {
+        $('#edit_gerant').select2({
+            placeholder: '-- Sélectionner un agent --',
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#edit-pont')
+        });
+    });
+});
 </script>
 
 <?php include('footer.php'); ?>
