@@ -1815,36 +1815,166 @@ include('header.php');
     doc.save(`planteurs_${date.replace(/\//g, '-')}.pdf`);
   }
 
-  function printTableExcel() {
-    const table = document.getElementById('example1');
-    const rows = table.querySelectorAll('tbody tr');
+  async function printTableExcel() {
+    // Créer un loader personnalisé
+    let loaderDiv = document.createElement('div');
+    loaderDiv.id = 'excel-loader';
+    loaderDiv.innerHTML = `
+      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 40px 50px; border-radius: 15px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+          <div class="spinner-border text-success" role="status" style="width: 4rem; height: 4rem; border-width: 5px;">
+            <span class="sr-only">Chargement...</span>
+          </div>
+          <div style="margin-top: 25px; font-size: 18px; font-weight: 600; color: #27ae60;">
+            <i class="fas fa-file-excel mr-2"></i>Export Excel
+          </div>
+          <div style="font-size: 14px; color: #666; margin-top: 10px;">
+            Chargement des données en cours...
+          </div>
+          <div style="font-size: 12px; color: #999; margin-top: 5px;">
+            Veuillez patienter
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(loaderDiv);
     
-    let csv = 'N° Fiche;Nom & Prénoms;Téléphone;Collecteur;Région;Sous-préfecture;Village;Créé le\n';
-    
-    rows.forEach(row => {
-      const cells = row.querySelectorAll('td');
-      if (cells.length > 1) {
+    // Fonction pour fermer le loader
+    const closeLoader = () => {
+      const loader = document.getElementById('excel-loader');
+      if (loader) loader.remove();
+    };
+
+    try {
+      // Charger TOUTES les données depuis l'API locale
+      const res = await fetch('../inc/functions/requete/api_requete_planteurs.php?action=planteurs&limit=100000', { cache: 'no-store' });
+      
+      if (!res.ok) {
+        throw new Error('Erreur serveur: ' + res.status);
+      }
+      
+      const json = await res.json();
+      console.log('Réponse API:', json);
+      
+      let planteurs = [];
+      if (json?.success && json?.data?.planteurs) {
+        planteurs = json.data.planteurs;
+      } else if (json?.data && Array.isArray(json.data)) {
+        planteurs = json.data;
+      } else if (Array.isArray(json)) {
+        planteurs = json;
+      } else if (json?.planteurs) {
+        planteurs = json.planteurs;
+      }
+      
+      console.log('Nombre de planteurs:', planteurs.length);
+      
+      if (planteurs.length === 0) {
+        throw new Error('Aucune donnée trouvée dans la réponse');
+      }
+      
+      let csv = 'N° Fiche;Nom & Prénoms;Téléphone;Collecteur;Région;Sous-préfecture;Village;Superficie (ha);Créé le\n';
+      
+      // Debug: afficher la structure du premier planteur
+      if (planteurs.length > 0) {
+        console.log('Structure planteur:', JSON.stringify(planteurs[0], null, 2));
+      }
+      
+      planteurs.forEach(p => {
+        // Extraire les données avec les différentes structures possibles
+        const collecteur = p.collecteur 
+          ? `${p.collecteur.nom || ''} ${p.collecteur.prenoms || ''}`.trim()
+          : (p.collecteur_nom || '');
+        const region = p.exploitation?.region || p.region || '';
+        const sousPref = p.exploitation?.sous_prefecture_village || p.sous_prefecture || '';
+        const village = p.exploitation?.village || p.village || '';
+        const dateCreation = p.date_creation || p.created_at || '';
+        
+        // Calculer la superficie totale depuis les cultures
+        let superficie = 0;
+        
+        // Les cultures sont dans p.cultures avec superficie_ha
+        if (p.cultures && Array.isArray(p.cultures) && p.cultures.length > 0) {
+          p.cultures.forEach(c => {
+            const sup = parseFloat(c.superficie_ha || c.superficie_hectares || c.superficie || 0);
+            superficie += sup;
+          });
+        }
+        
         const rowData = [
-          cells[1]?.textContent?.trim() || '',
-          cells[2]?.textContent?.trim() || '',
-          cells[3]?.textContent?.trim() || '',
-          cells[4]?.textContent?.trim() || '',
-          cells[5]?.textContent?.trim() || '',
-          cells[6]?.textContent?.trim() || '',
-          cells[7]?.textContent?.trim() || '',
-          cells[8]?.textContent?.trim() || ''
+          p.numero_fiche || '',
+          (p.nom_prenoms || '').replace(/;/g, ','),
+          p.telephone || '',
+          collecteur.replace(/;/g, ','),
+          region.replace(/;/g, ','),
+          sousPref.replace(/;/g, ','),
+          village.replace(/;/g, ','),
+          superficie > 0 ? superficie.toFixed(2).replace('.', ',') : '0',
+          dateCreation ? new Date(dateCreation).toLocaleDateString('fr-FR') : ''
         ];
         csv += rowData.join(';') + '\n';
-      }
-    });
-    
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
-    link.href = URL.createObjectURL(blob);
-    link.download = `planteurs_${date}.csv`;
-    link.click();
+      });
+      
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+      link.href = URL.createObjectURL(blob);
+      link.download = `planteurs_${date}.csv`;
+      link.click();
+
+      // Fermer le loader et afficher succès
+      closeLoader();
+      
+      // Afficher message de succès
+      let successDiv = document.createElement('div');
+      successDiv.id = 'excel-success';
+      successDiv.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+          <div style="background: white; padding: 40px 50px; border-radius: 15px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="color: #27ae60; font-size: 60px; margin-bottom: 15px;">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div style="font-size: 20px; font-weight: 600; color: #333;">Export réussi !</div>
+            <div style="font-size: 14px; color: #666; margin-top: 10px;">
+              <strong>${planteurs.length}</strong> planteurs exportés
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(successDiv);
+      
+      // Fermer automatiquement après 2 secondes
+      setTimeout(() => {
+        const success = document.getElementById('excel-success');
+        if (success) success.remove();
+      }, 2000);
+
+    } catch (error) {
+      console.error('Erreur export Excel:', error);
+      closeLoader();
+      
+      // Afficher message d'erreur
+      let errorDiv = document.createElement('div');
+      errorDiv.id = 'excel-error';
+      errorDiv.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+          <div style="background: white; padding: 40px 50px; border-radius: 15px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="color: #e74c3c; font-size: 60px; margin-bottom: 15px;">
+              <i class="fas fa-times-circle"></i>
+            </div>
+            <div style="font-size: 20px; font-weight: 600; color: #333;">Erreur</div>
+            <div style="font-size: 14px; color: #666; margin-top: 10px;">
+              Impossible d'exporter les données
+            </div>
+            <button onclick="document.getElementById('excel-error').remove()" style="margin-top: 20px; padding: 10px 30px; background: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;">
+              Fermer
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(errorDiv);
+    }
   }
 
   // Gestion du modal d'export PDF
