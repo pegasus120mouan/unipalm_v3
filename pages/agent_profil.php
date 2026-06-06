@@ -323,9 +323,9 @@ if (isset($_SESSION['profil_message'])) {
                     </div>
                 </div>
                 
-                <a href="generer_carte_agent.php?id=<?= $agent['id_agent'] ?>" class="btn btn-tickets" target="_blank">
-                    <i class="fas fa-id-card mr-2"></i>Générer carte
-                </a>
+                <button type="button" class="btn btn-tickets" id="btnGenererCarteAgent">
+                    <i class="fas fa-id-card mr-2"></i>Générer carte PDF
+                </button>
             </div>
             
             <!-- Contenu principal -->
@@ -411,11 +411,220 @@ function previewAndSubmit(input) {
             document.getElementById('profilePhotoPreview').src = e.target.result;
         };
         reader.readAsDataURL(input.files[0]);
-        
-        // Soumettre le formulaire automatiquement
         input.form.submit();
     }
 }
+
+(function() {
+    const agentData = <?= json_encode([
+        'id_agent'      => (int) $agent['id_agent'],
+        'numero_agent'  => $agent['numero_agent'],
+        'nom'           => $agent['nom'],
+        'prenom'        => $agent['prenom'],
+        'contact'       => $agent['contact'],
+        'chef_equipe'   => $agent['chef_equipe'] ?? 'Non assigné',
+        'date_ajout'    => $agent['date_ajout'],
+        'photo_url'     => '../dossiers_images/' . $avatarFile,
+    ], JSON_UNESCAPED_UNICODE) ?>;
+
+    const isHttps = window.location.protocol === 'https:';
+    const filigraneCandidates = [
+        '../dist/img/cartes/palmci.png',
+        '../dist/img/cartes/palmci.jpg',
+        '../dist/img/cartes/logo.png',
+    ];
+
+    function loadImageAsBase64(url) {
+        return new Promise((resolve) => {
+            if (!url) {
+                resolve(null);
+                return;
+            }
+            let imageUrl = url;
+            if (isHttps && url.startsWith('http://')) {
+                imageUrl = '../inc/functions/requete/proxy_image.php?url=' + encodeURIComponent(url);
+            }
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                try {
+                    resolve(canvas.toDataURL('image/jpeg'));
+                } catch (e) {
+                    resolve(null);
+                }
+            };
+            img.onerror = () => resolve(null);
+            img.src = imageUrl;
+        });
+    }
+
+    async function loadFiligrane(url, opacity) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.globalAlpha = opacity;
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = () => resolve(null);
+            img.src = url;
+        });
+    }
+
+    async function resolveFiligrane() {
+        for (const path of filigraneCandidates) {
+            const data = await loadFiligrane(path, 0.10);
+            if (data) {
+                return data;
+            }
+        }
+        return null;
+    }
+
+    async function generateAgentCard(agent) {
+        if (!window.jspdf || !window.QRCode) {
+            alert('Bibliothèque PDF non chargée. Rechargez la page.');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const cardWidth = 85.6;
+        const cardHeight = 54;
+
+        const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: [cardHeight, cardWidth]
+        });
+
+        // Fond bleu clair
+        doc.setFillColor(200, 230, 255);
+        doc.roundedRect(0, 0, cardWidth, cardHeight, 3, 3, 'F');
+
+        doc.setDrawColor(147, 197, 253);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(2, 2, cardWidth - 4, cardHeight - 4, 2, 2, 'S');
+
+        // Filigrane Palmci
+        const filigrane = await resolveFiligrane();
+        if (filigrane) {
+            const wmSize = 38;
+            doc.addImage(filigrane, 'PNG', (cardWidth - wmSize) / 2, (cardHeight - wmSize) / 2, wmSize, wmSize);
+        }
+
+        // En-tête bleu
+        doc.setFillColor(96, 165, 250);
+        doc.roundedRect(3, 3, cardWidth - 6, 12, 1, 1, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('UNIPALM', 8, 10);
+        doc.setFontSize(6);
+        doc.setFont('helvetica', 'normal');
+        doc.text("CARTE D'IDENTIFICATION", 8, 13);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text('AGENT', cardWidth - 8, 10, { align: 'right' });
+
+        // Photo
+        const photoX = 6;
+        const photoY = 18;
+        const photoSize = 20;
+        doc.setFillColor(230, 230, 230);
+        doc.roundedRect(photoX, photoY, photoSize, photoSize, 1, 1, 'F');
+        doc.setDrawColor(96, 165, 250);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(photoX, photoY, photoSize, photoSize, 1, 1, 'S');
+
+        const photo = await loadImageAsBase64(agent.photo_url);
+        if (photo) {
+            doc.addImage(photo, 'JPEG', photoX + 0.5, photoY + 0.5, photoSize - 1, photoSize - 1);
+        }
+
+        // Coopérative / chef d'équipe sous la photo
+        const equipeY = photoY + photoSize + 1.5;
+        const equipeW = photoSize + 2;
+        doc.setFontSize(5);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'bold');
+        const equipeLines = doc.splitTextToSize(String(agent.chef_equipe || 'Non assigné'), equipeW);
+        doc.text(equipeLines, photoX, equipeY);
+
+        // Informations (centre)
+        const infoX = 30;
+        let infoY = 20;
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(agent.nom || '').toUpperCase(), infoX, infoY);
+
+        infoY += 5;
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(agent.prenom || ''), infoX, infoY);
+
+        infoY += 6;
+        doc.setFontSize(7);
+        doc.setTextColor(80, 80, 80);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Contact:', infoX, infoY);
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(agent.contact || ''), infoX + 12, infoY);
+
+        // QR Code
+        const qrX = cardWidth - 22;
+        const qrY = 18;
+        const qrSize = 18;
+        const qrData = 'https://unipalm.ci/verification_agent.php?code=' + encodeURIComponent(agent.numero_agent || '');
+
+        try {
+            const qrDataUrl = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
+            doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        } catch (e) {
+            console.warn('QR Code non généré:', e);
+        }
+
+        // Pied de page
+        doc.setFillColor(96, 165, 250);
+        doc.roundedRect(3, cardHeight - 10, cardWidth - 6, 7, 1, 1, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text('CARTE N° : ' + String(agent.numero_agent || ''), 8, cardHeight - 5);
+
+        const dateCreation = agent.date_ajout
+            ? new Date(agent.date_ajout).toLocaleDateString('fr-FR')
+            : new Date().toLocaleDateString('fr-FR');
+        doc.setFontSize(6);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Créé le: ' + dateCreation, cardWidth - 8, cardHeight - 5, { align: 'right' });
+
+        const fileName = ('carte_agent_' + (agent.nom || '') + '_' + (agent.prenom || '')).replace(/\s+/g, '_') + '.pdf';
+        doc.save(fileName);
+    }
+
+    document.getElementById('btnGenererCarteAgent').addEventListener('click', function() {
+        this.disabled = true;
+        generateAgentCard(agentData).finally(() => {
+            this.disabled = false;
+        });
+    });
+})();
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 
 <?php include('footer.php'); ?>
